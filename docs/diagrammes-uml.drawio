@@ -1,0 +1,1079 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36" version="29.6.0" pages="8">
+  <diagram id="class-diagram" name="Diagramme de Classes">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- TITRE -->
+        <mxCell id="title1" value="DIAGRAMME DE CLASSES - Gestion Stock Frigorifique" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+        <!-- CLASSE USER -->
+        <mxCell id="user" value="&lt;b&gt;User&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#dae8fc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="200" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="user-attr" value="- id: int&#xa;- email: string&#xa;- password: string&#xa;- roles: array&#xa;- firstName: string&#xa;- lastName: string&#xa;- isActive: bool&#xa;- failedLoginAttempts: int&#xa;- lockedUntil: DateTime?&#xa;- client: Client?&#xa;- createdAt: DateTime&#xa;- updatedAt: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="user">
+          <mxGeometry y="26" width="200" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="user-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="user">
+          <mxGeometry y="196" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="user-meth" value="+ getFullName(): string&#xa;+ isLocked(): bool&#xa;+ hasRole(role): bool&#xa;+ incrementFailedLoginAttempts()&#xa;+ resetFailedLoginAttempts()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="user">
+          <mxGeometry y="204" width="200" height="76" as="geometry" />
+        </mxCell>
+        <!-- CLASSE CLIENT -->
+        <mxCell id="client" value="&lt;b&gt;Client&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#d5e8d4;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="280" y="80" width="200" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="client-attr" value="- id: int&#xa;- code: string&#xa;- companyName: string&#xa;- address: string&#xa;- phone: string&#xa;- email: string&#xa;- isActive: bool&#xa;- createdAt: DateTime&#xa;- updatedAt: DateTime&#xa;- stockItems: Collection" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="client">
+          <mxGeometry y="26" width="200" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="client-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="client">
+          <mxGeometry y="166" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="client-meth" value="+ generateCode(): string&#xa;+ hasStock(): bool&#xa;+ getTotalStockTonnage(): float" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="client">
+          <mxGeometry y="174" width="200" height="66" as="geometry" />
+        </mxCell>
+        <!-- CLASSE COLDROOM -->
+        <mxCell id="coldroom" value="&lt;b&gt;ColdRoom&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#fff2cc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="520" y="80" width="200" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="coldroom-attr" value="- id: int&#xa;- name: string&#xa;- maxCapacityTons: decimal&#xa;- targetTemperature: decimal&#xa;- isActive: bool&#xa;- createdAt: DateTime&#xa;- stockItems: Collection" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="coldroom">
+          <mxGeometry y="26" width="200" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="coldroom-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="coldroom">
+          <mxGeometry y="136" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="coldroom-meth" value="+ getUsedCapacity(): float&#xa;+ getAvailableCapacity(): float&#xa;+ getOccupancyRate(): float&#xa;+ hasAvailableCapacity(t): bool&#xa;+ isNearCapacity(): bool&#xa;+ canBeDeactivated(): bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="coldroom">
+          <mxGeometry y="144" width="200" height="116" as="geometry" />
+        </mxCell>
+        <!-- CLASSE STOCKITEM -->
+        <mxCell id="stockitem" value="&lt;b&gt;StockItem&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#e1d5e7;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="760" y="80" width="200" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="stockitem-attr" value="- id: int&#xa;- client: Client&#xa;- coldRoom: ColdRoom&#xa;- stockEntry: StockEntry&#xa;- productName: string&#xa;- quantityTons: decimal&#xa;- entryDate: DateTime&#xa;- stockExits: Collection" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="stockitem">
+          <mxGeometry y="26" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="stockitem-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="stockitem">
+          <mxGeometry y="146" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="stockitem-meth" value="+ getStorageDays(date?): int&#xa;+ getRemainingQuantity(): float&#xa;+ hasAvailableQuantity(q): bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="stockitem">
+          <mxGeometry y="154" width="200" height="66" as="geometry" />
+        </mxCell>
+        <!-- CLASSE STOCKENTRY -->
+        <mxCell id="stockentry" value="&lt;b&gt;StockEntry&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#f8cecc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="40" y="400" width="200" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="stockentry-attr" value="- id: int&#xa;- client: Client&#xa;- coldRoom: ColdRoom&#xa;- productName: string&#xa;- quantityTons: decimal&#xa;- status: StockStatus&#xa;- createdBy: User&#xa;- createdAt: DateTime&#xa;- validatedBy: User?&#xa;- validatedAt: DateTime?&#xa;- rejectionReason: string?&#xa;- stockItem: StockItem?" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="stockentry">
+          <mxGeometry y="26" width="200" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="stockentry-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="stockentry">
+          <mxGeometry y="196" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="stockentry-meth" value="+ isPending(): bool&#xa;+ isValidated(): bool&#xa;+ isRejected(): bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="stockentry">
+          <mxGeometry y="204" width="200" height="56" as="geometry" />
+        </mxCell>
+        <!-- CLASSE STOCKEXIT -->
+        <mxCell id="stockexit" value="&lt;b&gt;StockExit&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#f8cecc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="280" y="400" width="200" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="stockexit-attr" value="- id: int&#xa;- stockItem: StockItem&#xa;- quantityTons: decimal&#xa;- status: StockStatus&#xa;- createdBy: User&#xa;- createdAt: DateTime&#xa;- validatedBy: User?&#xa;- validatedAt: DateTime?&#xa;- rejectionReason: string?&#xa;- storageDays: int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="stockexit">
+          <mxGeometry y="26" width="200" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="stockexit-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="stockexit">
+          <mxGeometry y="176" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="stockexit-meth" value="+ calculateStorageDays(): int&#xa;+ isPending(): bool&#xa;+ isValidated(): bool&#xa;+ isRejected(): bool&#xa;+ getClient(): Client&#xa;+ getColdRoom(): ColdRoom" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="stockexit">
+          <mxGeometry y="184" width="200" height="76" as="geometry" />
+        </mxCell>
+        <!-- CLASSE INVOICE -->
+        <mxCell id="invoice" value="&lt;b&gt;Invoice&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#ffe6cc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="520" y="400" width="200" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="invoice-attr" value="- id: int&#xa;- invoiceNumber: string&#xa;- client: Client&#xa;- periodStart: Date&#xa;- periodEnd: Date&#xa;- totalHt: decimal&#xa;- vatRate: decimal&#xa;- totalTtc: decimal&#xa;- status: InvoiceStatus&#xa;- createdBy: User&#xa;- createdAt: DateTime&#xa;- validatedBy: User?&#xa;- validatedAt: DateTime?&#xa;- lines: Collection" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="invoice">
+          <mxGeometry y="26" width="200" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="invoice-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="invoice">
+          <mxGeometry y="226" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="invoice-meth" value="+ generateInvoiceNumber(): string&#xa;+ getVatAmount(): float&#xa;+ calculateTotals(): void&#xa;+ isDraft(): bool&#xa;+ isEditable(): bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="invoice">
+          <mxGeometry y="234" width="200" height="66" as="geometry" />
+        </mxCell>
+        <!-- CLASSE INVOICELINE -->
+        <mxCell id="invoiceline" value="&lt;b&gt;InvoiceLine&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#ffe6cc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="760" y="400" width="200" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="invoiceline-attr" value="- id: int&#xa;- invoice: Invoice&#xa;- stockExit: StockExit&#xa;- productName: string&#xa;- quantityTons: decimal&#xa;- storageDays: int&#xa;- dailyRatePerTon: decimal&#xa;- lineTotal: decimal" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="invoiceline">
+          <mxGeometry y="26" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="invoiceline-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="invoiceline">
+          <mxGeometry y="146" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="invoiceline-meth" value="+ calculateLineTotal(): void&#xa;+ createFromStockExit(): self" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="invoiceline">
+          <mxGeometry y="154" width="200" height="46" as="geometry" />
+        </mxCell>
+        <!-- CLASSE AUDITLOG -->
+        <mxCell id="auditlog" value="&lt;b&gt;AuditLog&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#f5f5f5;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="80" width="200" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="auditlog-attr" value="- id: int&#xa;- action: string&#xa;- entityType: string&#xa;- entityId: int&#xa;- user: User&#xa;- oldValues: array?&#xa;- newValues: array?&#xa;- createdAt: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="auditlog">
+          <mxGeometry y="26" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="auditlog-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="auditlog">
+          <mxGeometry y="146" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="auditlog-meth" value="+ getActionLabel(): string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="auditlog">
+          <mxGeometry y="154" width="200" height="46" as="geometry" />
+        </mxCell>
+        <!-- ENUMERATIONS -->
+        <mxCell id="enum-stockstatus" value="&lt;b&gt;«enumeration»&lt;br&gt;StockStatus&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;fillColor=#e6e6e6;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="320" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="enum-stockstatus-val" value="PENDING&#xa;VALIDATED&#xa;REJECTED" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="enum-stockstatus">
+          <mxGeometry y="40" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="enum-invoicestatus" value="&lt;b&gt;«enumeration»&lt;br&gt;InvoiceStatus&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;fillColor=#e6e6e6;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="440" width="150" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="enum-invoicestatus-val" value="DRAFT&#xa;PENDING_VALIDATION&#xa;VALIDATED&#xa;SENT" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="enum-invoicestatus">
+          <mxGeometry y="40" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="enum-userrole" value="&lt;b&gt;«enumeration»&lt;br&gt;UserRole&lt;/b&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=40;fillColor=#e6e6e6;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;strokeColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="580" width="150" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="enum-userrole-val" value="CHEF_STOCK&#xa;CONTROLEUR&#xa;DIRECTEUR&#xa;PATRON&#xa;CLIENT" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="enum-userrole">
+          <mxGeometry y="40" width="150" height="90" as="geometry" />
+        </mxCell>
+        <!-- RELATIONS -->
+        <!-- User -> Client (ManyToOne) -->
+        <mxCell id="rel-user-client" value="0..1" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=0;edgeStyle=orthogonalEdgeStyle;align=left;verticalAlign=bottom;rounded=0;" edge="1" parent="1" source="user" target="client">
+          <mxGeometry x="-1" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Client -> StockItem (OneToMany) -->
+        <mxCell id="rel-client-stockitem" value="*" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="client" target="stockitem">
+          <mxGeometry x="-1" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <!-- ColdRoom -> StockItem (OneToMany) -->
+        <mxCell id="rel-coldroom-stockitem" value="*" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="coldroom" target="stockitem">
+          <mxGeometry x="-1" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <!-- StockEntry -> StockItem (OneToOne) -->
+        <mxCell id="rel-stockentry-stockitem" value="0..1" style="endArrow=open;html=1;endSize=12;startArrow=none;startSize=14;edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=0;" edge="1" parent="1" source="stockentry" target="stockitem">
+          <mxGeometry x="-1" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <!-- StockItem -> StockExit (OneToMany) -->
+        <mxCell id="rel-stockitem-stockexit" value="*" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="stockitem" target="stockexit">
+          <mxGeometry x="-1" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Invoice -> InvoiceLine (OneToMany) -->
+        <mxCell id="rel-invoice-invoiceline" value="*" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="invoice" target="invoiceline">
+          <mxGeometry x="-1" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <!-- InvoiceLine -> StockExit (ManyToOne) -->
+        <mxCell id="rel-invoiceline-stockexit" value="1" style="endArrow=open;html=1;endSize=12;startArrow=none;startSize=14;edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;" edge="1" parent="1" source="invoiceline" target="stockexit">
+          <mxGeometry x="-1" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Client -> Invoice (OneToMany) -->
+        <mxCell id="rel-client-invoice" value="*" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="client" target="invoice">
+          <mxGeometry x="-1" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <!-- User -> AuditLog (OneToMany) -->
+        <mxCell id="rel-user-auditlog" value="*" style="endArrow=open;html=1;endSize=12;startArrow=diamondThin;startSize=14;startFill=1;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1" source="user" target="auditlog">
+          <mxGeometry x="-1" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seq-stock-entry" name="Séquence - Entrée Stock">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- TITRE -->
+        <mxCell id="seq1-title" value="DIAGRAMME DE SÉQUENCE - Processus d&#39;Entrée de Stock" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+        <!-- ACTEURS / PARTICIPANTS -->
+        <mxCell id="seq1-controleur" value="Contrôleur" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="80" y="70" width="100" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="seq1-controller" value="StockEntry&#xa;Controller" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="240" y="70" width="100" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="seq1-stockservice" value="Stock&#xa;Service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="400" y="70" width="100" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="seq1-database" value="Database" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="560" y="70" width="100" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="seq1-auditservice" value="Audit&#xa;Service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="720" y="70" width="100" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="seq1-chefstock" value="Chef Stock" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="880" y="70" width="100" height="700" as="geometry" />
+        </mxCell>
+        <!-- MESSAGES - Phase Création -->
+        <mxCell id="seq1-msg1" value="1. Soumettre formulaire entrée" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="130" y="150" as="sourcePoint" />
+            <mxPoint x="290" y="150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg2" value="2. createEntry(client, coldRoom, product, qty)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="290" y="180" as="sourcePoint" />
+            <mxPoint x="450" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg3" value="3. Vérifier client actif" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;dashed=1;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="450" y="210" as="sourcePoint" />
+            <mxPoint x="610" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg4" value="4. Vérifier chambre froide active" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;dashed=1;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="450" y="240" as="sourcePoint" />
+            <mxPoint x="610" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg5" value="5. persist(StockEntry)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="450" y="270" as="sourcePoint" />
+            <mxPoint x="610" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg6" value="6. log(&#39;create&#39;, entry)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="450" y="300" as="sourcePoint" />
+            <mxPoint x="770" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg7" value="7. Entrée créée (status: PENDING)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="290" y="340" as="sourcePoint" />
+            <mxPoint x="130" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <!-- FRAME - Validation -->
+        <mxCell id="seq1-frame" value="alt [Validation par Chef Stock]" style="shape=umlFrame;whiteSpace=wrap;html=1;width=200;height=20;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="380" width="880" height="300" as="geometry" />
+        </mxCell>
+        <!-- MESSAGES - Phase Validation -->
+        <mxCell id="seq1-msg8" value="8. Consulter entrées en attente" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="930" y="420" as="sourcePoint" />
+            <mxPoint x="290" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg9" value="9. validateEntry(entry)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="290" y="450" as="sourcePoint" />
+            <mxPoint x="450" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg10" value="10. Vérifier capacité chambre froide" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;dashed=1;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="450" y="480" as="sourcePoint" />
+            <mxPoint x="610" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg11" value="11. Créer StockItem" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="450" y="510" as="sourcePoint" />
+            <mxPoint x="610" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg12" value="12. Update entry status = VALIDATED" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="450" y="540" as="sourcePoint" />
+            <mxPoint x="610" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg13" value="13. log(&#39;validate&#39;, entry)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="450" y="570" as="sourcePoint" />
+            <mxPoint x="770" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg14" value="14. Entrée validée, stock créé" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="290" y="610" as="sourcePoint" />
+            <mxPoint x="930" y="610" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <!-- FRAME - Rejet -->
+        <mxCell id="seq1-frame-else" value="[else Rejet]" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="70" y="640" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="seq1-msg15" value="15. rejectEntry(entry, reason)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;strokeColor=#b85450;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="290" y="660" as="sourcePoint" />
+            <mxPoint x="450" y="660" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq1-msg16" value="16. log(&#39;reject&#39;, entry, reason)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;strokeColor=#b85450;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="450" y="690" as="sourcePoint" />
+            <mxPoint x="770" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="seq-stock-exit" name="Séquence - Sortie Stock et Facturation">
+    <mxGraphModel dx="1426" dy="722" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="seq2-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" value="DIAGRAMME DE SÉQUENCE - Sortie de Stock et Facturation" vertex="1">
+          <mxGeometry height="30" width="450" x="400" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="seq2-controleur" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Contrôleur" vertex="1">
+          <mxGeometry height="800" width="100" x="60" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="seq2-exitcontroller" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" value="StockExit&#xa;Controller" vertex="1">
+          <mxGeometry height="800" width="100" x="200" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="seq2-stockservice" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;" value="Stock&#xa;Service" vertex="1">
+          <mxGeometry height="800" width="100" x="340" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="seq2-chefstock" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f8cecc;strokeColor=#b85450;" value="Chef Stock" vertex="1">
+          <mxGeometry height="800" width="100" x="480" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="seq2-invoiceservice" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Invoice&#xa;Service" vertex="1">
+          <mxGeometry height="800" width="100" x="620" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="seq2-directeur" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Directeur" vertex="1">
+          <mxGeometry height="800" width="100" x="760" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="seq2-database" parent="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f5f5f5;strokeColor=#666666;" value="Database" vertex="1">
+          <mxGeometry height="800" width="100" x="900" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="seq2-msg1" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="1. Demande sortie stock">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="110" y="150" as="sourcePoint" />
+            <mxPoint x="250" y="150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg2" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="2. createExit(stockItem, qty)">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="250" y="180" as="sourcePoint" />
+            <mxPoint x="390" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg3" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;dashed=1;" value="3. Vérifier quantité disponible">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="390" y="210" as="sourcePoint" />
+            <mxPoint x="950" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg4" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="4. persist(StockExit)">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="390" y="240" as="sourcePoint" />
+            <mxPoint x="950" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg5" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=0;" value="5. Sortie créée (PENDING)">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="250" y="280" as="sourcePoint" />
+            <mxPoint x="110" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg6" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="6. Valider sortie">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="530" y="320" as="sourcePoint" />
+            <mxPoint x="250" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg7" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="7. validateExit(exit)">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="250" y="350" as="sourcePoint" />
+            <mxPoint x="390" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg8" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;dashed=1;" value="8. Calculer jours stockage">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <Array as="points">
+              <mxPoint x="430" y="380" />
+              <mxPoint x="430" y="410" />
+            </Array>
+            <mxPoint x="390" y="380" as="sourcePoint" />
+            <mxPoint x="390" y="410" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg9" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="9. Update exit (VALIDATED, storageDays)">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="390" y="440" as="sourcePoint" />
+            <mxPoint x="950" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg10" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=0;" value="10. Sortie validée">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="250" y="480" as="sourcePoint" />
+            <mxPoint x="530" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-frame-invoice" parent="1" style="shape=umlFrame;whiteSpace=wrap;html=1;width=180;height=20;fillColor=none;" value="opt [Génération Facture]" vertex="1">
+          <mxGeometry height="280" width="920" x="40" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="seq2-msg11" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="11. Générer facture période">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="810" y="560" as="sourcePoint" />
+            <mxPoint x="670" y="560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg12" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="12. generateInvoice(client, start, end)">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="670" y="590" as="sourcePoint" />
+            <mxPoint x="950" y="590" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg13" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;dashed=1;" value="13. Récupérer sorties validées période">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="670" y="620" as="sourcePoint" />
+            <mxPoint x="950" y="620" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg14" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="14. Créer InvoiceLines (qty × days × rate)">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <Array as="points">
+              <mxPoint x="710" y="650" />
+              <mxPoint x="710" y="680" />
+            </Array>
+            <mxPoint x="670" y="650" as="sourcePoint" />
+            <mxPoint x="670" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg15" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="15. persist(Invoice)">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="670" y="710" as="sourcePoint" />
+            <mxPoint x="950" y="710" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg16" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="16. submitForValidation()">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="670" y="740" as="sourcePoint" />
+            <mxPoint x="950" y="740" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg17" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" value="17. validateInvoice()">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="810" y="770" as="sourcePoint" />
+            <mxPoint x="670" y="770" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="seq2-msg18" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=0;" value="18. Facture validée">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="670" y="800" as="sourcePoint" />
+            <mxPoint x="810" y="800" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="use-case" name="Cas d&#39;Utilisation">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- TITRE -->
+        <mxCell id="uc-title" value="DIAGRAMME DE CAS D&#39;UTILISATION - Gestion Stock Frigorifique" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="500" height="30" as="geometry" />
+        </mxCell>
+        <!-- SYSTÈME -->
+        <mxCell id="uc-system" value="Système de Gestion de Stock Frigorifique" style="shape=umlFrame;whiteSpace=wrap;html=1;width=350;height=30;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="280" y="70" width="800" height="850" as="geometry" />
+        </mxCell>
+        <!-- ACTEURS -->
+        <mxCell id="uc-controleur" value="Contrôleur" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-chefstock" value="Chef Stock" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="80" y="400" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-directeur" value="Directeur" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="80" y="600" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-patron" value="Patron" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="80" y="800" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-client" value="Client" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="400" width="40" height="80" as="geometry" />
+        </mxCell>
+        <!-- CAS D'UTILISATION - Gestion Stock -->
+        <mxCell id="uc-creer-entree" value="Créer entrée&#xa;de stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="340" y="120" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-creer-sortie" value="Créer sortie&#xa;de stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="340" y="220" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-consulter-stock" value="Consulter&#xa;stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="340" y="320" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-valider-entree" value="Valider entrée&#xa;de stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="560" y="120" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-valider-sortie" value="Valider sortie&#xa;de stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="560" y="220" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rejeter-operation" value="Rejeter&#xa;opération" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="560" y="320" width="140" height="70" as="geometry" />
+        </mxCell>
+        <!-- CAS D'UTILISATION - Gestion Chambres Froides -->
+        <mxCell id="uc-gerer-chambres" value="Gérer chambres&#xa;froides" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="780" y="120" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-surveiller-capacite" value="Surveiller&#xa;capacité" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="780" y="220" width="140" height="70" as="geometry" />
+        </mxCell>
+        <!-- CAS D'UTILISATION - Gestion Clients -->
+        <mxCell id="uc-gerer-clients" value="Gérer&#xa;clients" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="340" y="450" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-consulter-historique" value="Consulter&#xa;historique client" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="560" y="450" width="140" height="70" as="geometry" />
+        </mxCell>
+        <!-- CAS D'UTILISATION - Facturation -->
+        <mxCell id="uc-generer-facture" value="Générer&#xa;facture" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="340" y="570" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-valider-facture" value="Valider&#xa;facture" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="560" y="570" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-consulter-factures" value="Consulter&#xa;factures" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="780" y="450" width="140" height="70" as="geometry" />
+        </mxCell>
+        <!-- CAS D'UTILISATION - Administration -->
+        <mxCell id="uc-gerer-utilisateurs" value="Gérer&#xa;utilisateurs" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="340" y="700" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-consulter-audit" value="Consulter&#xa;journal audit" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="560" y="700" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-tableau-bord" value="Tableau de bord&#xa;statistiques" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="780" y="570" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-exporter-donnees" value="Exporter&#xa;données" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="780" y="700" width="140" height="70" as="geometry" />
+        </mxCell>
+        <!-- RELATIONS - Contrôleur -->
+        <mxCell id="uc-rel1" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-controleur" target="uc-creer-entree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel2" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-controleur" target="uc-creer-sortie">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel3" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-controleur" target="uc-consulter-stock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- RELATIONS - Chef Stock -->
+        <mxCell id="uc-rel4" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-chefstock" target="uc-valider-entree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel5" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-chefstock" target="uc-valider-sortie">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel6" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-chefstock" target="uc-rejeter-operation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel7" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-chefstock" target="uc-consulter-stock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- RELATIONS - Directeur -->
+        <mxCell id="uc-rel8" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-directeur" target="uc-generer-facture">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel9" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-directeur" target="uc-valider-facture">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel10" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-directeur" target="uc-consulter-factures">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- RELATIONS - Patron -->
+        <mxCell id="uc-rel11" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-patron" target="uc-gerer-utilisateurs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel12" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-patron" target="uc-gerer-clients">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel13" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-patron" target="uc-gerer-chambres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel14" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-patron" target="uc-consulter-audit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel15" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-patron" target="uc-tableau-bord">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel16" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-patron" target="uc-exporter-donnees">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- RELATIONS - Client -->
+        <mxCell id="uc-rel17" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-client" target="uc-consulter-stock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel18" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-client" target="uc-consulter-historique">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-rel19" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="uc-client" target="uc-consulter-factures">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- RELATIONS INCLUDE/EXTEND -->
+        <mxCell id="uc-include1" value="«include»" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="uc-valider-entree" target="uc-surveiller-capacite">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc-include2" value="«include»" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="uc-generer-facture" target="uc-consulter-historique">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="state-stockentry" name="États - StockEntry">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- TITRE -->
+        <mxCell id="st1-title" value="DIAGRAMME D&#39;ÉTATS - Entrée de Stock (StockEntry)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="250" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+        <!-- ÉTAT INITIAL -->
+        <mxCell id="st1-initial" value="" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="30" height="30" as="geometry" />
+        </mxCell>
+        <!-- ÉTATS -->
+        <mxCell id="st1-pending" value="PENDING&#xa;(En attente)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="200" y="180" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="st1-validated" value="VALIDATED&#xa;(Validé)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="450" y="100" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="st1-rejected" value="REJECTED&#xa;(Rejeté)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="450" y="260" width="140" height="70" as="geometry" />
+        </mxCell>
+        <!-- ÉTAT FINAL -->
+        <mxCell id="st1-final-validated" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="700" y="120" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="st1-final-rejected" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="700" y="280" width="30" height="30" as="geometry" />
+        </mxCell>
+        <!-- TRANSITIONS -->
+        <mxCell id="st1-trans1" value="créer entrée" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st1-initial" target="st1-pending">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="st1-trans2" value="valider&#xa;[capacité OK]" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st1-pending" target="st1-validated">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="st1-trans3" value="rejeter&#xa;[raison fournie]" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st1-pending" target="st1-rejected">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="st1-trans4" value="/ créer StockItem" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st1-validated" target="st1-final-validated">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="st1-trans5" value="" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st1-rejected" target="st1-final-rejected">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <!-- NOTES -->
+        <mxCell id="st1-note1" value="Actions:&#xa;- Vérifier client actif&#xa;- Vérifier chambre active&#xa;- Logger audit" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#ffffcc;strokeColor=#999999;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="200" y="300" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="st1-note2" value="Actions:&#xa;- Vérifier capacité&#xa;- Créer StockItem&#xa;- Logger audit" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#ffffcc;strokeColor=#999999;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="620" y="180" width="150" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="state-invoice" name="États - Invoice">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- TITRE -->
+        <mxCell id="st2-title" value="DIAGRAMME D&#39;ÉTATS - Facture (Invoice)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+        <!-- ÉTAT INITIAL -->
+        <mxCell id="st2-initial" value="" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="30" height="30" as="geometry" />
+        </mxCell>
+        <!-- ÉTATS -->
+        <mxCell id="st2-draft" value="DRAFT&#xa;(Brouillon)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="160" y="180" width="120" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="st2-pending" value="PENDING_VALIDATION&#xa;(En attente validation)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="360" y="180" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="st2-validated" value="VALIDATED&#xa;(Validée)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="600" y="180" width="120" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="st2-sent" value="SENT&#xa;(Envoyée)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="800" y="180" width="120" height="70" as="geometry" />
+        </mxCell>
+        <!-- ÉTAT FINAL -->
+        <mxCell id="st2-final" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="845" y="320" width="30" height="30" as="geometry" />
+        </mxCell>
+        <!-- TRANSITIONS -->
+        <mxCell id="st2-trans1" value="générer" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st2-initial" target="st2-draft">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="st2-trans2" value="soumettre" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st2-draft" target="st2-pending">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="st2-trans3" value="valider&#xa;[Directeur]" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st2-pending" target="st2-validated">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="st2-trans4" value="envoyer" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st2-validated" target="st2-sent">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="st2-trans5" value="" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="1" source="st2-sent" target="st2-final">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <!-- Transition suppression -->
+        <mxCell id="st2-trans-delete" value="supprimer&#xa;[isEditable]" style="endArrow=block;html=1;rounded=0;endFill=1;dashed=1;strokeColor=#b85450;" edge="1" parent="1" source="st2-draft" target="st2-final">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="220" y="335" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- NOTES -->
+        <mxCell id="st2-note1" value="Modifiable:&#xa;- Ajouter/supprimer lignes&#xa;- Modifier montants" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#ffffcc;strokeColor=#999999;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="140" y="80" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="st2-note2" value="Non modifiable&#xa;après validation" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#ffffcc;strokeColor=#999999;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="580" y="80" width="140" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="activity" name="Activité - Processus Complet">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- TITRE -->
+        <mxCell id="act-title" value="DIAGRAMME D&#39;ACTIVITÉ - Processus de Gestion de Stock Complet" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="500" height="30" as="geometry" />
+        </mxCell>
+        <!-- SWIMLANES -->
+        <mxCell id="act-pool" value="" style="swimlane;startSize=0;horizontal=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="1300" height="1100" as="geometry" />
+        </mxCell>
+        <mxCell id="act-lane-controleur" value="Contrôleur" style="swimlane;horizontal=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="act-pool">
+          <mxGeometry width="1300" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="act-lane-chefstock" value="Chef Stock" style="swimlane;horizontal=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="act-pool">
+          <mxGeometry y="220" width="1300" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="act-lane-directeur" value="Directeur" style="swimlane;horizontal=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="act-pool">
+          <mxGeometry y="440" width="1300" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="act-lane-systeme" value="Système" style="swimlane;horizontal=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="act-pool">
+          <mxGeometry y="660" width="1300" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="act-lane-client" value="Client" style="swimlane;horizontal=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="act-pool">
+          <mxGeometry y="880" width="1300" height="220" as="geometry" />
+        </mxCell>
+        <!-- DÉBUT -->
+        <mxCell id="act-start" value="" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="act-lane-controleur">
+          <mxGeometry x="60" y="95" width="30" height="30" as="geometry" />
+        </mxCell>
+        <!-- ACTIVITÉS - Contrôleur -->
+        <mxCell id="act-saisir-entree" value="Saisir entrée&#xa;de stock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-controleur">
+          <mxGeometry x="140" y="80" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act-saisir-sortie" value="Saisir sortie&#xa;de stock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-controleur">
+          <mxGeometry x="540" y="80" width="120" height="60" as="geometry" />
+        </mxCell>
+        <!-- ACTIVITÉS - Chef Stock -->
+        <mxCell id="act-verifier-entree" value="Vérifier&#xa;entrée" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-chefstock">
+          <mxGeometry x="160" y="70" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="act-valider-entree" value="Valider&#xa;entrée" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-chefstock">
+          <mxGeometry x="300" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act-rejeter-entree" value="Rejeter&#xa;entrée" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-chefstock">
+          <mxGeometry x="300" y="160" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="act-verifier-sortie" value="Vérifier&#xa;sortie" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-chefstock">
+          <mxGeometry x="560" y="70" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="act-valider-sortie" value="Valider&#xa;sortie" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-chefstock">
+          <mxGeometry x="700" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <!-- ACTIVITÉS - Directeur -->
+        <mxCell id="act-generer-facture" value="Générer&#xa;facture" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-directeur">
+          <mxGeometry x="860" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act-valider-facture" value="Valider&#xa;facture" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-directeur">
+          <mxGeometry x="1020" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <!-- ACTIVITÉS - Système -->
+        <mxCell id="act-creer-stockitem" value="Créer&#xa;StockItem" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-systeme">
+          <mxGeometry x="300" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act-maj-capacite" value="Mettre à jour&#xa;capacité" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-systeme">
+          <mxGeometry x="440" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act-calculer-jours" value="Calculer jours&#xa;stockage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-systeme">
+          <mxGeometry x="700" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act-calculer-montant" value="Calculer&#xa;montant" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-systeme">
+          <mxGeometry x="860" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act-logger" value="Logger&#xa;audit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-systeme">
+          <mxGeometry x="1140" y="80" width="80" height="60" as="geometry" />
+        </mxCell>
+        <!-- ACTIVITÉS - Client -->
+        <mxCell id="act-consulter-stock" value="Consulter&#xa;son stock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-client">
+          <mxGeometry x="440" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act-recevoir-facture" value="Recevoir&#xa;facture" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="act-lane-client">
+          <mxGeometry x="1020" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+        <!-- FIN -->
+        <mxCell id="act-end" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="act-lane-client">
+          <mxGeometry x="1165" y="95" width="30" height="30" as="geometry" />
+        </mxCell>
+        <!-- FLUX - Entrée -->
+        <mxCell id="act-flow1" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-start" target="act-saisir-entree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow2" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-saisir-entree" target="act-verifier-entree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow3" value="OK" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-verifier-entree" target="act-valider-entree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow4" value="NOK" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-verifier-entree" target="act-rejeter-entree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow5" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-valider-entree" target="act-creer-stockitem">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow6" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-creer-stockitem" target="act-maj-capacite">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow7" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-maj-capacite" target="act-consulter-stock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- FLUX - Sortie -->
+        <mxCell id="act-flow8" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-consulter-stock" target="act-saisir-sortie">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="60" />
+              <mxPoint x="600" y="60" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act-flow9" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-saisir-sortie" target="act-verifier-sortie">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow10" value="OK" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-verifier-sortie" target="act-valider-sortie">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow11" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-valider-sortie" target="act-calculer-jours">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- FLUX - Facturation -->
+        <mxCell id="act-flow12" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-calculer-jours" target="act-generer-facture">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="820" y="770" />
+              <mxPoint x="820" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act-flow13" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-generer-facture" target="act-calculer-montant">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow14" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-calculer-montant" target="act-valider-facture">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1000" y="770" />
+              <mxPoint x="1000" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act-flow15" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-valider-facture" target="act-logger">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow16" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-logger" target="act-recevoir-facture">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="act-flow17" style="endArrow=block;html=1;rounded=0;endFill=1;" edge="1" parent="act-pool" source="act-recevoir-facture" target="act-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="component" name="Composants">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- TITRE -->
+        <mxCell id="comp-title" value="DIAGRAMME DE COMPOSANTS - Architecture Symfony" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="500" height="30" as="geometry" />
+        </mxCell>
+        <!-- COUCHE PRÉSENTATION -->
+        <mxCell id="comp-presentation" value="Couche Présentation" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="70" width="500" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-twig" value="&lt;&lt;component&gt;&gt;&#xa;Twig Templates" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="80" y="120" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-twig-icon" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" vertex="1" parent="comp-twig">
+          <mxGeometry x="1" width="20" height="20" relative="1" as="geometry">
+            <mxPoint x="-24" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp-stimulus" value="&lt;&lt;component&gt;&gt;&#xa;Stimulus Controllers" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="240" y="120" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-stimulus-icon" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" vertex="1" parent="comp-stimulus">
+          <mxGeometry x="1" width="20" height="20" relative="1" as="geometry">
+            <mxPoint x="-24" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp-forms" value="&lt;&lt;component&gt;&gt;&#xa;Form Types" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="400" y="120" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-forms-icon" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" vertex="1" parent="comp-forms">
+          <mxGeometry x="1" width="20" height="20" relative="1" as="geometry">
+            <mxPoint x="-24" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <!-- COUCHE CONTRÔLEURS -->
+        <mxCell id="comp-controllers" value="Couche Contrôleurs" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="290" width="500" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-authctrl" value="&lt;&lt;controller&gt;&gt;&#xa;AuthController" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="80" y="340" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-stockctrl" value="&lt;&lt;controller&gt;&gt;&#xa;StockController" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="200" y="340" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-entryctrl" value="&lt;&lt;controller&gt;&gt;&#xa;StockEntryController" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="340" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-exitctrl" value="&lt;&lt;controller&gt;&gt;&#xa;StockExitController" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="450" y="340" width="100" height="50" as="geometry" />
+        </mxCell>
+        <!-- COUCHE SERVICES -->
+        <mxCell id="comp-services" value="Couche Services (Métier)" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="600" y="70" width="300" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-stocksvc" value="&lt;&lt;service&gt;&gt;&#xa;StockService" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="620" y="120" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-invoicesvc" value="&lt;&lt;service&gt;&gt;&#xa;InvoiceService" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="760" y="120" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-auditsvc" value="&lt;&lt;service&gt;&gt;&#xa;AuditService" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="690" y="190" width="120" height="50" as="geometry" />
+        </mxCell>
+        <!-- COUCHE SÉCURITÉ -->
+        <mxCell id="comp-security" value="Couche Sécurité" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;fillColor=#f8cecc;strokeColor=#b85450;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="600" y="290" width="300" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-authenticator" value="&lt;&lt;security&gt;&gt;&#xa;LoginFormAuthenticator" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="620" y="340" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-voters" value="&lt;&lt;security&gt;&gt;&#xa;Voters" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="770" y="340" width="110" height="50" as="geometry" />
+        </mxCell>
+        <!-- COUCHE DONNÉES -->
+        <mxCell id="comp-data" value="Couche Données" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="460" width="840" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-entities" value="&lt;&lt;entity&gt;&gt;&#xa;Entities" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="80" y="510" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-repos" value="&lt;&lt;repository&gt;&gt;&#xa;Repositories" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="200" y="510" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-enums" value="&lt;&lt;enum&gt;&gt;&#xa;Enums" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="320" y="510" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-doctrine" value="&lt;&lt;ORM&gt;&gt;&#xa;Doctrine" style="html=1;dropTarget=0;fillColor=#ffffff;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="440" y="510" width="100" height="50" as="geometry" />
+        </mxCell>
+        <!-- BASE DE DONNÉES -->
+        <mxCell id="comp-db" value="MySQL&#xa;Database" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="600" y="490" width="100" height="80" as="geometry" />
+        </mxCell>
+        <!-- INTERFACES -->
+        <mxCell id="comp-interface1" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="550" y="200" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-interface2" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="550" y="360" width="10" height="10" as="geometry" />
+        </mxCell>
+        <!-- DÉPENDANCES -->
+        <mxCell id="comp-dep1" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-twig" target="comp-stockctrl">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-dep2" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-stockctrl" target="comp-stocksvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-dep3" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-entryctrl" target="comp-stocksvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-dep4" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-stocksvc" target="comp-auditsvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-dep5" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-invoicesvc" target="comp-auditsvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-dep6" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-stocksvc" target="comp-repos">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-dep7" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-repos" target="comp-doctrine">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-dep8" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-doctrine" target="comp-db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-dep9" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-authctrl" target="comp-authenticator">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-dep10" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="comp-entryctrl" target="comp-voters">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- LÉGENDE -->
+        <mxCell id="comp-legend" value="Légende" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#f5f5f5;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="940" y="460" width="200" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="comp-legend-content" value="→ Dépendance&#xa;&#xa;Couleurs:&#xa;🔵 Présentation&#xa;🟢 Contrôleurs&#xa;🟡 Services&#xa;🔴 Sécurité&#xa;🟣 Données" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="comp-legend">
+          <mxGeometry y="26" width="200" height="124" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

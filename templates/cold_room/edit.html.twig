@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+{% block title %}Modifier {{ coldRoom.name }}{% endblock %}
+{% block body %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="header-content">
+            <h1><i class="bi bi-pencil"></i> Modifier la chambre froide</h1>
+            <a href="{{ path('app_cold_room_index') }}" class="btn btn-outline-light"><i class="bi bi-arrow-left"></i> Retour</a>
+        </div>
+    </div>
+    <div class="form-container">
+        {{ form_start(form, {'attr': {'class': 'room-form'}}) }}
+        <div class="form-section">
+            <div class="section-header"><i class="bi bi-snow2"></i><h3>Informations chambre</h3></div>
+            <div class="form-grid">
+                <div class="form-group">{{ form_label(form.name) }}{{ form_widget(form.name) }}{{ form_errors(form.name) }}</div>
+                <div class="form-group">{{ form_label(form.code) }}{{ form_widget(form.code) }}{{ form_errors(form.code) }}</div>
+            </div>
+        </div>
+        <div class="form-section">
+            <div class="section-header"><i class="bi bi-thermometer-half"></i><h3>Caractéristiques</h3></div>
+            <div class="form-grid form-grid-3">
+                <div class="form-group">{{ form_label(form.capacityTons) }}{{ form_widget(form.capacityTons) }}{{ form_errors(form.capacityTons) }}</div>
+                <div class="form-group">{{ form_label(form.temperature) }}{{ form_widget(form.temperature) }}{{ form_errors(form.temperature) }}</div>
+                <div class="form-group">{{ form_label(form.numberOfRacks) }}{{ form_widget(form.numberOfRacks) }}{{ form_errors(form.numberOfRacks) }}</div>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-lg"></i> Enregistrer</button>
+            <a href="{{ path('app_cold_room_index') }}" class="btn btn-secondary btn-lg"><i class="bi bi-x-lg"></i> Annuler</a>
+        </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+<style>
+.page-header { margin-bottom: 2rem; }
+.header-content { display: flex; justify-content: space-between; align-items: center; }
+.form-container { max-width: 700px; }
+.form-section { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+.section-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border); }
+.section-header i { font-size: 1.5rem; color: var(--primary-light); }
+.section-header h3 { margin: 0; font-size: 1.1rem; }
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+.form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { color: var(--text); font-weight: 500; margin-bottom: 0.5rem; }
+.form-actions { display: flex; gap: 1rem; }
+</style>
+{% endblock %}

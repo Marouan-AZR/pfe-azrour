@@ -1,0 +1,311 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}État du stock{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="header-content">
+            <h1><i class="bi bi-boxes"></i> État du stock</h1>
+            <div class="header-actions">
+                <a href="{{ path('app_stock_export_csv', {client: filters.client, cold_room: filters.coldRoom}) }}" class="btn btn-secondary">
+                    <i class="bi bi-download"></i> Export CSV
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stockItems|length }}</div>
+                <div class="stat-label">Articles en stock</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--secondary), #0284c7);">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">
+                    {% set totalQty = 0 %}
+                    {% for item in stockItems %}
+                        {% set totalQty = totalQty + item.remainingQuantity %}
+                    {% endfor %}
+                    {{ totalQty|number_format(2, ',', ' ') }}
+                </div>
+                <div class="stat-label">Tonnes totales</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #059669);">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ clients|length }}</div>
+                <div class="stat-label">Clients actifs</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);">
+                <i class="bi bi-snow2"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ coldRooms|length }}</div>
+                <div class="stat-label">Chambres froides</div>
+            </div>
+        </div>
+    </div>
+
+    {% if clients|length > 0 or coldRooms|length > 0 %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-funnel"></i> Filtres
+        </div>
+        <div class="card-body">
+            <form method="get" class="filter-form">
+                {% if clients|length > 0 %}
+                <div class="filter-group">
+                    <label for="client" class="form-label">Client</label>
+                    <select name="client" id="client" class="form-select">
+                        <option value="">Tous les clients</option>
+                        {% for client in clients %}
+                        <option value="{{ client.id }}" {{ filters.client == client.id ? 'selected' }}>{{ client.companyName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="filter-group">
+                    <label for="cold_room" class="form-label">Chambre froide</label>
+                    <select name="cold_room" id="cold_room" class="form-select">
+                        <option value="">Toutes les chambres</option>
+                        {% for room in coldRooms %}
+                        <option value="{{ room.id }}" {{ filters.coldRoom == room.id ? 'selected' }}>{{ room.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Filtrer
+                    </button>
+                    <a href="{{ path('app_stock_index') }}" class="btn btn-outline-light">
+                        <i class="bi bi-x-lg"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-table"></i> Inventaire
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Produit</th>
+                            <th>Chambre froide</th>
+                            <th class="text-end">Qté initiale (T)</th>
+                            <th class="text-end">Qté restante (T)</th>
+                            <th>Date entrée</th>
+                            <th class="text-center">Jours</th>
+                            <th class="text-center">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in stockItems %}
+                        {% set remaining = item.remainingQuantity %}
+                        {% set percentage = (remaining / item.quantityTons) * 100 %}
+                        <tr>
+                            <td>
+                                <span class="client-badge">{{ item.client.companyName }}</span>
+                            </td>
+                            <td>
+                                <span class="product-name">{{ item.productName }}</span>
+                            </td>
+                            <td>
+                                <span class="room-badge">
+                                    <i class="bi bi-snow2"></i> {{ item.coldRoom.name }}
+                                </span>
+                            </td>
+                            <td class="text-end">{{ item.quantityTons|number_format(3, ',', ' ') }}</td>
+                            <td class="text-end">
+                                <div class="quantity-cell">
+                                    <span class="{{ remaining <= 0 ? 'text-muted' : '' }}">
+                                        {{ remaining|number_format(3, ',', ' ') }}
+                                    </span>
+                                    <div class="quantity-bar">
+                                        <div class="quantity-fill {% if percentage > 50 %}fill-high{% elseif percentage > 20 %}fill-medium{% else %}fill-low{% endif %}" style="width: {{ percentage }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ item.entryDate|date('d/m/Y') }}</td>
+                            <td class="text-center">
+                                <span class="days-badge {% if item.storageDays > 30 %}days-long{% elseif item.storageDays > 14 %}days-medium{% else %}days-short{% endif %}">
+                                    {{ item.storageDays }}j
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% if remaining <= 0 %}
+                                    <span class="badge bg-secondary">Épuisé</span>
+                                {% elseif percentage < 20 %}
+                                    <span class="badge bg-warning">Faible</span>
+                                {% else %}
+                                    <span class="badge bg-success">En stock</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox"></i>
+                                    <p>Aucun article en stock</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    margin-bottom: 2rem;
+}
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+}
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+}
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+.client-badge {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--primary-light);
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.product-name {
+    font-weight: 600;
+    color: var(--text);
+}
+.room-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--secondary);
+    font-weight: 500;
+}
+.quantity-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.quantity-bar {
+    width: 80px;
+    height: 4px;
+    background: var(--dark-lighter);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.quantity-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+.fill-high { background: var(--success); }
+.fill-medium { background: var(--warning); }
+.fill-low { background: var(--danger); }
+.days-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.days-short { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.days-medium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.days-long { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.empty-state {
+    color: var(--text-muted);
+}
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+@media (max-width: 768px) {
+    .filter-form {
+        flex-direction: column;
+    }
+    .filter-group {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

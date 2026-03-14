@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>En savoir plus - Golden Logistics</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🏔️</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --secondary: #6366f1;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --glass: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(148, 163, 184, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            background-attachment: fixed;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Navbar */
+        .navbar-public {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand-public {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 45px; height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link-public {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link-public:hover, .nav-link-public.active {
+            color: var(--text);
+        }
+
+        .btn-nav {
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-nav-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-nav-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.4);
+            color: white;
+        }
+
+        /* Hero */
+        .page-hero {
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+
+        .page-hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .page-hero-title .highlight {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-hero-description {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Sections */
+        .section {
+            padding: 5rem 0;
+        }
+
+        .section-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-icon {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-text {
+            color: var(--text-muted);
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        /* Vision Card */
+        .vision-card {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(99, 102, 241, 0.2));
+            border: 1px solid rgba(14, 165, 233, 0.3);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Objectives List */
+        .objectives-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .objectives-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 12px;
+            border-left: 4px solid var(--success);
+        }
+
+        .objectives-list li i {
+            color: var(--success);
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        /* Investment Grid */
+        .investment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .investment-card {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .investment-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .investment-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .investment-label {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Technical Specs */
+        .tech-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .tech-spec {
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .tech-spec-icon {
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .tech-spec-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .tech-spec-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Future Section */
+        .future-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(14, 165, 233, 0.2));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .future-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .future-feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .future-feature-icon {
+            width: 50px; height: 50px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .future-feature-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .future-feature-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 5rem 0;
+            text-align: center;
+        }
+
+        .cta-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 24px;
+            padding: 4rem;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .cta-text {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2.5rem;
+            background: white;
+            color: var(--primary);
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            color: var(--primary);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 3rem 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .page-hero-title { font-size: 2rem; }
+            .section-card { padding: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar-public">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ path('app_home') }}" class="navbar-brand-public">
+                    <div class="logo-icon">🏔️</div>
+                    Golden Logistics
+                </a>
+                <div class="nav-links">
+                    <a href="{{ path('app_home') }}" class="nav-link-public">Accueil</a>
+                    <a href="{{ path('app_about') }}" class="nav-link-public active">En savoir plus</a>
+                    <a href="{{ path('app_login') }}" class="nav-link-public">Connexion</a>
+                    <a href="{{ path('app_register') }}" class="btn-nav btn-nav-primary">S'inscrire</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="container">
+            <h1 class="page-hero-title">
+                Découvrez <span class="highlight">Golden Logistics</span>
+            </h1>
+            <p class="page-hero-description">
+                Un projet stratégique pour le développement économique et halieutique de la région de Dakhla, 
+                alliant innovation technologique et excellence opérationnelle.
+            </p>
+        </div>
+    </section>
+
+    <!-- Vision Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-card vision-card">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <div class="section-icon">🎯</div>
+                        <h2 class="section-title">Notre Vision Stratégique</h2>
+                        <p class="section-text">
+                            Golden Logistics s'inscrit dans une vision de développement durable de l'industrie halieutique 
+                            à Dakhla. Notre entrepôt frigorifique de nouvelle génération répond aux besoins croissants 
+                            de stockage et de conservation des produits de la mer, tout en respectant les normes 
+                            internationales de qualité, de sécurité et d'hygiène.
+                        </p>
+                        <p class="section-text mt-3">
+                            Situé stratégiquement à Dakhla, notre complexe logistique contribue au rayonnement économique 
+                            de la région et à la valorisation des ressources halieutiques marocaines sur les marchés 
+                            nationaux et internationaux.
+                        </p>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value">2024</div>
+                                <div class="stat-label">Année de lancement</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">100%</div>
+                                <div class="stat-label">Traçabilité</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Objectives Section -->
+    <section class="section pt-0">
+        <div class="container">
+            <div class="section-card">
+                <div class="section-icon">✅</div>
+                <h2 class="section-title">Nos Objectifs</h2>
+                <ul class="objectives-list">
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>Capacité de stockage optimale</strong><br>
+                            <span class="text-muted">Offrir une capacité de 10 000 tonnes répartie sur 5 chambres froides modernes</span>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>Normes internationales</strong><br>
+                            <span class="text-muted">Respecter les standards HACCP et les certifications de qualité alimentaire</span>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>Traçabilité complète</strong><br>
+                            <span class="text-muted">Assurer un suivi en temps réel de chaque palette, de l'entrée à la sortie</span>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>Efficacité opérationnelle</strong><br>
+                            <span class="text-muted">Optimiser les processus logistiques grâce à une plateforme digitale intégrée</span>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>Développement durable</strong><br>
+                            <span class="text-muted">Intégrer des solutions énergétiques vertes et réduire l'empreinte carbone</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Investment Section -->
+    <section class="section pt-0">
+        <div class="container">
+            <div class="section-card">
+                <div class="section-icon">💰</div>
+                <h2 class="section-title">Données d'Investissement</h2>
+                <p class="section-text mb-4">
+                    Un investissement majeur pour créer une infrastructure logistique de référence dans la région.
+                </p>
+                <div class="investment-grid">
+                    <div class="investment-card">
+                        <div class="investment-icon">🏗️</div>
+                        <div class="investment-value">150 M MAD</div>
+                        <div class="investment-label">Investissement Global</div>
+                    </div>
+                    <div class="investment-card">
+                        <div class="investment-icon">📐</div>
+                        <div class="investment-value">20 000 m²</div>
+                        <div class="investment-label">Superficie du Terrain</div>
+                    </div>
+                    <div class="investment-card">
+                        <div class="investment-icon">🏭</div>
+                        <div class="investment-value">12 000 m²</div>
+                        <div class="investment-label">Surface Bâtie</div>
+                    </div>
+                    <div class="investment-card">
+                        <div class="investment-icon">👥</div>
+                        <div class="investment-value">50+</div>
+                        <div class="investment-label">Emplois Créés</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Specs Section -->
+    <section class="section pt-0">
+        <div class="container">
+            <div class="section-card">
+                <div class="section-icon">⚙️</div>
+                <h2 class="section-title">Capacités Techniques</h2>
+                <p class="section-text mb-4">
+                    Des équipements de pointe pour garantir la qualité et la sécurité de vos produits.
+                </p>
+                <div class="tech-specs">
+                    <div class="tech-spec">
+                        <div class="tech-spec-icon">📦</div>
+                        <div>
+                            <div class="tech-spec-value">10 000 Tonnes</div>
+                            <div class="tech-spec-label">Capacité de stockage</div>
+                        </div>
+                    </div>
+                    <div class="tech-spec">
+                        <div class="tech-spec-icon">🧊</div>
+                        <div>
+                            <div class="tech-spec-value">5 Chambres</div>
+                            <div class="tech-spec-label">Chambres frigorifiques</div>
+                        </div>
+                    </div>
+                    <div class="tech-spec">
+                        <div class="tech-spec-icon">🌡️</div>
+                        <div>
+                            <div class="tech-spec-value">-25°C à +5°C</div>
+                            <div class="tech-spec-label">Plage de température</div>
+                        </div>
+                    </div>
+                    <div class="tech-spec">
+                        <div class="tech-spec-icon">⚡</div>
+                        <div>
+                            <div class="tech-spec-value">2 MW</div>
+                            <div class="tech-spec-label">Puissance électrique</div>
+                        </div>
+                    </div>
+                    <div class="tech-spec">
+                        <div class="tech-spec-icon">❄️</div>
+                        <div>
+                            <div class="tech-spec-value">1.5 MW</div>
+                            <div class="tech-spec-label">Puissance frigorifique</div>
+                        </div>
+                    </div>
+                    <div class="tech-spec">
+                        <div class="tech-spec-icon">📍</div>
+                        <div>
+                            <div class="tech-spec-value">44 Rayons</div>
+                            <div class="tech-spec-label">Par chambre (22G + 22D)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Future Section -->
+    <section class="section pt-0">
+        <div class="container">
+            <div class="section-card future-card">
+                <div class="section-icon">🚀</div>
+                <h2 class="section-title">Vision Future</h2>
+                <p class="section-text">
+                    Golden Logistics s'engage dans une démarche d'amélioration continue et de transition énergétique 
+                    pour un avenir plus durable.
+                </p>
+                <div class="future-features">
+                    <div class="future-feature">
+                        <div class="future-feature-icon">☀️</div>
+                        <div>
+                            <div class="future-feature-title">Centrale Photovoltaïque</div>
+                            <div class="future-feature-text">Installation d'une centrale solaire pour réduire la dépendance énergétique</div>
+                        </div>
+                    </div>
+                    <div class="future-feature">
+                        <div class="future-feature-icon">🤖</div>
+                        <div>
+                            <div class="future-feature-title">Automatisation</div>
+                            <div class="future-feature-text">Intégration de systèmes automatisés pour optimiser les opérations</div>
+                        </div>
+                    </div>
+                    <div class="future-feature">
+                        <div class="future-feature-icon">📱</div>
+                        <div>
+                            <div class="future-feature-title">Application Mobile</div>
+                            <div class="future-feature-text">Suivi en temps réel via application mobile pour les clients</div>
+                        </div>
+                    </div>
+                    <div class="future-feature">
+                        <div class="future-feature-icon">🌍</div>
+                        <div>
+                            <div class="future-feature-title">Expansion</div>
+                            <div class="future-feature-text">Extension de la capacité et ouverture vers de nouveaux marchés</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card">
+                <h2 class="cta-title">Prêt à nous rejoindre ?</h2>
+                <p class="cta-text">
+                    Créez votre compte et accédez à notre plateforme de gestion de stock frigorifique.
+                </p>
+                <a href="{{ path('app_register') }}" class="btn-cta">
+                    <i class="bi bi-person-plus"></i>
+                    Créer un compte
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; {{ "now"|date("Y") }} Golden Logistics. Tous droits réservés. | Projet PFE</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

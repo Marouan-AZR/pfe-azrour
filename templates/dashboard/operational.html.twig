@@ -1,0 +1,587 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord - Golden Logistics{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">
+                <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+            </h1>
+            <p class="text-muted mb-0">
+                Bienvenue, {{ app.user.fullName }} 
+                <span class="badge bg-primary ms-2">
+                    {% if is_granted('ROLE_CHEF_STOCK') %}Chef de Stock{% else %}Contrôleur{% endif %}
+                </span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <select class="form-select" id="monthSelector" style="width: auto;">
+                {% for i in 0..11 %}
+                    {% set date = "now"|date_modify("-" ~ i ~ " months") %}
+                    <option value="{{ date|date('Y-m') }}" {{ i == 0 ? 'selected' : '' }}>
+                        {{ date|date('F Y')|capitalize }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Alert Rooms -->
+    {% if alertRooms|length > 0 %}
+    <div class="alert alert-danger d-flex align-items-center mb-4">
+        <div class="alert-icon me-3">
+            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+        </div>
+        <div>
+            <strong>Alerte capacité critique !</strong>
+            <span class="ms-2">
+                {% for room in alertRooms %}
+                    {{ room.name }} ({{ room.occupancyRate|number_format(1) }}%){% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-icon">
+                    <i class="bi bi-box-arrow-in-down"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ pendingEntriesCount }}</div>
+                    <div class="stat-card-label">Entrées en attente</div>
+                </div>
+                <a href="{{ path('app_stock_entry_index') }}" class="stat-card-link">
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-icon">
+                    <i class="bi bi-box-arrow-up"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ pendingExitsCount }}</div>
+                    <div class="stat-card-label">Sorties en attente</div>
+                </div>
+                <a href="{{ path('app_stock_exit_index') }}" class="stat-card-link">
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-icon">
+                    <i class="bi bi-thermometer-snow"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ coldRooms|length }}</div>
+                    <div class="stat-card-label">Chambres actives</div>
+                </div>
+                <a href="{{ path('app_cold_room_index') }}" class="stat-card-link">
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-icon">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="stat-card-content">
+                    {% set totalStock = 0 %}
+                    {% for room in coldRooms %}
+                        {% set totalStock = totalStock + room.usedCapacity %}
+                    {% endfor %}
+                    <div class="stat-card-value">{{ totalStock|number_format(1) }} T</div>
+                    <div class="stat-card-label">Stock total</div>
+                </div>
+                <a href="{{ path('app_stock_index') }}" class="stat-card-link">
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Pending Entries -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-box-arrow-in-down me-2 text-warning"></i>
+                        Entrées en attente de validation
+                    </div>
+                    <span class="badge bg-warning">{{ pendingEntriesCount }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if pendingEntries|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Produit</th>
+                                    <th>Quantité</th>
+                                    <th>Date</th>
+                                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                                    <th>Actions</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in pendingEntries %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ entry.client.companyName }}</div>
+                                    </td>
+                                    <td>{{ entry.productName }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ entry.quantityTons }} T</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ entry.createdAt|date('d/m/Y H:i') }}</small>
+                                    </td>
+                                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <form action="{{ path('app_stock_entry_validate', {id: entry.id}) }}" method="post" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ entry.id) }}">
+                                                <button type="submit" class="btn btn-success btn-sm" title="Valider">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#rejectModal{{ entry.id }}"
+                                                    title="Rejeter">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ path('app_stock_entry_index') }}" class="btn btn-sm btn-outline-warning">
+                            Voir toutes les entrées <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2 mb-0">Aucune entrée en attente</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Exits -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-box-arrow-up me-2 text-info"></i>
+                        Sorties en attente
+                    </div>
+                    <span class="badge bg-info">{{ pendingExitsCount }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if pendingExits|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Produit</th>
+                                    <th>Quantité</th>
+                                    <th>Date</th>
+                                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                                    <th>Actions</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exit in pendingExits %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ exit.stockItem.client.companyName }}</div>
+                                    </td>
+                                    <td>{{ exit.stockItem.productName }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ exit.quantityTons }} T</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ exit.createdAt|date('d/m/Y H:i') }}</small>
+                                    </td>
+                                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <form action="{{ path('app_stock_exit_validate', {id: exit.id}) }}" method="post" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ exit.id) }}">
+                                                <button type="submit" class="btn btn-success btn-sm" title="Valider">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ path('app_stock_exit_index') }}" class="btn btn-sm btn-outline-info">
+                            Voir toutes les sorties <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2 mb-0">Aucune sortie en attente</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cold Rooms Status -->
+    <div class="mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">
+                <i class="bi bi-thermometer-snow me-2"></i>État des chambres froides
+            </h4>
+            <a href="{{ path('app_cold_room_index') }}" class="btn btn-sm btn-outline-primary">
+                Gérer <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="row g-3">
+            {% for room in coldRooms %}
+            <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="cold-room-card {{ room.occupancyRate > 90 ? 'critical' : (room.occupancyRate > 70 ? 'warning' : '') }}">
+                    <div class="cold-room-header">
+                        <div class="cold-room-name">
+                            <i class="bi bi-snow2 me-2"></i>{{ room.name }}
+                        </div>
+                        <div class="cold-room-temp">
+                            <i class="bi bi-thermometer-half"></i> {{ room.targetTemperature }}°C
+                        </div>
+                    </div>
+                    <div class="cold-room-body">
+                        <div class="cold-room-progress">
+                            {% set occupancy = room.occupancyRate %}
+                            <div class="progress" style="height: 12px;">
+                                <div class="progress-bar {{ occupancy > 90 ? 'bg-danger' : (occupancy > 70 ? 'bg-warning' : 'bg-success') }}" 
+                                     style="width: {{ occupancy }}%">
+                                </div>
+                            </div>
+                            <div class="cold-room-stats">
+                                <span>{{ room.usedCapacity|number_format(1) }} / {{ room.maxCapacityTons }} T</span>
+                                <span class="fw-bold {{ occupancy > 90 ? 'text-danger' : (occupancy > 70 ? 'text-warning' : 'text-success') }}">
+                                    {{ occupancy|number_format(0) }}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_CONTROLEUR') %}
+    <div class="mt-4">
+        <h4 class="mb-3">
+            <i class="bi bi-lightning-charge me-2"></i>Actions rapides
+        </h4>
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ path('app_stock_entry_new') }}" class="quick-action-card">
+                    <div class="quick-action-icon bg-success">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Nouvelle entrée</div>
+                        <div class="quick-action-desc">Enregistrer une réception</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ path('app_stock_exit_new') }}" class="quick-action-card">
+                    <div class="quick-action-icon bg-info">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Nouvelle sortie</div>
+                        <div class="quick-action-desc">Préparer une expédition</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ path('app_stock_index') }}" class="quick-action-card">
+                    <div class="quick-action-icon bg-primary">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Consulter le stock</div>
+                        <div class="quick-action-desc">Voir l'état du stock</div>
+                    </div>
+                </a>
+            </div>
+            {% if is_granted('ROLE_CHEF_STOCK') %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ path('app_client_index') }}" class="quick-action-card">
+                    <div class="quick-action-icon bg-secondary">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Gérer les clients</div>
+                        <div class="quick-action-desc">Liste des clients</div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Reject Modals -->
+{% for entry in pendingEntries %}
+<div class="modal fade" id="rejectModal{{ entry.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rejeter l'entrée</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ path('app_stock_entry_reject', {id: entry.id}) }}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ entry.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">Motif du rejet</label>
+                        <textarea name="reason" class="form-control" rows="3" required 
+                                  placeholder="Indiquez la raison du rejet..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Rejeter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* Stat Cards */
+    .stat-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+    }
+
+    .stat-card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .stat-card-warning .stat-card-icon {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+        color: #f59e0b;
+    }
+
+    .stat-card-info .stat-card-icon {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0.1));
+        color: #0ea5e9;
+    }
+
+    .stat-card-success .stat-card-icon {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+        color: #10b981;
+    }
+
+    .stat-card-primary .stat-card-icon {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
+        color: #6366f1;
+    }
+
+    .stat-card-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .stat-card-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    .stat-card-link {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover .stat-card-link {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* Cold Room Cards */
+    .cold-room-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .cold-room-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .cold-room-card.warning {
+        border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    .cold-room-card.critical {
+        border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .cold-room-header {
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(99, 102, 241, 0.1);
+    }
+
+    .cold-room-name {
+        font-weight: 600;
+    }
+
+    .cold-room-temp {
+        font-size: 0.85rem;
+        color: var(--secondary);
+    }
+
+    .cold-room-body {
+        padding: 1rem;
+    }
+
+    .cold-room-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    /* Quick Action Cards */
+    .quick-action-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        text-decoration: none;
+        color: var(--text);
+        transition: all 0.3s ease;
+    }
+
+    .quick-action-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--primary);
+        color: var(--text);
+    }
+
+    .quick-action-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .quick-action-title {
+        font-weight: 600;
+    }
+
+    .quick-action-desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    /* Alert Icon */
+    .alert-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(239, 68, 68, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Card Footer */
+    .card-footer {
+        background: transparent;
+        border-top: 1px solid var(--glass-border);
+        padding: 1rem;
+    }
+</style>
+{% endblock %}

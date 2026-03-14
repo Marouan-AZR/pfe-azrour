@@ -1,0 +1,347 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clients{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    <div class="page-header">
+        <div class="header-content">
+            <h1><i class="bi bi-people"></i> Gestion des clients</h1>
+            {% if is_granted('CLIENT_CREATE') %}
+            <a href="{{ path('app_client_new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Nouveau client
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ clients|length }}</div>
+                <div class="stat-label">Total clients</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #059669);">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">
+                    {% set activeCount = 0 %}
+                    {% for client in clients %}
+                        {% if client.isActive %}{% set activeCount = activeCount + 1 %}{% endif %}
+                    {% endfor %}
+                    {{ activeCount }}
+                </div>
+                <div class="stat-label">Clients actifs</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);">
+                <i class="bi bi-pause-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ clients|length - activeCount }}</div>
+                <div class="stat-label">Clients inactifs</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-search"></i> Recherche
+        </div>
+        <div class="card-body">
+            <form method="get" class="search-form">
+                <div class="search-input-wrapper">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="q" class="form-control" placeholder="Rechercher par raison sociale, email ou code..." value="{{ search }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Rechercher</button>
+                {% if search %}
+                <a href="{{ path('app_client_index') }}" class="btn btn-outline-light">
+                    <i class="bi bi-x-lg"></i> Réinitialiser
+                </a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-table"></i> Liste des clients
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Raison sociale</th>
+                            <th>Contact</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in clients %}
+                        <tr class="{{ not client.isActive ? 'row-inactive' }}">
+                            <td>
+                                <code class="client-code">{{ client.code }}</code>
+                            </td>
+                            <td>
+                                <div class="client-info">
+                                    <span class="client-name">{{ client.companyName }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="contact-info">
+                                    <div class="contact-item">
+                                        <i class="bi bi-envelope"></i> {{ client.email }}
+                                    </div>
+                                    <div class="contact-item">
+                                        <i class="bi bi-telephone"></i> {{ client.phone }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                {% if client.isActive %}
+                                    <span class="status-badge status-active">
+                                        <i class="bi bi-check-circle"></i> Actif
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">
+                                        <i class="bi bi-pause-circle"></i> Inactif
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    {% if is_granted('CLIENT_EDIT') %}
+                                    <a href="{{ path('app_client_edit', {id: client.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form action="{{ path('app_client_toggle', {id: client.id}) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ client.id) }}">
+                                        <button type="submit" class="btn btn-sm {{ client.isActive ? 'btn-outline-warning' : 'btn-outline-success' }}" title="{{ client.isActive ? 'Désactiver' : 'Activer' }}">
+                                            <i class="bi {{ client.isActive ? 'bi-pause' : 'bi-play' }}"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{{ path('app_client_create_account', {id: client.id}) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('create_account' ~ client.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-info" title="Créer compte utilisateur">
+                                            <i class="bi bi-person-plus"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    {% if is_granted('CLIENT_DELETE') %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ client.id }}" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if is_granted('CLIENT_DELETE') %}
+                                <div class="modal fade" id="deleteModal{{ client.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    <i class="bi bi-exclamation-triangle text-danger"></i> Confirmer la suppression
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Êtes-vous sûr de vouloir supprimer le client :</p>
+                                                <p class="text-center">
+                                                    <strong class="text-danger">{{ client.companyName }}</strong>
+                                                </p>
+                                                <p class="text-muted small">Cette action est irréversible.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <form action="{{ path('app_client_delete', {id: client.id}) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ client.id) }}">
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="bi bi-trash"></i> Supprimer
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="bi bi-people"></i>
+                                    <p>Aucun client trouvé</p>
+                                    {% if is_granted('CLIENT_CREATE') %}
+                                    <a href="{{ path('app_client_new') }}" class="btn btn-primary">
+                                        <i class="bi bi-plus-lg"></i> Ajouter un client
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    margin-bottom: 2rem;
+}
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.search-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.search-input-wrapper {
+    flex: 1;
+    position: relative;
+}
+.search-input-wrapper i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+.search-input-wrapper input {
+    padding-left: 2.5rem;
+}
+.client-code {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--primary-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+.client-name {
+    font-weight: 600;
+    color: var(--text);
+}
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.contact-item {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.contact-item i {
+    color: var(--primary-light);
+}
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-active {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+.status-inactive {
+    background: rgba(100, 116, 139, 0.2);
+    color: #94a3b8;
+}
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+.row-inactive {
+    opacity: 0.6;
+}
+.empty-state {
+    color: var(--text-muted);
+}
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+@media (max-width: 768px) {
+    .search-form {
+        flex-direction: column;
+    }
+    .search-input-wrapper {
+        width: 100%;
+    }
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+}
+</style>
+{% endblock %}

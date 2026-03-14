@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fiche de Charge - {{ exit.bonLivraisonNumber ?? 'FC-' ~ exit.id }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #333; background: #fff; padding: 20px; }
+        .document { max-width: 800px; margin: 0 auto; border: 2px solid #2d5a87; }
+        .header { background: linear-gradient(135deg, #2d5a87 0%, #1e3a5f 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-section h1 { font-size: 22px; font-weight: 700; margin-bottom: 5px; }
+        .logo-section p { font-size: 11px; opacity: 0.9; }
+        .doc-info { text-align: right; }
+        .doc-info .doc-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 4px; }
+        .doc-info .doc-number { font-size: 13px; font-weight: 600; }
+        .doc-info .doc-date { font-size: 11px; margin-top: 5px; }
+        .content { padding: 20px; }
+        .section { margin-bottom: 15px; }
+        .section-title { background: #e8f4f8; padding: 8px 12px; font-weight: 600; font-size: 12px; color: #2d5a87; border-left: 4px solid #2d5a87; margin-bottom: 10px; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .info-grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .info-item { padding: 6px 8px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 4px; }
+        .info-label { font-size: 9px; text-transform: uppercase; color: #666; margin-bottom: 2px; }
+        .info-value { font-weight: 600; color: #1e3a5f; font-size: 11px; }
+        .info-value.highlight { color: #0066cc; }
+        .checklist { margin-top: 10px; }
+        .checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #eee; }
+        .checkbox { width: 18px; height: 18px; border: 2px solid #2d5a87; border-radius: 3px; }
+        .checklist-label { flex: 1; font-size: 11px; }
+        .checklist-value { width: 100px; border-bottom: 1px dotted #999; text-align: center; font-size: 11px; }
+        .signatures { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; }
+        .signature-box { text-align: center; }
+        .signature-box .title { font-weight: 600; font-size: 10px; color: #2d5a87; margin-bottom: 40px; }
+        .signature-box .line { border-top: 1px solid #333; padding-top: 5px; font-size: 9px; color: #666; }
+        .footer { background: #e8f4f8; padding: 10px 20px; text-align: center; font-size: 9px; color: #666; border-top: 2px solid #2d5a87; }
+        @media print { body { padding: 0; } .document { border: none; } .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 30px; font-size: 14px; cursor: pointer; background: #2d5a87; color: white; border: none; border-radius: 4px;">🖨️ Imprimer</button>
+    </div>
+
+    <div class="document">
+        <div class="header">
+            <div class="logo-section">
+                <h1>🧊 GOLDEN LOGISTICS</h1>
+                <p>Fiche de Contrôle Expédition</p>
+            </div>
+            <div class="doc-info">
+                <div class="doc-title">FICHE DE CHARGE</div>
+                <div class="doc-number">FC-{{ exit.id }}</div>
+                <div class="doc-date">{{ exit.createdAt|date('d/m/Y') }}</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <div class="section-title">📋 INFORMATIONS EXPÉDITION</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">N° Bon de livraison</div>
+                        <div class="info-value highlight">{{ exit.bonLivraisonNumber ?? 'BL-' ~ exit.id }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Client</div>
+                        <div class="info-value">{{ exit.client.companyName }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Produit</div>
+                        <div class="info-value highlight">{{ exit.productName }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Quantité</div>
+                        <div class="info-value highlight">{{ exit.quantityTons|number_format(3, ',', ' ') }} T</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Chambre froide</div>
+                        <div class="info-value">{{ exit.coldRoom.name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Destination</div>
+                        <div class="info-value">{{ exit.destination ?? '-' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🚚 VÉHICULE & CHAUFFEUR</div>
+                <div class="info-grid info-grid-3">
+                    <div class="info-item">
+                        <div class="info-label">Transporteur</div>
+                        <div class="info-value">{{ exit.transporteur ?? '________________' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Immatriculation</div>
+                        <div class="info-value">{{ exit.immatriculation ?? '________________' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Chauffeur</div>
+                        <div class="info-value">{{ exit.chauffeur ?? '________________' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">✅ CHECKLIST CHARGEMENT</div>
+                <div class="checklist">
+                    <div class="checklist-item">
+                        <div class="checkbox"></div>
+                        <span class="checklist-label">Vérification état du véhicule (propreté, température)</span>
+                        <span class="checklist-value"></span>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checkbox"></div>
+                        <span class="checklist-label">Température camion frigorifique</span>
+                        <span class="checklist-value">______ °C</span>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checkbox"></div>
+                        <span class="checklist-label">Contrôle visuel des palettes</span>
+                        <span class="checklist-value"></span>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checkbox"></div>
+                        <span class="checklist-label">Vérification quantité chargée</span>
+                        <span class="checklist-value">______ T</span>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checkbox"></div>
+                        <span class="checklist-label">Arrimage et calage des palettes</span>
+                        <span class="checklist-value"></span>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checkbox"></div>
+                        <span class="checklist-label">Fermeture et scellage du camion</span>
+                        <span class="checklist-value">N° Scellé: ________</span>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checkbox"></div>
+                        <span class="checklist-label">Remise des documents au chauffeur</span>
+                        <span class="checklist-value"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">⏰ HORAIRES</div>
+                <div class="info-grid info-grid-3">
+                    <div class="info-item">
+                        <div class="info-label">Heure début chargement</div>
+                        <div class="info-value">____ : ____</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Heure fin chargement</div>
+                        <div class="info-value">____ : ____</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Heure départ</div>
+                        <div class="info-value">____ : ____</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="signatures">
+                <div class="signature-box">
+                    <div class="title">Contrôleur / Magasinier</div>
+                    <div class="line">Nom & Signature</div>
+                </div>
+                <div class="signature-box">
+                    <div class="title">Chauffeur</div>
+                    <div class="line">Nom & Signature</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>GOLDEN LOGISTICS SARL</strong> - Zone Industrielle, Dakhla, Maroc | Document généré le {{ "now"|date('d/m/Y à H:i') }}
+        </div>
+    </div>
+</body>
+</html>

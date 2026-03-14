@@ -1,0 +1,472 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="header-content">
+            <h1><i class="bi bi-clock-history"></i> Historique des actions</h1>
+            <a href="{{ path('app_history_export', {action: filters.action, entity_type: filters.entityType, user_id: selectedUserId, date_from: filters.dateFrom, date_to: filters.dateTo}) }}" class="btn btn-secondary">
+                <i class="bi bi-download"></i> Export CSV
+            </a>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
+                <i class="bi bi-journal-text"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ logs|length }}</div>
+                <div class="stat-label">Entrées affichées</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #059669);">
+                <i class="bi bi-plus-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">
+                    {% set createCount = 0 %}
+                    {% for log in logs %}{% if log.action == 'create' %}{% set createCount = createCount + 1 %}{% endif %}{% endfor %}
+                    {{ createCount }}
+                </div>
+                <div class="stat-label">Créations</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);">
+                <i class="bi bi-pencil-square"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">
+                    {% set updateCount = 0 %}
+                    {% for log in logs %}{% if log.action == 'update' %}{% set updateCount = updateCount + 1 %}{% endif %}{% endfor %}
+                    {{ updateCount }}
+                </div>
+                <div class="stat-label">Modifications</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--danger), #dc2626);">
+                <i class="bi bi-trash"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">
+                    {% set deleteCount = 0 %}
+                    {% for log in logs %}{% if log.action == 'delete' %}{% set deleteCount = deleteCount + 1 %}{% endif %}{% endfor %}
+                    {{ deleteCount }}
+                </div>
+                <div class="stat-label">Suppressions</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-funnel"></i> Filtres avancés
+        </div>
+        <div class="card-body">
+            <form method="get" class="filter-form">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="action" class="form-label">Action</label>
+                        <select name="action" id="action" class="form-select">
+                            <option value="">Toutes les actions</option>
+                            <option value="create" {{ filters.action == 'create' ? 'selected' }}>Création</option>
+                            <option value="update" {{ filters.action == 'update' ? 'selected' }}>Modification</option>
+                            <option value="delete" {{ filters.action == 'delete' ? 'selected' }}>Suppression</option>
+                            <option value="validate" {{ filters.action == 'validate' ? 'selected' }}>Validation</option>
+                            <option value="reject" {{ filters.action == 'reject' ? 'selected' }}>Rejet</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="entity_type" class="form-label">Type d'entité</label>
+                        <select name="entity_type" id="entity_type" class="form-select">
+                            <option value="">Tous les types</option>
+                            {% for type in entityTypes %}
+                            <option value="{{ type }}" {{ filters.entityType == type ? 'selected' }}>{{ type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="user_id" class="form-label">Utilisateur</label>
+                        <select name="user_id" id="user_id" class="form-select">
+                            <option value="">Tous les utilisateurs</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}" {{ selectedUserId == user.id ? 'selected' }}>{{ user.fullName }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="date_from" class="form-label">Du</label>
+                        <input type="date" name="date_from" id="date_from" class="form-control" value="{{ filters.dateFrom }}">
+                    </div>
+                    <div class="filter-group">
+                        <label for="date_to" class="form-label">Au</label>
+                        <input type="date" name="date_to" id="date_to" class="form-control" value="{{ filters.dateTo }}">
+                    </div>
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Filtrer
+                        </button>
+                        <a href="{{ path('app_history_index') }}" class="btn btn-outline-light">
+                            <i class="bi bi-x-lg"></i> Réinitialiser
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-list-ul"></i> Journal d'audit
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date & Heure</th>
+                            <th>Utilisateur</th>
+                            <th>Action</th>
+                            <th>Entité</th>
+                            <th class="text-center">ID</th>
+                            <th class="text-center">Détails</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>
+                                <div class="datetime-cell">
+                                    <span class="date">{{ log.createdAt|date('d/m/Y') }}</span>
+                                    <span class="time">{{ log.createdAt|date('H:i:s') }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar">
+                                        {{ log.user.fullName|slice(0, 1)|upper }}
+                                    </div>
+                                    <span class="user-name">{{ log.user.fullName }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if log.action == 'create' %}
+                                    <span class="action-badge action-create">
+                                        <i class="bi bi-plus-circle"></i> Création
+                                    </span>
+                                {% elseif log.action == 'update' %}
+                                    <span class="action-badge action-update">
+                                        <i class="bi bi-pencil"></i> Modification
+                                    </span>
+                                {% elseif log.action == 'delete' %}
+                                    <span class="action-badge action-delete">
+                                        <i class="bi bi-trash"></i> Suppression
+                                    </span>
+                                {% elseif log.action == 'validate' %}
+                                    <span class="action-badge action-validate">
+                                        <i class="bi bi-check-circle"></i> Validation
+                                    </span>
+                                {% elseif log.action == 'reject' %}
+                                    <span class="action-badge action-reject">
+                                        <i class="bi bi-x-circle"></i> Rejet
+                                    </span>
+                                {% else %}
+                                    <span class="action-badge action-other">
+                                        <i class="bi bi-info-circle"></i> {{ log.action }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="entity-badge">{{ log.entityType }}</span>
+                            </td>
+                            <td class="text-center">
+                                <code class="entity-id">#{{ log.entityId }}</code>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#detailModal{{ log.id }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                
+                                <div class="modal fade" id="detailModal{{ log.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    <i class="bi bi-info-circle"></i> Détails de l'action
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="detail-grid">
+                                                    <div class="detail-item">
+                                                        <span class="detail-label">Date</span>
+                                                        <span class="detail-value">{{ log.createdAt|date('d/m/Y H:i:s') }}</span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <span class="detail-label">Utilisateur</span>
+                                                        <span class="detail-value">{{ log.user.fullName }}</span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <span class="detail-label">Action</span>
+                                                        <span class="detail-value">{{ log.action }}</span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <span class="detail-label">Entité</span>
+                                                        <span class="detail-value">{{ log.entityType }} #{{ log.entityId }}</span>
+                                                    </div>
+                                                </div>
+                                                {% if log.oldValues %}
+                                                <div class="values-section">
+                                                    <h6><i class="bi bi-arrow-left-circle"></i> Anciennes valeurs</h6>
+                                                    <pre class="values-pre">{{ log.oldValues|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                                                </div>
+                                                {% endif %}
+                                                {% if log.newValues %}
+                                                <div class="values-section">
+                                                    <h6><i class="bi bi-arrow-right-circle"></i> Nouvelles valeurs</h6>
+                                                    <pre class="values-pre">{{ log.newValues|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="bi bi-journal-x"></i>
+                                    <p>Aucun enregistrement trouvé</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    margin-bottom: 2rem;
+}
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+}
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+}
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+.datetime-cell {
+    display: flex;
+    flex-direction: column;
+}
+.datetime-cell .date {
+    font-weight: 600;
+    color: var(--text);
+}
+.datetime-cell .time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: white;
+}
+.user-name {
+    font-weight: 500;
+    color: var(--text);
+}
+.action-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.action-create {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+.action-update {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+}
+.action-delete {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+.action-validate {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+}
+.action-reject {
+    background: rgba(100, 116, 139, 0.2);
+    color: #94a3b8;
+}
+.action-other {
+    background: rgba(14, 165, 233, 0.2);
+    color: #38bdf8;
+}
+.entity-badge {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary-light);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.entity-id {
+    background: var(--dark-lighter);
+    color: var(--text-muted);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--dark-lighter);
+    border-radius: var(--radius-sm);
+}
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.detail-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.detail-value {
+    font-weight: 500;
+    color: var(--text);
+}
+.values-section {
+    margin-top: 1rem;
+}
+.values-section h6 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+}
+.values-pre {
+    background: var(--dark);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    overflow-x: auto;
+    max-height: 200px;
+}
+.empty-state {
+    color: var(--text-muted);
+}
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+    }
+    .filter-group {
+        width: 100%;
+    }
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

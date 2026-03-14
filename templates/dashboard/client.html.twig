@@ -1,0 +1,354 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Espace Client - Golden Logistics{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">
+                <i class="bi bi-person-circle me-2"></i>Mon Espace
+            </h1>
+            <p class="text-muted mb-0">
+                Bienvenue, {{ app.user.fullName }}
+                <span class="badge bg-info ms-2">{{ client.companyName }}</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="client-stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ totalStock|number_format(2) }} T</div>
+                    <div class="stat-label">Stock total</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="client-stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="bi bi-boxes"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ stockItems|length }}</div>
+                    <div class="stat-label">Lots en stock</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="client-stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ recentInvoices|length }}</div>
+                    <div class="stat-label">Factures récentes</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="client-stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="bi bi-thermometer-snow"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">-25°C</div>
+                    <div class="stat-label">Température garantie</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Stock Items -->
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-box-seam me-2 text-primary"></i>
+                        Mon Stock
+                    </div>
+                    <a href="{{ path('app_stock_index') }}" class="btn btn-sm btn-outline-primary">
+                        Voir tout <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if stockItems|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th>Chambre</th>
+                                    <th>Quantité</th>
+                                    <th>Date entrée</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in stockItems|slice(0, 5) %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ item.productName }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ item.coldRoom.name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ item.remainingQuantity|number_format(2) }} T</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ item.entryDate|date('d/m/Y') }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">En stock</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2 mb-0">Aucun stock actuellement</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Activité récente
+                </div>
+                <div class="card-body">
+                    <div class="activity-list">
+                        {% for entry in recentEntries %}
+                        <div class="activity-item">
+                            <div class="activity-icon bg-success">
+                                <i class="bi bi-box-arrow-in-down"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Entrée: {{ entry.productName }}</div>
+                                <div class="activity-meta">
+                                    {{ entry.quantityTons }} T - {{ entry.createdAt|date('d/m/Y') }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% for exit in recentExits %}
+                        <div class="activity-item">
+                            <div class="activity-icon bg-warning">
+                                <i class="bi bi-box-arrow-up"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Sortie: {{ exit.stockItem.productName }}</div>
+                                <div class="activity-meta">
+                                    {{ exit.quantityTons }} T - {{ exit.createdAt|date('d/m/Y') }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if recentEntries|length == 0 and recentExits|length == 0 %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Aucune activité récente</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices -->
+    <div class="mt-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-receipt me-2 text-warning"></i>
+                    Mes Factures
+                </div>
+                <a href="{{ path('app_invoice_index') }}" class="btn btn-sm btn-outline-warning">
+                    Voir toutes <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if recentInvoices|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>N° Facture</th>
+                                <th>Période</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in recentInvoices %}
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold">{{ invoice.invoiceNumber }}</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ invoice.periodStart|date('d/m/Y') }} - {{ invoice.periodEnd|date('d/m/Y') }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ invoice.totalAmount|number_format(2, ',', ' ') }} DH</span>
+                                </td>
+                                <td>
+                                    {% if invoice.status.value == 'validated' %}
+                                        <span class="badge bg-success">Validée</span>
+                                    {% elseif invoice.status.value == 'pending_validation' %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% elseif invoice.status.value == 'paid' %}
+                                        <span class="badge bg-info">Payée</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ invoice.status.value }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ path('app_invoice_show', {id: invoice.id}) }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> Voir
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2 mb-0">Aucune facture</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="mt-4">
+        <div class="card contact-card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-2">
+                            <i class="bi bi-headset me-2"></i>
+                            Besoin d'assistance ?
+                        </h5>
+                        <p class="text-muted mb-0">
+                            Notre équipe est disponible pour répondre à vos questions concernant votre stock.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="mailto:contact@golden-logistics.ma" class="btn btn-primary">
+                            <i class="bi bi-envelope me-2"></i>Nous contacter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .client-stat-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .client-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 0.75rem;
+        background: rgba(99, 102, 241, 0.05);
+        border-radius: 12px;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .activity-meta {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }
+
+    .contact-card {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(14, 165, 233, 0.1));
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+</style>
+{% endblock %}

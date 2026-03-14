@@ -1,0 +1,305 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des utilisateurs{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">
+                <i class="bi bi-people me-2"></i>Gestion des utilisateurs
+            </h1>
+            <p class="text-muted mb-0">Administration des comptes et des rôles</p>
+        </div>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>{{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-circle me-2"></i>{{ message }}
+        </div>
+    {% endfor %}
+
+    <!-- Pending Users -->
+    {% if pendingUsers|length > 0 %}
+    <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning bg-opacity-10">
+            <i class="bi bi-hourglass-split me-2 text-warning"></i>
+            Inscriptions en attente de validation
+            <span class="badge bg-warning ms-2">{{ pendingUsers|length }}</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Date inscription</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in pendingUsers %}
+                        <tr>
+                            <td>
+                                <span class="fw-semibold">{{ user.fullName }}</span>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <small class="text-muted">{{ user.createdAt|date('d/m/Y H:i') }}</small>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-success" 
+                                        data-bs-toggle="modal" data-bs-target="#activateModal{{ user.id }}">
+                                    <i class="bi bi-check-lg me-1"></i>Activer
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- All Users -->
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-list-ul me-2"></i>Tous les utilisateurs
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Statut</th>
+                            <th>Dernière connexion</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr class="{{ not user.isActive ? 'table-row-muted' : '' }}">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar">
+                                        {{ user.firstName|slice(0,1)|upper }}{{ user.lastName|slice(0,1)|upper }}
+                                    </div>
+                                    <div>
+                                        <span class="fw-semibold">{{ user.fullName }}</span>
+                                        {% if user.client %}
+                                            <br><small class="text-muted">{{ user.client.companyName }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% set mainRole = user.roles|first %}
+                                {% if mainRole == 'ROLE_CHEF_STOCK' %}
+                                    <span class="badge bg-primary">Chef de Stock</span>
+                                {% elseif mainRole == 'ROLE_CONTROLEUR' %}
+                                    <span class="badge bg-info">Contrôleur</span>
+                                {% elseif mainRole == 'ROLE_DIRECTEUR' %}
+                                    <span class="badge bg-warning">Directeur</span>
+                                {% elseif mainRole == 'ROLE_PATRON' %}
+                                    <span class="badge bg-secondary">Patron</span>
+                                {% elseif mainRole == 'ROLE_CLIENT' %}
+                                    <span class="badge bg-success">Client</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">{{ mainRole }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.isActive %}
+                                    <span class="badge bg-success">Actif</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactif</span>
+                                {% endif %}
+                                {% if user.isLocked %}
+                                    <span class="badge bg-warning">Bloqué</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ user.updatedAt|date('d/m/Y H:i') }}</small>
+                            </td>
+                            <td>
+                                {% if user != app.user %}
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                            data-bs-toggle="modal" data-bs-target="#roleModal{{ user.id }}"
+                                            title="Changer le rôle">
+                                        <i class="bi bi-person-gear"></i>
+                                    </button>
+                                    {% if user.isActive %}
+                                    <form action="{{ path('app_user_deactivate', {id: user.id}) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('deactivate' ~ user.id) }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Désactiver">
+                                            <i class="bi bi-person-x"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <button type="button" class="btn btn-outline-success btn-sm" 
+                                            data-bs-toggle="modal" data-bs-target="#activateModal{{ user.id }}"
+                                            title="Activer">
+                                        <i class="bi bi-person-check"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <small class="text-muted">(vous)</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activate Modals -->
+{% for user in users %}
+{% if not user.isActive %}
+<div class="modal fade" id="activateModal{{ user.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ path('app_user_activate', {id: user.id}) }}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-check text-success me-2"></i>Activer l'utilisateur
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="_token" value="{{ csrf_token('activate' ~ user.id) }}">
+                    <p>Activer le compte de <strong>{{ user.fullName }}</strong> ({{ user.email }})</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Rôle à attribuer *</label>
+                        <select name="role" class="form-select" required id="roleSelect{{ user.id }}" 
+                                onchange="toggleClientSelect({{ user.id }})">
+                            <option value="">Sélectionner un rôle</option>
+                            <option value="ROLE_CHEF_STOCK">Chef de Stock</option>
+                            <option value="ROLE_CONTROLEUR">Contrôleur</option>
+                            <option value="ROLE_DIRECTEUR">Directeur</option>
+                            <option value="ROLE_PATRON">Patron</option>
+                            <option value="ROLE_CLIENT">Client</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 d-none" id="clientSelect{{ user.id }}">
+                        <label class="form-label">Associer à un client</label>
+                        <select name="client_id" class="form-select">
+                            <option value="">Aucun client</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.companyName }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Activer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+<!-- Role Change Modals -->
+{% for user in users %}
+{% if user != app.user %}
+<div class="modal fade" id="roleModal{{ user.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ path('app_user_change_role', {id: user.id}) }}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-gear me-2"></i>Changer le rôle
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="_token" value="{{ csrf_token('role' ~ user.id) }}">
+                    <p>Modifier le rôle de <strong>{{ user.fullName }}</strong></p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nouveau rôle</label>
+                        <select name="role" class="form-select" required>
+                            {% set currentRole = user.roles|first %}
+                            <option value="ROLE_CHEF_STOCK" {{ currentRole == 'ROLE_CHEF_STOCK' ? 'selected' }}>Chef de Stock</option>
+                            <option value="ROLE_CONTROLEUR" {{ currentRole == 'ROLE_CONTROLEUR' ? 'selected' }}>Contrôleur</option>
+                            <option value="ROLE_DIRECTEUR" {{ currentRole == 'ROLE_DIRECTEUR' ? 'selected' }}>Directeur</option>
+                            <option value="ROLE_PATRON" {{ currentRole == 'ROLE_PATRON' ? 'selected' }}>Patron</option>
+                            <option value="ROLE_CLIENT" {{ currentRole == 'ROLE_CLIENT' ? 'selected' }}>Client</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: white;
+    }
+
+    .table-row-muted {
+        opacity: 0.6;
+    }
+
+    .border-warning {
+        border-color: rgba(245, 158, 11, 0.5) !important;
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    function toggleClientSelect(userId) {
+        const roleSelect = document.getElementById('roleSelect' + userId);
+        const clientSelect = document.getElementById('clientSelect' + userId);
+        
+        if (roleSelect.value === 'ROLE_CLIENT') {
+            clientSelect.classList.remove('d-none');
+        } else {
+            clientSelect.classList.add('d-none');
+        }
+    }
+</script>
+{% endblock %}

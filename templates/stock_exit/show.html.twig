@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sortie #{{ exit.id }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1><i class="bi bi-box-arrow-up"></i> Sortie de stock #{{ exit.id }}</h1>
+                <div class="header-badges">
+                    {% if exit.status.value == 'pending' %}
+                        <span class="status-badge status-pending"><i class="bi bi-hourglass-split"></i> En attente</span>
+                    {% elseif exit.status.value == 'validated' %}
+                        <span class="status-badge status-validated"><i class="bi bi-check-circle"></i> Validée</span>
+                    {% else %}
+                        <span class="status-badge status-rejected"><i class="bi bi-x-circle"></i> Rejetée</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="{{ path('app_stock_exit_bon_livraison', {id: exit.id}) }}" class="btn btn-secondary" target="_blank">
+                    <i class="bi bi-file-earmark-pdf"></i> Bon de livraison
+                </a>
+                <a href="{{ path('app_stock_exit_fiche_charge', {id: exit.id}) }}" class="btn btn-info" target="_blank">
+                    <i class="bi bi-clipboard-check"></i> Fiche de charge
+                </a>
+                <a href="{{ path('app_stock_exit_index') }}" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <div class="card-header"><i class="bi bi-info-circle"></i> Informations générales</div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">N° Bon de livraison</span>
+                        <span class="info-value highlight">{{ exit.bonLivraisonNumber ?? 'Non généré' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Date de création</span>
+                        <span class="info-value">{{ exit.createdAt|date('d/m/Y H:i') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Créé par</span>
+                        <span class="info-value">{{ exit.createdBy.fullName }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Jours de stockage</span>
+                        <span class="info-value highlight">{{ exit.storageDays }} jours</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <div class="card-header"><i class="bi bi-person-badge"></i> Client</div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Raison sociale</span>
+                        <span class="info-value highlight">{{ exit.client.companyName }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Code client</span>
+                        <span class="info-value"><code>{{ exit.client.code }}</code></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Destination</span>
+                        <span class="info-value">{{ exit.destination ?? '-' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <div class="card-header"><i class="bi bi-box-seam"></i> Produit</div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Nom du produit</span>
+                        <span class="info-value highlight">{{ exit.productName }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Chambre froide</span>
+                        <span class="info-value">{{ exit.coldRoom.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Quantité sortie</span>
+                        <span class="info-value highlight">{{ exit.quantityTons|number_format(3, ',', ' ') }} T</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <div class="card-header"><i class="bi bi-truck"></i> Transport</div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Transporteur</span>
+                        <span class="info-value">{{ exit.transporteur ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Immatriculation</span>
+                        <span class="info-value">{{ exit.immatriculation ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Chauffeur</span>
+                        <span class="info-value">{{ exit.chauffeur ?? '-' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header { margin-bottom: 2rem; }
+.header-content { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+.header-title h1 { margin-bottom: 0.5rem; }
+.header-badges { display: flex; gap: 0.5rem; }
+.header-actions { display: flex; gap: 0.5rem; }
+.status-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; }
+.status-pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.status-validated { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.status-rejected { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+.detail-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius); overflow: hidden; }
+.detail-card .card-header { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.5rem; background: rgba(99, 102, 241, 0.1); border-bottom: 1px solid var(--glass-border); font-weight: 600; }
+.detail-card .card-body { padding: 1.5rem; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+.info-item { display: flex; flex-direction: column; gap: 0.25rem; }
+.info-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+.info-value { font-weight: 500; color: var(--text); }
+.info-value.highlight { color: var(--primary-light); font-weight: 600; }
+.info-value code { background: rgba(99, 102, 241, 0.2); padding: 0.2rem 0.5rem; border-radius: 4px; }
+</style>
+{% endblock %}

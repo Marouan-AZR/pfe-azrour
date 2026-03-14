@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Compte en attente - Golden Logistics{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <div class="pending-icon mb-4">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <h2 class="mb-3">Compte en attente de configuration</h2>
+                    <p class="text-muted mb-4">
+                        Votre compte utilisateur n'est pas encore associé à un compte client. 
+                        Veuillez contacter l'administrateur pour finaliser la configuration de votre accès.
+                    </p>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Une fois votre compte client configuré, vous pourrez accéder à votre stock et vos factures.
+                    </div>
+                    <hr class="my-4">
+                    <h5 class="mb-3">Contactez-nous</h5>
+                    <div class="contact-info">
+                        <p class="mb-2">
+                            <i class="bi bi-envelope me-2 text-primary"></i>
+                            contact@golden-logistics.ma
+                        </p>
+                        <p class="mb-0">
+                            <i class="bi bi-telephone me-2 text-primary"></i>
+                            +212 5XX XX XX XX
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .pending-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: #f59e0b;
+    }
+
+    .contact-info {
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}

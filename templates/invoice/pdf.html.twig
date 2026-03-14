@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Facture {{ invoice.invoiceNumber }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; line-height: 1.4; color: #333; background: #fff; padding: 20px; }
+        .document { max-width: 800px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 3px solid #1e3a5f; margin-bottom: 20px; }
+        .logo h1 { font-size: 24px; color: #1e3a5f; margin-bottom: 5px; }
+        .logo p { font-size: 10px; color: #666; }
+        .invoice-info { text-align: right; }
+        .invoice-info .title { font-size: 28px; font-weight: 700; color: #1e3a5f; margin-bottom: 10px; }
+        .invoice-info .number { font-size: 14px; font-weight: 600; color: #0066cc; }
+        .invoice-info .date { font-size: 11px; color: #666; margin-top: 5px; }
+        .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .party { padding: 15px; background: #f8f9fa; border-radius: 8px; }
+        .party-label { font-size: 10px; text-transform: uppercase; color: #666; margin-bottom: 8px; font-weight: 600; }
+        .party-name { font-size: 14px; font-weight: 700; color: #1e3a5f; margin-bottom: 5px; }
+        .party-details { font-size: 11px; color: #555; line-height: 1.6; }
+        .period { background: #e8f4f8; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; text-align: center; }
+        .period-label { font-size: 10px; text-transform: uppercase; color: #666; }
+        .period-value { font-size: 13px; font-weight: 600; color: #1e3a5f; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: #1e3a5f; color: white; padding: 12px 10px; text-align: left; font-size: 10px; text-transform: uppercase; }
+        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 11px; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .totals { margin-left: auto; width: 280px; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #eee; }
+        .total-row.final { background: #1e3a5f; color: white; font-weight: 700; font-size: 14px; border-radius: 0 0 6px 6px; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 2px solid #1e3a5f; text-align: center; font-size: 9px; color: #666; }
+        .payment-info { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 20px; }
+        .payment-info h4 { font-size: 11px; color: #1e3a5f; margin-bottom: 8px; }
+        .payment-info p { font-size: 10px; color: #555; margin: 3px 0; }
+        @media print { body { padding: 0; } .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 30px; font-size: 14px; cursor: pointer; background: #1e3a5f; color: white; border: none; border-radius: 4px;">🖨️ Imprimer</button>
+    </div>
+
+    <div class="document">
+        <div class="header">
+            <div class="logo">
+                <h1>🧊 GOLDEN LOGISTICS</h1>
+                <p>Entrepôt Frigorifique - Dakhla, Maroc</p>
+                <p>RC: XXXXX | IF: XXXXXXXX | ICE: XXXXXXXXXXXXXXX</p>
+            </div>
+            <div class="invoice-info">
+                <div class="title">FACTURE</div>
+                <div class="number">{{ invoice.invoiceNumber }}</div>
+                <div class="date">Date: {{ invoice.createdAt|date('d/m/Y') }}</div>
+            </div>
+        </div>
+
+        <div class="parties">
+            <div class="party">
+                <div class="party-label">Émetteur</div>
+                <div class="party-name">GOLDEN LOGISTICS SARL</div>
+                <div class="party-details">Zone Industrielle<br>Dakhla, Maroc<br>Tél: +212 5XX XX XX XX<br>Email: contact@golden-logistics.ma</div>
+            </div>
+            <div class="party">
+                <div class="party-label">Client</div>
+                <div class="party-name">{{ invoice.client.companyName }}</div>
+                <div class="party-details">{{ invoice.client.address|nl2br }}<br>{{ invoice.client.phone }}<br>{{ invoice.client.email }}</div>
+            </div>
+        </div>
+
+        <div class="period">
+            <span class="period-label">Période de facturation:</span>
+            <span class="period-value">Du {{ invoice.periodStart|date('d/m/Y') }} au {{ invoice.periodEnd|date('d/m/Y') }}</span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Désignation</th>
+                    <th class="text-right">Quantité (T)</th>
+                    <th class="text-center">Jours</th>
+                    <th class="text-right">Tarif/jour/T</th>
+                    <th class="text-right">Montant HT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in invoice.lines %}
+                <tr>
+                    <td>Stockage frigorifique - {{ line.productName }}</td>
+                    <td class="text-right">{{ line.quantityTons|number_format(3, ',', ' ') }}</td>
+                    <td class="text-center">{{ line.storageDays }}</td>
+                    <td class="text-right">{{ line.dailyRatePerTon|number_format(4, ',', ' ') }} DH</td>
+                    <td class="text-right">{{ line.lineTotal|number_format(2, ',', ' ') }} DH</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div class="total-row"><span>Total HT</span><span>{{ invoice.totalHt|number_format(2, ',', ' ') }} DH</span></div>
+            <div class="total-row"><span>TVA ({{ invoice.vatRate }}%)</span><span>{{ ((invoice.totalTtc - invoice.totalHt))|number_format(2, ',', ' ') }} DH</span></div>
+            <div class="total-row final"><span>Total TTC</span><span>{{ invoice.totalTtc|number_format(2, ',', ' ') }} DH</span></div>
+        </div>
+
+        <div class="payment-info">
+            <h4>Modalités de paiement</h4>
+            <p>Paiement à 30 jours date de facture</p>
+            <p>RIB: XXXX XXXX XXXX XXXX XXXX XXXX</p>
+            <p>Banque: Attijariwafa Bank - Agence Dakhla</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>GOLDEN LOGISTICS SARL</strong> - Capital: XXX XXX DH - RC Dakhla: XXXXX - IF: XXXXXXXX - ICE: XXXXXXXXXXXXXXX</p>
+            <p>Zone Industrielle, Dakhla, Maroc | Tél: +212 5XX XX XX XX | Email: contact@golden-logistics.ma</p>
+        </div>
+    </div>
+</body>
+</html>

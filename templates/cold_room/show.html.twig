@@ -1,0 +1,401 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ coldRoom.name }} - Chambres froides{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{{ path('app_cold_room_index') }}">Chambres froides</a></li>
+                    <li class="breadcrumb-item active">{{ coldRoom.name }}</li>
+                </ol>
+            </nav>
+            <h1 class="mb-1">
+                <i class="bi bi-snow2 me-2"></i>{{ coldRoom.name }}
+            </h1>
+            <p class="text-muted mb-0">
+                <i class="bi bi-thermometer-half me-1"></i>Température: {{ coldRoom.targetTemperature }}°C
+                {% if not coldRoom.isActive %}
+                    <span class="badge bg-secondary ms-2">Inactive</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_cold_room_index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Retour
+            </a>
+            {% if is_granted('ROLE_CHEF_STOCK') %}
+            <a href="{{ path('app_cold_room_edit', {id: coldRoom.id}) }}" class="btn btn-primary">
+                <i class="bi bi-pencil me-1"></i>Modifier
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ coldRoom.usedCapacity|number_format(1) }} T</div>
+                    <div class="stat-label">Stock actuel</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="bi bi-arrow-down-up"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ coldRoom.availableCapacity|number_format(1) }} T</div>
+                    <div class="stat-label">Capacité disponible</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon {{ coldRoom.occupancyRate > 90 ? 'bg-danger' : (coldRoom.occupancyRate > 70 ? 'bg-warning' : 'bg-info') }}">
+                    <i class="bi bi-pie-chart"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ coldRoom.occupancyRate|number_format(1) }}%</div>
+                    <div class="stat-label">Taux d'occupation</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-secondary">
+                    <i class="bi bi-grid-3x3"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">44</div>
+                    <div class="stat-label">Rayons (22G + 22D)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capacity Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+                <span>Capacité totale: {{ coldRoom.maxCapacityTons }} T</span>
+                <span class="{{ coldRoom.occupancyRate > 90 ? 'text-danger' : (coldRoom.occupancyRate > 70 ? 'text-warning' : 'text-success') }}">
+                    {{ coldRoom.occupancyRate|number_format(1) }}% utilisé
+                </span>
+            </div>
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar {{ coldRoom.occupancyRate > 90 ? 'bg-danger' : (coldRoom.occupancyRate > 70 ? 'bg-warning' : 'bg-success') }}" 
+                     style="width: {{ coldRoom.occupancyRate }}%">
+                    {{ coldRoom.usedCapacity|number_format(1) }} T
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Rack Layout -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-grid-3x3 me-2"></i>
+                    Plan des Rayons (44 rayons)
+                </div>
+                <div class="card-body">
+                    <div class="rack-layout">
+                        <!-- Left Side (Gauche) -->
+                        <div class="rack-side">
+                            <div class="rack-side-title">Côté Gauche (G)</div>
+                            <div class="rack-grid">
+                                {% for i in 1..22 %}
+                                    {% set rackCode = 'G' ~ i %}
+                                    {% set isOccupied = racks[rackCode] is defined and racks[rackCode]|length > 0 %}
+                                    <div class="rack-cell {{ isOccupied ? 'occupied' : 'empty' }}" 
+                                         title="{{ rackCode }}{% if isOccupied %} - Occupé{% endif %}">
+                                        <span class="rack-code">{{ rackCode }}</span>
+                                        {% if isOccupied %}
+                                            <i class="bi bi-box-fill"></i>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Center Aisle -->
+                        <div class="rack-aisle">
+                            <div class="aisle-line"></div>
+                            <span class="aisle-label">Allée centrale</span>
+                            <div class="aisle-line"></div>
+                        </div>
+
+                        <!-- Right Side (Droite) -->
+                        <div class="rack-side">
+                            <div class="rack-side-title">Côté Droit (D)</div>
+                            <div class="rack-grid">
+                                {% for i in 1..22 %}
+                                    {% set rackCode = 'D' ~ i %}
+                                    {% set isOccupied = racks[rackCode] is defined and racks[rackCode]|length > 0 %}
+                                    <div class="rack-cell {{ isOccupied ? 'occupied' : 'empty' }}" 
+                                         title="{{ rackCode }}{% if isOccupied %} - Occupé{% endif %}">
+                                        <span class="rack-code">{{ rackCode }}</span>
+                                        {% if isOccupied %}
+                                            <i class="bi bi-box-fill"></i>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rack-legend mt-4">
+                        <div class="legend-item">
+                            <div class="legend-color empty"></div>
+                            <span>Disponible</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color occupied"></div>
+                            <span>Occupé</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Items in this room -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-boxes me-2"></i>
+                    Stock dans cette chambre
+                </div>
+                <div class="card-body p-0">
+                    {% if coldRoom.stockItems|length > 0 %}
+                    <div class="stock-list">
+                        {% for item in coldRoom.stockItems %}
+                        <div class="stock-item">
+                            <div class="stock-item-header">
+                                <span class="stock-product">{{ item.productName }}</span>
+                                <span class="badge bg-primary">{{ item.remainingQuantity|number_format(2) }} T</span>
+                            </div>
+                            <div class="stock-item-meta">
+                                <span><i class="bi bi-building me-1"></i>{{ item.client.companyName }}</span>
+                                <span><i class="bi bi-calendar me-1"></i>{{ item.entryDate|date('d/m/Y') }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2 mb-0">Aucun stock dans cette chambre</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .stat-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    /* Rack Layout */
+    .rack-layout {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .rack-side {
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .rack-side-title {
+        text-align: center;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 8px;
+    }
+
+    .rack-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+
+    .rack-cell {
+        aspect-ratio: 1;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .rack-cell.empty {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #10b981;
+    }
+
+    .rack-cell.occupied {
+        background: rgba(99, 102, 241, 0.2);
+        border: 1px solid rgba(99, 102, 241, 0.5);
+        color: #6366f1;
+    }
+
+    .rack-cell:hover {
+        transform: scale(1.1);
+        z-index: 10;
+    }
+
+    .rack-code {
+        font-weight: 600;
+    }
+
+    .rack-aisle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 1rem;
+    }
+
+    .aisle-line {
+        width: 2px;
+        flex: 1;
+        background: linear-gradient(180deg, transparent, var(--text-muted), transparent);
+    }
+
+    .aisle-label {
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        padding: 1rem 0;
+    }
+
+    .rack-legend {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+
+    .legend-color.empty {
+        background: rgba(16, 185, 129, 0.2);
+        border: 1px solid rgba(16, 185, 129, 0.5);
+    }
+
+    .legend-color.occupied {
+        background: rgba(99, 102, 241, 0.2);
+        border: 1px solid rgba(99, 102, 241, 0.5);
+    }
+
+    /* Stock List */
+    .stock-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .stock-item {
+        padding: 1rem;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .stock-item:last-child {
+        border-bottom: none;
+    }
+
+    .stock-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .stock-product {
+        font-weight: 600;
+    }
+
+    .stock-item-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin: 0;
+    }
+
+    .breadcrumb-item a {
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}

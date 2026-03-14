@@ -1,0 +1,423 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord Directeur - Golden Logistics{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">
+                <i class="bi bi-briefcase me-2"></i>Tableau de bord Directeur
+            </h1>
+            <p class="text-muted mb-0">
+                Bienvenue, {{ app.user.fullName }}
+                <span class="badge bg-info ms-2">Directeur</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <select class="form-select" style="width: auto;">
+                {% for i in 0..11 %}
+                    {% set date = "now"|date_modify("-" ~ i ~ " months") %}
+                    <option value="{{ date|date('Y-m') }}" {{ i == 0 ? 'selected' : '' }}>
+                        {{ date|date('F Y')|capitalize }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Revenue Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-icon">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ revenueThisMonth|number_format(0, ',', ' ') }} DH</div>
+                    <div class="stat-card-label">Chiffre d'affaires ce mois</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ revenueLastMonth|number_format(0, ',', ' ') }} DH</div>
+                    <div class="stat-card-label">Mois précédent</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-icon">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div class="stat-card-content">
+                    <div class="stat-card-value">{{ pendingInvoicesCount }}</div>
+                    <div class="stat-card-label">Factures en attente</div>
+                </div>
+                <a href="{{ path('app_invoice_index') }}" class="stat-card-link">
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-icon">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div class="stat-card-content">
+                    {% set variation = revenueLastMonth > 0 ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100) : 0 %}
+                    <div class="stat-card-value {{ variation >= 0 ? 'text-success' : 'text-danger' }}">
+                        {{ variation >= 0 ? '+' : '' }}{{ variation|number_format(1) }}%
+                    </div>
+                    <div class="stat-card-label">Variation mensuelle</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Pending Invoices -->
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-receipt me-2 text-warning"></i>
+                        Factures en attente de validation
+                    </div>
+                    <span class="badge bg-warning">{{ pendingInvoicesCount }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if pendingInvoices|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>N° Facture</th>
+                                    <th>Client</th>
+                                    <th>Période</th>
+                                    <th>Montant</th>
+                                    <th>Date création</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in pendingInvoices %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-semibold">{{ invoice.invoiceNumber }}</span>
+                                    </td>
+                                    <td>{{ invoice.client.companyName }}</td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ invoice.periodStart|date('d/m/Y') }} - {{ invoice.periodEnd|date('d/m/Y') }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ invoice.totalAmount|number_format(2, ',', ' ') }} DH</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ invoice.createdAt|date('d/m/Y') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ path('app_invoice_show', {id: invoice.id}) }}" class="btn btn-primary btn-sm" title="Voir">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <form action="{{ path('app_invoice_validate', {id: invoice.id}) }}" method="post" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ invoice.id) }}">
+                                                <button type="submit" class="btn btn-success btn-sm" title="Valider">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ path('app_invoice_index') }}" class="btn btn-sm btn-outline-warning">
+                            Voir toutes les factures <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2 mb-0">Aucune facture en attente de validation</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart me-2"></i>
+                    Résumé financier
+                </div>
+                <div class="card-body">
+                    <div class="financial-summary">
+                        <div class="summary-item">
+                            <div class="summary-icon bg-success">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-label">Factures validées ce mois</div>
+                                <div class="summary-value">{{ revenueThisMonth|number_format(0, ',', ' ') }} DH</div>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-icon bg-warning">
+                                <i class="bi bi-hourglass"></i>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-label">En attente de validation</div>
+                                <div class="summary-value">{{ pendingInvoicesCount }} factures</div>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-icon bg-info">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-label">Mois précédent</div>
+                                <div class="summary-value">{{ revenueLastMonth|number_format(0, ',', ' ') }} DH</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-4">
+        <h4 class="mb-3">
+            <i class="bi bi-lightning-charge me-2"></i>Actions rapides
+        </h4>
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ path('app_invoice_index') }}" class="quick-action-card">
+                    <div class="quick-action-icon bg-warning">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Gérer les factures</div>
+                        <div class="quick-action-desc">Valider et consulter</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ path('app_invoice_generate') }}" class="quick-action-card">
+                    <div class="quick-action-icon bg-success">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Générer factures</div>
+                        <div class="quick-action-desc">Facturation mensuelle</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ path('app_client_index') }}" class="quick-action-card">
+                    <div class="quick-action-icon bg-primary">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Clients</div>
+                        <div class="quick-action-desc">Liste des clients</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ path('app_history_index') }}" class="quick-action-card">
+                    <div class="quick-action-icon bg-secondary">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Historique</div>
+                        <div class="quick-action-desc">Audit des opérations</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .stat-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+    }
+
+    .stat-card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .stat-card-success .stat-card-icon {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+        color: #10b981;
+    }
+
+    .stat-card-primary .stat-card-icon {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
+        color: #6366f1;
+    }
+
+    .stat-card-warning .stat-card-icon {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+        color: #f59e0b;
+    }
+
+    .stat-card-info .stat-card-icon {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0.1));
+        color: #0ea5e9;
+    }
+
+    .stat-card-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .stat-card-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    .stat-card-link {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover .stat-card-link {
+        background: var(--primary);
+        color: white;
+    }
+
+    .financial-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(99, 102, 241, 0.05);
+        border-radius: 12px;
+    }
+
+    .summary-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .summary-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .summary-value {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .quick-action-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        text-decoration: none;
+        color: var(--text);
+        transition: all 0.3s ease;
+    }
+
+    .quick-action-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--primary);
+        color: var(--text);
+    }
+
+    .quick-action-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .quick-action-title {
+        font-weight: 600;
+    }
+
+    .quick-action-desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .card-footer {
+        background: transparent;
+        border-top: 1px solid var(--glass-border);
+        padding: 1rem;
+    }
+</style>
+{% endblock %}

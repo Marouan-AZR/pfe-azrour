@@ -1,0 +1,206 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Générer une facture{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-1">
+                        <i class="bi bi-receipt me-2"></i>Générer une facture
+                    </h1>
+                    <p class="text-muted mb-0">Facturation mensuelle des frais de stockage</p>
+                </div>
+                <a href="{{ path('app_invoice_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Retour
+                </a>
+            </div>
+
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-circle me-2"></i>{{ message }}
+                </div>
+            {% endfor %}
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-calculator me-2"></i>Paramètres de facturation
+                </div>
+                <div class="card-body">
+                    <div class="info-box mb-4">
+                        <div class="info-box-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <div class="info-box-content">
+                            <h6>Calcul automatique</h6>
+                            <p class="mb-0">La facture sera générée automatiquement en calculant les frais de stockage pour toutes les marchandises du client pendant la période sélectionnée.</p>
+                        </div>
+                    </div>
+
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title">
+                            <i class="bi bi-building me-2"></i>Client
+                        </h6>
+                        {{ form_row(form.client, {'attr': {'class': 'form-select'}}) }}
+                    </div>
+
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title">
+                            <i class="bi bi-calendar-range me-2"></i>Période de facturation
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form_row(form.periodStart) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.periodEnd) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('app_invoice_index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-calculator me-1"></i>Générer la facture
+                        </button>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <!-- Tarification Info -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="bi bi-currency-dollar me-2"></i>Tarification
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="tarif-card">
+                                <div class="tarif-icon">
+                                    <i class="bi bi-calendar-day"></i>
+                                </div>
+                                <div class="tarif-content">
+                                    <div class="tarif-title">Tarif Séjour</div>
+                                    <div class="tarif-value">0.50 DH / T / jour</div>
+                                    <div class="tarif-desc">Facturation au jour de stockage</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="tarif-card">
+                                <div class="tarif-icon">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <div class="tarif-content">
+                                    <div class="tarif-title">Frais de manipulation</div>
+                                    <div class="tarif-value">15 DH / T</div>
+                                    <div class="tarif-desc">Entrée et sortie de marchandise</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .form-section {
+        background: rgba(99, 102, 241, 0.05);
+        border-radius: 12px;
+        padding: 1.25rem;
+    }
+
+    .form-section-title {
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .info-box {
+        background: rgba(14, 165, 233, 0.1);
+        border: 1px solid rgba(14, 165, 233, 0.2);
+        border-radius: 12px;
+        padding: 1rem;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .info-box-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(14, 165, 233, 0.2);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: var(--secondary);
+        flex-shrink: 0;
+    }
+
+    .info-box-content h6 {
+        margin-bottom: 0.25rem;
+        font-size: 0.95rem;
+    }
+
+    .info-box-content p {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .tarif-card {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .tarif-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .tarif-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .tarif-value {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #10b981;
+    }
+
+    .tarif-desc {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}

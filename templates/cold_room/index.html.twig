@@ -1,0 +1,298 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Chambres froides{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">
+                <i class="bi bi-thermometer-snow me-2"></i>Chambres froides
+            </h1>
+            <p class="text-muted mb-0">Gestion et surveillance des chambres frigorifiques</p>
+        </div>
+        {% if is_granted('ROLE_CHEF_STOCK') %}
+        <a href="{{ path('app_cold_room_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Nouvelle chambre
+        </a>
+        {% endif %}
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    <!-- Summary Stats -->
+    <div class="row g-4 mb-4">
+        {% set totalCapacity = 0 %}
+        {% set totalUsed = 0 %}
+        {% set activeRooms = 0 %}
+        {% for room in coldRooms %}
+            {% if room.isActive %}
+                {% set activeRooms = activeRooms + 1 %}
+                {% set totalCapacity = totalCapacity + room.maxCapacityTons %}
+                {% set totalUsed = totalUsed + room.usedCapacity %}
+            {% endif %}
+        {% endfor %}
+        <div class="col-sm-6 col-xl-3">
+            <div class="summary-card">
+                <div class="summary-icon bg-primary">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-value">{{ activeRooms }}</div>
+                    <div class="summary-label">Chambres actives</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="summary-card">
+                <div class="summary-icon bg-success">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-value">{{ totalUsed|number_format(0) }} T</div>
+                    <div class="summary-label">Stock total</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="summary-card">
+                <div class="summary-icon bg-info">
+                    <i class="bi bi-arrow-down-up"></i>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-value">{{ (totalCapacity - totalUsed)|number_format(0) }} T</div>
+                    <div class="summary-label">Capacité disponible</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="summary-card">
+                <div class="summary-icon bg-warning">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div class="summary-content">
+                    {% set avgOccupancy = totalCapacity > 0 ? (totalUsed / totalCapacity * 100) : 0 %}
+                    <div class="summary-value">{{ avgOccupancy|number_format(1) }}%</div>
+                    <div class="summary-label">Occupation moyenne</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for room in coldRooms %}
+        <div class="col-md-6 col-lg-4">
+            <div class="cold-room-card {{ not room.isActive ? 'inactive' : '' }} {{ room.occupancyRate > 90 ? 'critical' : (room.occupancyRate > 70 ? 'warning' : '') }}">
+                <div class="cold-room-header">
+                    <div class="cold-room-title">
+                        <i class="bi bi-snow2 me-2"></i>{{ room.name }}
+                    </div>
+                    <div class="cold-room-badges">
+                        {% if not room.isActive %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% elseif room.occupancyRate > 90 %}
+                            <span class="badge bg-danger">Critique</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="cold-room-body">
+                    <div class="cold-room-temp">
+                        <i class="bi bi-thermometer-half"></i>
+                        <span>{{ room.targetTemperature }}°C</span>
+                    </div>
+                    
+                    <div class="cold-room-capacity">
+                        {% set occupancy = room.occupancyRate %}
+                        <div class="capacity-bar">
+                            <div class="capacity-fill {{ occupancy > 90 ? 'critical' : (occupancy > 70 ? 'warning' : 'normal') }}" 
+                                 style="width: {{ occupancy }}%"></div>
+                        </div>
+                        <div class="capacity-info">
+                            <span>{{ room.usedCapacity|number_format(1) }} / {{ room.maxCapacityTons }} T</span>
+                            <span class="{{ occupancy > 90 ? 'text-danger' : (occupancy > 70 ? 'text-warning' : 'text-success') }}">
+                                {{ occupancy|number_format(0) }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if occupancy > 90 %}
+                    <div class="cold-room-alert">
+                        <i class="bi bi-exclamation-triangle"></i> Capacité critique
+                    </div>
+                    {% endif %}
+
+                    <div class="cold-room-actions">
+                        <a href="{{ path('app_cold_room_show', {id: room.id}) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye me-1"></i>Détails
+                        </a>
+                        {% if is_granted('ROLE_CHEF_STOCK') %}
+                        <a href="{{ path('app_cold_room_edit', {id: room.id}) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ path('app_cold_room_toggle', {id: room.id}) }}" method="post" class="d-inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ room.id) }}">
+                            <button type="submit" class="btn btn-sm {{ room.isActive ? 'btn-outline-warning' : 'btn-outline-success' }}">
+                                <i class="bi {{ room.isActive ? 'bi-pause' : 'bi-play' }}"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>Aucune chambre froide configurée.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .summary-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .summary-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .summary-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+    }
+
+    .summary-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .cold-room-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .cold-room-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+    }
+
+    .cold-room-card.inactive {
+        opacity: 0.6;
+    }
+
+    .cold-room-card.warning {
+        border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    .cold-room-card.critical {
+        border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .cold-room-header {
+        padding: 1.25rem;
+        background: rgba(99, 102, 241, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .cold-room-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .cold-room-body {
+        padding: 1.25rem;
+    }
+
+    .cold-room-temp {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--secondary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .cold-room-capacity {
+        margin-bottom: 1rem;
+    }
+
+    .capacity-bar {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    .capacity-fill {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 0.5s ease;
+    }
+
+    .capacity-fill.normal {
+        background: linear-gradient(90deg, #10b981, #059669);
+    }
+
+    .capacity-fill.warning {
+        background: linear-gradient(90deg, #f59e0b, #d97706);
+    }
+
+    .capacity-fill.critical {
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+    }
+
+    .capacity-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .cold-room-alert {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+    }
+
+    .cold-room-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}

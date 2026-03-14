@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+{% block title %}Rapports & Statistiques{% endblock %}
+{% block body %}
+<div class="container-fluid">
+    <div class="page-header">
+        <h1><i class="bi bi-graph-up"></i> Rapports & Statistiques</h1>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));"><i class="bi bi-box-seam"></i></div>
+            <div class="stat-content">
+                <div class="stat-value">{{ totalStock|number_format(2, ',', ' ') }}</div>
+                <div class="stat-label">Tonnes en stock</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #059669);"><i class="bi bi-people"></i></div>
+            <div class="stat-content">
+                <div class="stat-value">{{ activeClients }}</div>
+                <div class="stat-label">Clients actifs</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--secondary), #0284c7);"><i class="bi bi-snow2"></i></div>
+            <div class="stat-content">
+                <div class="stat-value">{{ occupancyRate|number_format(1) }}%</div>
+                <div class="stat-label">Taux occupation</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-content">
+                <div class="stat-value">{{ monthlyRevenue|number_format(0, ',', ' ') }}</div>
+                <div class="stat-label">CA mensuel (DH)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-pie-chart"></i> Stock par client</div>
+                <div class="card-body">
+                    {% for client in stockByClient %}
+                    <div class="client-stock-item">
+                        <div class="client-info">
+                            <span class="client-name">{{ client.name }}</span>
+                            <span class="client-qty">{{ client.quantity|number_format(2, ',', ' ') }} T</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-fill" style="width: {{ client.percentage }}%"></div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Aucune donnée</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-thermometer-half"></i> Occupation chambres froides</div>
+                <div class="card-body">
+                    {% for room in roomOccupancy %}
+                    <div class="room-item">
+                        <div class="room-info">
+                            <span class="room-name">{{ room.name }}</span>
+                            <span class="room-rate">{{ room.rate|number_format(1) }}%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-fill {% if room.rate > 80 %}fill-danger{% elseif room.rate > 50 %}fill-warning{% else %}fill-success{% endif %}" style="width: {{ room.rate }}%"></div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Aucune chambre</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="bi bi-activity"></i> Mouvements récents</div>
+        <div class="card-body p-0">
+            <table class="table">
+                <thead><tr><th>Date</th><th>Type</th><th>Client</th><th>Produit</th><th class="text-end">Quantité</th></tr></thead>
+                <tbody>
+                    {% for movement in recentMovements %}
+                    <tr>
+                        <td>{{ movement.date|date('d/m/Y') }}</td>
+                        <td><span class="badge {{ movement.type == 'entry' ? 'bg-success' : 'bg-warning' }}">{{ movement.type == 'entry' ? 'Entrée' : 'Sortie' }}</span></td>
+                        <td>{{ movement.client }}</td>
+                        <td>{{ movement.product }}</td>
+                        <td class="text-end">{{ movement.quantity|number_format(3, ',', ' ') }} T</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center text-muted py-4">Aucun mouvement récent</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header { margin-bottom: 2rem; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.stat-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+.stat-icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
+.stat-value { font-size: 1.75rem; font-weight: 700; color: var(--text); }
+.stat-label { font-size: 0.85rem; color: var(--text-muted); }
+.client-stock-item, .room-item { margin-bottom: 1rem; }
+.client-info, .room-info { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.client-name, .room-name { font-weight: 500; color: var(--text); }
+.client-qty, .room-rate { color: var(--primary-light); font-weight: 600; }
+.progress-bar-container { height: 8px; background: var(--dark-lighter); border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s; }
+.fill-success { background: var(--success); }
+.fill-warning { background: var(--warning); }
+.fill-danger { background: var(--danger); }
+</style>
+{% endblock %}

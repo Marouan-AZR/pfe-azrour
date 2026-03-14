@@ -1,0 +1,355 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Entrée #{{ entry.id }} - {{ entry.productName }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1><i class="bi bi-box-arrow-in-down"></i> Entrée de stock #{{ entry.id }}</h1>
+                <div class="header-badges">
+                    {% if entry.status.value == 'pending' %}
+                        <span class="status-badge status-pending"><i class="bi bi-hourglass-split"></i> En attente</span>
+                    {% elseif entry.status.value == 'validated' %}
+                        <span class="status-badge status-validated"><i class="bi bi-check-circle"></i> Validée</span>
+                    {% else %}
+                        <span class="status-badge status-rejected"><i class="bi bi-x-circle"></i> Rejetée</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="{{ path('app_stock_entry_bon_reception', {id: entry.id}) }}" class="btn btn-secondary" target="_blank">
+                    <i class="bi bi-file-earmark-pdf"></i> Bon de réception
+                </a>
+                <a href="{{ path('app_stock_entry_index') }}" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> Informations générales
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">N° Bon de réception</span>
+                        <span class="info-value highlight">{{ entry.bonReceptionNumber ?? 'Non généré' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Date de création</span>
+                        <span class="info-value">{{ entry.createdAt|date('d/m/Y H:i') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Créé par</span>
+                        <span class="info-value">{{ entry.createdBy.fullName }}</span>
+                    </div>
+                    {% if entry.validatedAt %}
+                    <div class="info-item">
+                        <span class="info-label">Validé le</span>
+                        <span class="info-value">{{ entry.validatedAt|date('d/m/Y H:i') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Validé par</span>
+                        <span class="info-value">{{ entry.validatedBy.fullName }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <div class="card-header">
+                <i class="bi bi-person-badge"></i> Client
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Raison sociale</span>
+                        <span class="info-value highlight">{{ entry.client.companyName }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Code client</span>
+                        <span class="info-value"><code>{{ entry.client.code }}</code></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">CD Lot Client</span>
+                        <span class="info-value">{{ entry.cdLotClient ?? '-' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <div class="card-header">
+                <i class="bi bi-box-seam"></i> Produit
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Nom du produit</span>
+                        <span class="info-value highlight">{{ entry.productName }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Famille</span>
+                        <span class="info-value">{{ entry.famille ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Qualité</span>
+                        <span class="info-value">{{ entry.qualite ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Moule / Calibre</span>
+                        <span class="info-value">{{ entry.moule ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Nombre de cartons</span>
+                        <span class="info-value">{{ entry.nombreCartons ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Poids brut</span>
+                        <span class="info-value highlight">{{ entry.quantityTons|number_format(3, ',', ' ') }} T</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Poids net</span>
+                        <span class="info-value">{{ entry.poidsNet ? entry.poidsNet|number_format(3, ',', ' ') ~ ' T' : '-' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <div class="card-header">
+                <i class="bi bi-snow2"></i> Emplacement
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Chambre froide</span>
+                        <span class="info-value highlight">{{ entry.coldRoom.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Rayon</span>
+                        <span class="info-value">{{ entry.rayon ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Code Rack</span>
+                        <span class="info-value">{{ entry.codeRack ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Code Palette</span>
+                        <span class="info-value">{{ entry.codePalette ?? '-' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <div class="card-header">
+                <i class="bi bi-truck"></i> Transport
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Transporteur</span>
+                        <span class="info-value">{{ entry.transporteur ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Immatriculation</span>
+                        <span class="info-value">{{ entry.immatriculation ?? '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Température réception</span>
+                        <span class="info-value">{{ entry.temperature ? entry.temperature ~ ' °C' : '-' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if entry.rejectionReason %}
+        <div class="detail-card rejection-card">
+            <div class="card-header">
+                <i class="bi bi-exclamation-triangle"></i> Motif de rejet
+            </div>
+            <div class="card-body">
+                <p class="rejection-reason">{{ entry.rejectionReason }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if entry.isPending %}
+    <div class="action-section">
+        <form action="{{ path('app_stock_entry_validate', {id: entry.id}) }}" method="post" class="d-inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ entry.id) }}">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-check-lg"></i> Valider l'entrée
+            </button>
+        </form>
+        <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#rejectModal">
+            <i class="bi bi-x-lg"></i> Rejeter
+        </button>
+    </div>
+
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ path('app_stock_entry_reject', {id: entry.id}) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ entry.id) }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-x-circle text-danger"></i> Rejeter l'entrée</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Motif du rejet</label>
+                            <textarea name="reason" id="reason" class="form-control" rows="4" required placeholder="Indiquez le motif du rejet..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.page-header {
+    margin-bottom: 2rem;
+}
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.header-title h1 {
+    margin-bottom: 0.5rem;
+}
+.header-badges {
+    display: flex;
+    gap: 0.5rem;
+}
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.status-pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+}
+.status-validated {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+.status-rejected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+.detail-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.detail-card .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: rgba(99, 102, 241, 0.1);
+    border-bottom: 1px solid var(--glass-border);
+    font-weight: 600;
+}
+.detail-card .card-body {
+    padding: 1.5rem;
+}
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.info-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+.info-value {
+    font-weight: 500;
+    color: var(--text);
+}
+.info-value.highlight {
+    color: var(--primary-light);
+    font-weight: 600;
+}
+.info-value code {
+    background: rgba(99, 102, 241, 0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+.rejection-card {
+    grid-column: 1 / -1;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+.rejection-card .card-header {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+}
+.rejection-reason {
+    color: #f87171;
+    margin: 0;
+    font-style: italic;
+}
+.action-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    .header-content {
+        flex-direction: column;
+    }
+    .action-section {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
