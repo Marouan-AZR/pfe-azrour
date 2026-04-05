@@ -7,11 +7,11 @@
 <style>
     :root { --c1:#6366f1;--c2:#0ea5e9;--c3:#10b981;--c4:#f59e0b;--c5:#ef4444;--c6:#8b5cf6; }
     body { background: var(--bg, #f1f5f9); color: var(--text, #1e293b); }
-    .glass { background: rgba(30,41,59,.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,.08); border-radius: 1rem; }
+    .glass { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
     .kpi-card { transition: transform .2s; }
     .kpi-card:hover { transform: translateY(-4px); }
     .kpi-icon { width:48px;height:48px;border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem; }
-    .table-dark-custom { --bs-table-bg: transparent; --bs-table-color: #e2e8f0; --bs-table-border-color: rgba(255,255,255,.08); }
+    .table-dark-custom { --bs-table-bg: transparent; --bs-table-color: #1e293b; --bs-table-border-color: #e2e8f0; }
     .badge-role { font-size:.75rem;padding:.35em .75em;border-radius:2rem; }
     .btn-action { border-radius:.75rem;padding:.75rem 1.25rem;font-weight:500;transition:all .2s; }
     .btn-action:hover { transform:translateY(-2px); }
@@ -29,7 +29,7 @@
             <span class="badge badge-role bg-primary bg-opacity-25 text-primary"><i class="bi bi-shield-check me-1"></i>Directeur</span>
         </div>
         <div class="d-flex gap-2">
-            <select class="form-select form-select-sm bg-dark text-light border-secondary" style="width:auto">
+            <select class="form-select form-select-sm" style="width:auto">
                 <option>Ce mois</option><option>Mois dernier</option><option>Ce trimestre</option><option>Cette année</option>
             </select>
         </div>
@@ -107,7 +107,7 @@
         ] %}
         {% for a in actions %}
         <div class="col-md-3 col-6">
-            <a href="{{ path(a.route) }}" class="glass p-3 d-flex align-items-center gap-3 text-decoration-none text-light btn-action">
+            <a href="{{ path(a.route) }}" class="glass p-3 d-flex align-items-center gap-3 text-decoration-none text-dark btn-action">
                 <div class="kpi-icon" style="background:{{ a.color }}22;color:{{ a.color }}"><i class="bi {{ a.icon }}"></i></div>
                 <span class="fw-semibold">{{ a.label }}</span>
             </a>
@@ -131,8 +131,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
 const C=['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6'];
-const dOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8'}}}};
-const scaleOpts={x:{ticks:{color:'#94a3b8'},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'#94a3b8'},grid:{color:'rgba(255,255,255,.05)'}}};
+const dOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b'}}}};
+const scaleOpts={x:{ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.06)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.06)'}}};
 const months=['Jan','Fév','Mar','Avr','Mai','Jun'];
 
 new Chart(document.getElementById('chartBar'),{type:'bar',data:{labels:months,datasets:[
@@ -144,6 +144,6 @@ new Chart(document.getElementById('chartPie'),{type:'pie',data:{labels:['Client 
 
 new Chart(document.getElementById('chartLine'),{type:'line',data:{labels:months,datasets:[{label:'Stock (T)',data:[500,520,480,530,510,540],borderColor:C[2],backgroundColor:C[2]+'22',fill:true,tension:.4}]},options:{...dOpts,scales:scaleOpts}});
 
-new Chart(document.getElementById('chartOccupancy'),{type:'bar',data:{labels:['C1','C2','C3','C4','C5'],datasets:[{label:'Occupation %',data:[85,60,92,45,78],backgroundColor:[C[0],C[1],C[2],C[3],C[4]]}]},options:{...dOpts,indexAxis:'y',scales:{x:{max:100,ticks:{color:'#94a3b8',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'#94a3b8'},grid:{color:'rgba(255,255,255,.05)'}}}}});
+new Chart(document.getElementById('chartOccupancy'),{type:'bar',data:{labels:['C1','C2','C3','C4','C5'],datasets:[{label:'Occupation %',data:[85,60,92,45,78],backgroundColor:[C[0],C[1],C[2],C[3],C[4]]}]},options:{...dOpts,indexAxis:'y',scales:{x:{max:100,ticks:{color:'#64748b',callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.06)'}}}}});
 </script>
 {% endblock %}

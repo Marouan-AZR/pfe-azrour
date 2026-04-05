@@ -10,708 +10,177 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #0ea5e9;
-            --primary-dark: #0284c7;
-            --secondary: #6366f1;
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary: #0ea5e9;
             --accent: #f59e0b;
-            --dark: #0f172a;
-            --dark-light: #1e293b;
-            --text: #f1f5f9;
-            --text-muted: #94a3b8;
-            --glass: rgba(30, 41, 59, 0.8);
-            --glass-border: rgba(148, 163, 184, 0.15);
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --bg: #ffffff;
+            --bg-light: #f8fafc;
+            --bg-section: #f1f5f9;
+            --border: #e2e8f0;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--dark);
-            color: var(--text);
-            overflow-x: hidden;
-        }
-
-        /* ===== HERO SECTION ===== */
-        .hero {
-            min-height: 100vh;
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.1) 0%, transparent 40%);
-            pointer-events: none;
-        }
-
-        /* Animated particles */
-        .particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(14, 165, 233, 0.6);
-            border-radius: 50%;
-            animation: float 15s infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
-        }
-
-        /* ===== WEB 4.0 MESH BACKGROUND ===== */
-        .hero-mesh {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .mesh-blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.35;
-            animation: morphMove 20s ease-in-out infinite alternate;
-        }
-
-        .mesh-blob:nth-child(1) {
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, #0ea5e9, #6366f1);
-            top: -10%; right: -5%;
-            animation-duration: 18s;
-        }
-
-        .mesh-blob:nth-child(2) {
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, #8b5cf6, #ec4899);
-            bottom: -10%; left: -5%;
-            animation-duration: 22s;
-            animation-delay: -5s;
-        }
-
-        .mesh-blob:nth-child(3) {
-            width: 300px; height: 300px;
-            background: radial-gradient(circle, #f59e0b, #ef4444);
-            top: 40%; left: 40%;
-            animation-duration: 25s;
-            animation-delay: -10s;
-        }
-
-        @keyframes morphMove {
-            0%   { transform: translate(0, 0) scale(1) rotate(0deg); border-radius: 50%; }
-            33%  { transform: translate(60px, -40px) scale(1.15) rotate(120deg); border-radius: 40% 60% 55% 45%; }
-            66%  { transform: translate(-40px, 50px) scale(0.9) rotate(240deg); border-radius: 55% 45% 40% 60%; }
-            100% { transform: translate(30px, -20px) scale(1.05) rotate(360deg); border-radius: 50%; }
-        }
-
-        /* Floating geometric shapes */
-        .geo-shapes {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .geo {
-            position: absolute;
-            border: 1.5px solid rgba(148, 163, 184, 0.15);
-            animation: geoDrift 15s ease-in-out infinite alternate;
-        }
-
-        .geo--ring {
-            width: 120px; height: 120px;
-            border-radius: 50%;
-            top: 15%; right: 12%;
-            animation-duration: 18s;
-        }
-
-        .geo--square {
-            width: 60px; height: 60px;
-            border-radius: 8px;
-            bottom: 20%; right: 25%;
-            animation-duration: 14s;
-            animation-delay: -3s;
-        }
-
-        .geo--diamond {
-            width: 50px; height: 50px;
-            border-radius: 4px;
-            top: 60%; left: 8%;
-            transform: rotate(45deg);
-            animation-duration: 20s;
-            animation-delay: -7s;
-        }
-
-        .geo--cross {
-            width: 80px; height: 80px;
-            border: none;
-            top: 25%; left: 30%;
-            animation-duration: 16s;
-            animation-delay: -4s;
-        }
-
-        .geo--cross::before, .geo--cross::after {
-            content: '';
-            position: absolute;
-            background: rgba(148, 163, 184, 0.12);
-            border-radius: 2px;
-        }
-
-        .geo--cross::before {
-            width: 100%; height: 2px;
-            top: 50%; left: 0;
-        }
-
-        .geo--cross::after {
-            width: 2px; height: 100%;
-            left: 50%; top: 0;
-        }
-
-        .geo--dots {
-            width: 6px; height: 6px;
-            border: none;
-            background: rgba(14, 165, 233, 0.4);
-            border-radius: 50%;
-            bottom: 35%; left: 20%;
-            box-shadow:
-                20px 0 0 rgba(99, 102, 241, 0.3),
-                40px 0 0 rgba(14, 165, 233, 0.2),
-                0 20px 0 rgba(245, 158, 11, 0.3),
-                20px 20px 0 rgba(99, 102, 241, 0.2);
-            animation-duration: 22s;
-            animation-delay: -9s;
-        }
-
-        @keyframes geoDrift {
-            0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
-            50%  { opacity: 0.8; }
-            100% { transform: translate(25px, -30px) rotate(90deg); opacity: 0.4; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
 
         /* ===== NAVBAR ===== */
         .navbar-public {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            padding: 1rem 0;
-            transition: all 0.3s ease;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            padding: 1rem 0; transition: all 0.3s ease; background: transparent;
         }
-
         .navbar-public.scrolled {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
+            background: #fff; box-shadow: 0 2px 20px rgba(0,0,0,0.08);
         }
-
         .navbar-brand-public {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: var(--text);
-            text-decoration: none;
+            display: flex; align-items: center; gap: 0.75rem;
+            font-weight: 800; font-size: 1.5rem; color: var(--primary); text-decoration: none;
         }
-
-        .navbar-brand-public .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+        .logo-icon {
+            width: 45px; height: 45px; background: var(--primary);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
         }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-link-public { color: var(--text-muted); text-decoration: none; font-weight: 500; transition: color 0.3s; }
+        .nav-link-public:hover { color: var(--primary); }
+        .btn-nav { padding: 0.6rem 1.5rem; border-radius: 50px; font-weight: 600; text-decoration: none; transition: all 0.3s; }
+        .btn-nav-outline { border: 2px solid var(--primary); color: var(--primary); }
+        .btn-nav-outline:hover { background: var(--primary); color: #fff; }
+        .btn-nav-primary { background: var(--primary); color: #fff; border: none; }
+        .btn-nav-primary:hover { background: var(--primary-light); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(30,64,175,0.3); }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center; position: relative;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #f0f9ff 100%);
+            overflow: hidden;
         }
-
-        .nav-link-public {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
+        .hero::before {
+            content: ''; position: absolute; top: -50%; right: -20%; width: 800px; height: 800px;
+            background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+            border-radius: 50%; pointer-events: none;
         }
-
-        .nav-link-public:hover {
-            color: var(--text);
+        .hero::after {
+            content: ''; position: absolute; bottom: -30%; left: -10%; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(14,165,233,0.1) 0%, transparent 70%);
+            border-radius: 50%; pointer-events: none;
         }
-
-        .btn-nav {
-            padding: 0.6rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn-nav-outline {
-            border: 2px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-nav-outline:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-nav-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            border: none;
-        }
-
-        .btn-nav-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.4);
-            color: white;
-        }
-
-        /* ===== HERO CONTENT ===== */
-        .hero-content {
-            position: relative;
-            z-index: 10;
-            max-width: 700px;
-        }
-
+        .hero-content { position: relative; z-index: 10; }
         .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(14, 165, 233, 0.15);
-            border: 1px solid rgba(14, 165, 233, 0.3);
-            border-radius: 50px;
-            font-size: 0.85rem;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem; background: rgba(30,64,175,0.1); border: 1px solid rgba(30,64,175,0.2);
+            border-radius: 50px; font-size: 0.85rem; color: var(--primary); margin-bottom: 1.5rem;
         }
-
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-        }
-
-        .hero-title .highlight {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero-description {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            line-height: 1.7;
-            margin-bottom: 2rem;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
+        .hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; color: var(--text); }
+        .hero-title .highlight { color: var(--primary); }
+        .hero-description { font-size: 1.2rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 2rem; }
+        .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
         .btn-hero {
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
+            padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1rem;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s;
         }
-
         .btn-hero-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.3);
+            background: var(--primary); color: #fff; box-shadow: 0 8px 25px rgba(30,64,175,0.25);
         }
+        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(30,64,175,0.35); color: #fff; }
+        .btn-hero-secondary { background: #fff; border: 1px solid var(--border); color: var(--text); }
+        .btn-hero-secondary:hover { background: var(--bg-light); color: var(--text); }
 
-        .btn-hero-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(14, 165, 233, 0.4);
-            color: white;
-        }
-
-        .btn-hero-secondary {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            color: var(--text);
-        }
-
-        .btn-hero-secondary:hover {
-            background: var(--dark-light);
-            color: var(--text);
-        }
-
-        /* ===== HERO IMAGE ===== */
-        .hero-visual {
-            position: relative;
-            z-index: 10;
-        }
-
+        /* Hero card */
+        .hero-visual { position: relative; z-index: 10; }
         .hero-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 2rem;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            background: #fff; border: 1px solid var(--border); border-radius: 24px;
+            padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.08);
         }
-
-        .hero-card-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
+        .hero-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
         .hero-card-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
+            width: 60px; height: 60px; background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
         }
+        .hero-card-title { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+        .hero-card-subtitle { color: var(--text-muted); font-size: 0.9rem; }
+        .hero-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .hero-stat { background: var(--bg-section); border-radius: 12px; padding: 1rem; text-align: center; }
+        .hero-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .hero-stat-label { font-size: 0.8rem; color: var(--text-muted); }
 
-        .hero-card-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-
-        .hero-card-subtitle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .hero-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-
-        .hero-stat {
-            background: rgba(14, 165, 233, 0.1);
-            border-radius: 12px;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .hero-stat-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
-
-        .hero-stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        /* ===== FEATURES SECTION ===== */
-        .features {
-            padding: 6rem 0;
-            background: var(--dark);
-            position: relative;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
+        /* ===== FEATURES ===== */
+        .features { padding: 6rem 0; background: var(--bg); }
+        .section-header { text-align: center; margin-bottom: 4rem; }
         .section-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 50px;
-            font-size: 0.85rem;
-            color: var(--secondary);
-            margin-bottom: 1rem;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem; background: rgba(30,64,175,0.08); border: 1px solid rgba(30,64,175,0.15);
+            border-radius: 50px; font-size: 0.85rem; color: var(--primary); margin-bottom: 1rem;
         }
-
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-        }
-
-        .section-description {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
+        .section-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: var(--text); }
+        .section-description { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
         .feature-card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            height: 100%;
-            transition: all 0.3s ease;
+            background: #fff; border: 1px solid var(--border); border-radius: 20px;
+            padding: 2rem; height: 100%; transition: all 0.3s;
         }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--primary);
-            box-shadow: 0 20px 40px rgba(14, 165, 233, 0.2);
-        }
-
-        .feature-icon {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .feature-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-
-        .feature-description {
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-
-        .feature-icon img {
-            transition: transform 0.3s ease;
-        }
-        .feature-card:hover .feature-icon img {
-            transform: scale(1.15) rotate(5deg);
-        }
+        .feature-card:hover { transform: translateY(-8px); border-color: var(--primary-light); box-shadow: 0 15px 40px rgba(30,64,175,0.1); }
+        .feature-icon { margin-bottom: 1.5rem; }
+        .feature-icon img { transition: transform 0.3s; }
+        .feature-card:hover .feature-icon img { transform: scale(1.1) rotate(3deg); }
+        .feature-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text); }
+        .feature-description { color: var(--text-muted); line-height: 1.6; }
 
         /* ===== HOW IT WORKS ===== */
-        .how-it-works {
-            padding: 6rem 0;
-            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%);
-        }
+        .how-it-works { padding: 6rem 0; background: var(--bg-section); }
         .step-card {
-            padding: 2rem 1.5rem;
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            position: relative;
-            transition: all 0.3s ease;
+            padding: 2rem 1.5rem; background: #fff; border: 1px solid var(--border);
+            border-radius: 20px; position: relative; transition: all 0.3s;
         }
-        .step-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--accent);
-            box-shadow: 0 15px 30px rgba(245, 158, 11, 0.15);
-        }
+        .step-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
         .step-number {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--accent), #d97706);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 0.9rem;
-            color: white;
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            width: 32px; height: 32px; background: var(--primary); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 0.9rem; color: #fff;
         }
-        .step-icon-img {
-            margin: 1rem 0;
-        }
+        .step-card h5 { color: var(--text); }
+        .step-icon-img { margin: 1rem 0; }
 
-        /* ===== ANIMATIONS ===== */
-        [data-aos="fade-up"] {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s ease;
-        }
-        [data-aos="fade-up"].aos-animate {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ===== STATS SECTION ===== */
-        .stats-section {
-            padding: 6rem 0;
-            background: linear-gradient(135deg, var(--dark-light) 0%, var(--dark) 100%);
-        }
-
-        .stat-card {
-            text-align: center;
-            padding: 2rem;
-        }
-
+        /* ===== STATS ===== */
+        .stats-section { padding: 6rem 0; background: var(--primary); color: #fff; }
+        .stat-card { text-align: center; padding: 2rem; }
         .stat-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
+            width: 80px; height: 80px; margin: 0 auto 1.5rem;
+            background: rgba(255,255,255,0.15); border-radius: 20px;
+            display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
         }
-
-        .stat-value {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 1rem;
-            margin-top: 0.5rem;
-        }
+        .stat-value { font-size: 3rem; font-weight: 800; color: #fff; }
+        .stat-label { color: rgba(255,255,255,0.8); font-size: 1rem; margin-top: 0.5rem; }
 
         /* ===== FOOTER ===== */
-        .footer {
-            padding: 4rem 0 2rem;
-            background: var(--dark);
-            border-top: 1px solid var(--glass-border);
-        }
-
+        .footer { padding: 4rem 0 2rem; background: var(--bg-section); border-top: 1px solid var(--border); }
         .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 800;
-            font-size: 1.3rem;
-            color: var(--text);
-            margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 0.75rem;
+            font-weight: 800; font-size: 1.3rem; color: var(--text); margin-bottom: 1rem;
         }
+        .footer-description { color: var(--text-muted); max-width: 300px; line-height: 1.6; }
+        .footer-title { font-weight: 700; margin-bottom: 1.5rem; color: var(--text); }
+        .footer-links { list-style: none; padding: 0; }
+        .footer-links li { margin-bottom: 0.75rem; color: var(--text-muted); }
+        .footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.3s; }
+        .footer-links a:hover { color: var(--primary); }
+        .footer-bottom { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); }
 
-        .footer-description {
-            color: var(--text-muted);
-            max-width: 300px;
-            line-height: 1.6;
-        }
-
-        .footer-title {
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            color: var(--text);
-        }
-
-        .footer-links {
-            list-style: none;
-            padding: 0;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.75rem;
-        }
-
-        .footer-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .footer-links a:hover {
-            color: var(--primary);
-        }
-
-        .footer-bottom {
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--glass-border);
-            text-align: center;
-            color: var(--text-muted);
-        }
+        /* ===== ANIMATIONS ===== */
+        [data-aos="fade-up"] { opacity: 0; transform: translateY(30px); transition: all 0.6s ease; }
+        [data-aos="fade-up"].aos-animate { opacity: 1; transform: translateY(0); }
 
         /* ===== RESPONSIVE ===== */
-        @media (max-width: 992px) {
-            .hero-title {
-                font-size: 2.5rem;
-            }
-            
-            .hero-visual {
-                margin-top: 3rem;
-            }
-        }
-
+        @media (max-width: 992px) { .hero-title { font-size: 2.5rem; } .hero-visual { margin-top: 3rem; } }
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .hero-title {
-                font-size: 2rem;
-            }
-            
-            .hero-buttons {
-                flex-direction: column;
-            }
-            
-            .section-title {
-                font-size: 2rem;
-            }
+            .nav-links { display: none; }
+            .hero-title { font-size: 2rem; }
+            .hero-buttons { flex-direction: column; }
+            .section-title { font-size: 2rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Particles Background -->
-    <div class="particles">
-        {% for i in 1..20 %}
-        <div class="particle" style="left: {{ random(0, 100) }}%; animation-delay: {{ random(0, 15) }}s; animation-duration: {{ random(10, 20) }}s;"></div>
-        {% endfor %}
-    </div>
-
     <!-- Navbar -->
     <nav class="navbar-public" id="navbar">
         <div class="container">
@@ -732,43 +201,26 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <!-- Mesh gradient blobs -->
-        <div class="hero-mesh">
-            <div class="mesh-blob"></div>
-            <div class="mesh-blob"></div>
-            <div class="mesh-blob"></div>
-        </div>
-        <!-- Floating geometric shapes -->
-        <div class="geo-shapes">
-            <div class="geo geo--ring"></div>
-            <div class="geo geo--square"></div>
-            <div class="geo geo--diamond"></div>
-            <div class="geo geo--cross"></div>
-            <div class="geo geo--dots"></div>
-        </div>
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content">
                         <div class="hero-badge">
-                            <i class="bi bi-geo-alt-fill"></i>
-                            Dakhla, Maroc
+                            <i class="bi bi-geo-alt-fill"></i> Dakhla, Maroc
                         </div>
                         <h1 class="hero-title">
                             Entrepôt <span class="highlight">Frigorifique</span> de Nouvelle Génération
                         </h1>
                         <p class="hero-description">
-                            Golden Logistics offre des solutions de stockage frigorifique de pointe pour l'industrie halieutique. 
+                            Golden Logistics offre des solutions de stockage frigorifique de pointe pour l'industrie halieutique.
                             Capacité optimale, traçabilité complète et gestion intelligente de vos marchandises.
                         </p>
                         <div class="hero-buttons">
                             <a href="{{ path('app_login') }}" class="btn-hero btn-hero-primary">
-                                <i class="bi bi-box-arrow-in-right"></i>
-                                Accéder au système
+                                <i class="bi bi-box-arrow-in-right"></i> Accéder au système
                             </a>
                             <a href="{{ path('app_about') }}" class="btn-hero btn-hero-secondary">
-                                <i class="bi bi-info-circle"></i>
-                                En savoir plus
+                                <i class="bi bi-info-circle"></i> En savoir plus
                             </a>
                         </div>
                     </div>
@@ -784,22 +236,10 @@
                                 </div>
                             </div>
                             <div class="hero-stats">
-                                <div class="hero-stat">
-                                    <div class="hero-stat-value">5</div>
-                                    <div class="hero-stat-label">Chambres Froides</div>
-                                </div>
-                                <div class="hero-stat">
-                                    <div class="hero-stat-value">-25°C</div>
-                                    <div class="hero-stat-label">Température</div>
-                                </div>
-                                <div class="hero-stat">
-                                    <div class="hero-stat-value">10K</div>
-                                    <div class="hero-stat-label">Tonnes Capacité</div>
-                                </div>
-                                <div class="hero-stat">
-                                    <div class="hero-stat-value">44</div>
-                                    <div class="hero-stat-label">Rayons/Chambre</div>
-                                </div>
+                                <div class="hero-stat"><div class="hero-stat-value">5</div><div class="hero-stat-label">Chambres Froides</div></div>
+                                <div class="hero-stat"><div class="hero-stat-value">-25°C</div><div class="hero-stat-label">Température</div></div>
+                                <div class="hero-stat"><div class="hero-stat-value">10K</div><div class="hero-stat-label">Tonnes Capacité</div></div>
+                                <div class="hero-stat"><div class="hero-stat-value">44</div><div class="hero-stat-label">Rayons/Chambre</div></div>
                             </div>
                         </div>
                     </div>
@@ -812,104 +252,72 @@
     <section class="features">
         <div class="container">
             <div class="section-header">
-                <div class="section-badge">
-                    <i class="bi bi-stars"></i>
-                    Nos Services
-                </div>
+                <div class="section-badge"><i class="bi bi-stars"></i> Nos Services</div>
                 <h2 class="section-title">Une Plateforme Complète</h2>
-                <p class="section-description">
-                    Découvrez nos services de stockage frigorifique et de gestion logistique adaptés à vos besoins.
-                </p>
+                <p class="section-description">Découvrez nos services de stockage frigorifique et de gestion logistique adaptés à vos besoins.</p>
             </div>
             <div class="row g-4">
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card" data-aos="fade-up">
-                        <div class="feature-icon">
-                            <img src="https://img.icons8.com/3d-fluency/94/storage.png" alt="Stockage" width="60" height="60">
-                        </div>
+                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/warehouse.png" alt="Stockage" width="60" height="60"></div>
                         <h3 class="feature-title">Stockage Frigorifique</h3>
-                        <p class="feature-description">
-                            5 chambres froides avec contrôle de température précis de -25°C à +5°C pour tous types de produits.
-                        </p>
+                        <p class="feature-description">5 chambres froides avec contrôle de température précis de -25°C à +5°C pour tous types de produits.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                        <div class="feature-icon">
-                            <img src="https://img.icons8.com/3d-fluency/94/open-box.png" alt="Entrées" width="60" height="60">
-                        </div>
+                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/box.png" alt="Entrées" width="60" height="60"></div>
                         <h3 class="feature-title">Gestion des Entrées</h3>
-                        <p class="feature-description">
-                            Réception et enregistrement des marchandises avec traçabilité complète et génération de bons de réception.
-                        </p>
+                        <p class="feature-description">Réception et enregistrement des marchandises avec traçabilité complète et génération de bons de réception.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                        <div class="feature-icon">
-                            <img src="https://img.icons8.com/3d-fluency/94/truck.png" alt="Expédition" width="60" height="60">
-                        </div>
+                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/delivery-truck.png" alt="Expédition" width="60" height="60"></div>
                         <h3 class="feature-title">Préparation d'Expédition</h3>
-                        <p class="feature-description">
-                            Organisation des sorties avec fiches de charge, scan PDA et bons de livraison automatisés.
-                        </p>
+                        <p class="feature-description">Organisation des sorties avec fiches de charge, scan PDA et bons de livraison automatisés.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
-                        <div class="feature-icon">
-                            <img src="https://img.icons8.com/3d-fluency/94/combo-chart.png" alt="Suivi" width="60" height="60">
-                        </div>
+                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/combo-chart.png" alt="Suivi" width="60" height="60"></div>
                         <h3 class="feature-title">Suivi en Temps Réel</h3>
-                        <p class="feature-description">
-                            Tableaux de bord personnalisés avec statistiques, graphiques et indicateurs de performance.
-                        </p>
+                        <p class="feature-description">Tableaux de bord personnalisés avec statistiques, graphiques et indicateurs de performance.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
-                        <div class="feature-icon">
-                            <img src="https://img.icons8.com/3d-fluency/94/bill.png" alt="Facturation" width="60" height="60">
-                        </div>
+                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/invoice.png" alt="Facturation" width="60" height="60"></div>
                         <h3 class="feature-title">Facturation Automatique</h3>
-                        <p class="feature-description">
-                            Calcul automatique des frais de stockage et manipulation avec génération de factures PDF.
-                        </p>
+                        <p class="feature-description">Calcul automatique des frais de stockage et manipulation avec génération de factures PDF.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
-                        <div class="feature-icon">
-                            <img src="https://img.icons8.com/3d-fluency/94/lock-2.png" alt="Sécurité" width="60" height="60">
-                        </div>
+                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/lock-2.png" alt="Sécurité" width="60" height="60"></div>
                         <h3 class="feature-title">Sécurité & Traçabilité</h3>
-                        <p class="feature-description">
-                            Historique complet des opérations, gestion des rôles et audit de toutes les actions.
-                        </p>
+                        <p class="feature-description">Historique complet des opérations, gestion des rôles et audit de toutes les actions.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- How it works Section -->
+    <!-- How it works -->
     <section class="how-it-works">
         <div class="container">
             <div class="section-header">
-                <div class="section-badge" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: var(--accent);">
-                    <i class="bi bi-gear-wide-connected"></i>
-                    Processus
+                <div class="section-badge" style="background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.2); color: #d97706;">
+                    <i class="bi bi-gear-wide-connected"></i> Processus
                 </div>
                 <h2 class="section-title">Comment ça marche ?</h2>
                 <p class="section-description">Un processus simple et efficace en 4 étapes</p>
             </div>
-            <div class="row g-4 align-items-center">
+            <div class="row g-4">
                 <div class="col-md-6 col-lg-3 text-center">
                     <div class="step-card">
                         <div class="step-number">1</div>
-                        <div class="step-icon-img">
-                            <img src="https://img.icons8.com/3d-fluency/94/receive-cash.png" alt="Réception" width="64" height="64">
-                        </div>
+                        <div class="step-icon-img"><img src="https://img.icons8.com/3d-fluency/94/receive-cash.png" alt="" width="64" height="64"></div>
                         <h5>Réception</h5>
                         <p class="text-muted small">Le contrôleur saisit les marchandises reçues</p>
                     </div>
@@ -917,9 +325,7 @@
                 <div class="col-md-6 col-lg-3 text-center">
                     <div class="step-card">
                         <div class="step-number">2</div>
-                        <div class="step-icon-img">
-                            <img src="https://img.icons8.com/3d-fluency/94/checkmark.png" alt="Validation" width="64" height="64">
-                        </div>
+                        <div class="step-icon-img"><img src="https://img.icons8.com/3d-fluency/94/checkmark.png" alt="" width="64" height="64"></div>
                         <h5>Validation</h5>
                         <p class="text-muted small">Le chef de stock valide et met à jour le stock</p>
                     </div>
@@ -927,9 +333,7 @@
                 <div class="col-md-6 col-lg-3 text-center">
                     <div class="step-card">
                         <div class="step-number">3</div>
-                        <div class="step-icon-img">
-                            <img src="https://img.icons8.com/3d-fluency/94/pallet.png" alt="Stockage" width="64" height="64">
-                        </div>
+                        <div class="step-icon-img"><img src="https://img.icons8.com/3d-fluency/94/warehouse-1.png" alt="" width="64" height="64"></div>
                         <h5>Stockage</h5>
                         <p class="text-muted small">Suivi en temps réel dans les chambres froides</p>
                     </div>
@@ -937,9 +341,7 @@
                 <div class="col-md-6 col-lg-3 text-center">
                     <div class="step-card">
                         <div class="step-number">4</div>
-                        <div class="step-icon-img">
-                            <img src="https://img.icons8.com/3d-fluency/94/delivery.png" alt="Expédition" width="64" height="64">
-                        </div>
+                        <div class="step-icon-img"><img src="https://img.icons8.com/3d-fluency/94/shipped.png" alt="" width="64" height="64"></div>
                         <h5>Expédition</h5>
                         <p class="text-muted small">Préparation et sortie avec traçabilité complète</p>
                     </div>
@@ -948,38 +350,14 @@
         </div>
     </section>
 
-    <!-- Stats Section -->
+    <!-- Stats -->
     <section class="stats-section">
         <div class="container">
             <div class="row">
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon">📦</div>
-                        <div class="stat-value">10 000</div>
-                        <div class="stat-label">Tonnes de Capacité</div>
-                    </div>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon">🧊</div>
-                        <div class="stat-value">5</div>
-                        <div class="stat-label">Chambres Froides</div>
-                    </div>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon">🌡️</div>
-                        <div class="stat-value">-25°C</div>
-                        <div class="stat-label">Température Contrôlée</div>
-                    </div>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-value">50+</div>
-                        <div class="stat-label">Collaborateurs</div>
-                    </div>
-                </div>
+                <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value">10 000</div><div class="stat-label">Tonnes de Capacité</div></div></div>
+                <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon">🧊</div><div class="stat-value">5</div><div class="stat-label">Chambres Froides</div></div></div>
+                <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon">🌡️</div><div class="stat-value">-25°C</div><div class="stat-label">Température Contrôlée</div></div></div>
+                <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">50+</div><div class="stat-label">Collaborateurs</div></div></div>
             </div>
         </div>
     </section>
@@ -990,13 +368,10 @@
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <div class="footer-brand">
-                        <div class="logo-icon" style="width: 40px; height: 40px; font-size: 1.2rem;">🏔️</div>
+                        <div class="logo-icon" style="width:40px;height:40px;font-size:1.2rem;">🏔️</div>
                         Golden Logistics
                     </div>
-                    <p class="footer-description">
-                        Votre partenaire de confiance pour le stockage frigorifique à Dakhla. 
-                        Solutions modernes et traçabilité complète.
-                    </p>
+                    <p class="footer-description">Votre partenaire de confiance pour le stockage frigorifique à Dakhla. Solutions modernes et traçabilité complète.</p>
                 </div>
                 <div class="col-lg-2 col-md-4 mb-4">
                     <h5 class="footer-title">Navigation</h5>
@@ -1033,23 +408,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Navbar scroll effect
         window.addEventListener('scroll', function() {
-            const navbar = document.getElementById('navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
         });
-
-        // Scroll animation (simple AOS alternative)
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    setTimeout(() => {
-                        entry.target.classList.add('aos-animate');
-                    }, parseInt(entry.target.dataset.aosDelay || 0));
+                    setTimeout(() => entry.target.classList.add('aos-animate'), parseInt(entry.target.dataset.aosDelay || 0));
                 }
             });
         }, { threshold: 0.1 });

@@ -327,7 +327,7 @@
                 { label: 'Sorties', data: [8,14,6,12,9,7,11,15,7,9,10,13], backgroundColor: '#0ea5e9' }
             ]
         },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' }}}, scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }}, y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }}}}
+        options: { responsive: true, plugins: { legend: { labels: { color: '#64748b' }}}, scales: { x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(0,0,0,.06)' }}, y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(0,0,0,.06)' }}}}
     });
 
     // Occupancy Doughnut Chart
@@ -341,7 +341,7 @@
         new Chart(document.getElementById('occupancyChart'), {
             type: 'doughnut',
             data: { labels: labels, datasets: [{ data: data, backgroundColor: bg, borderWidth: 0 }] },
-            options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#94a3b8' }}}}
+            options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#64748b' }}}}
         });
     })();
 
@@ -352,7 +352,7 @@
             labels: months,
             datasets: [{ label: 'Stock (T)', data: [45,52,48,55,60,58,62,70,65,68,72,75], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,.1)', fill: true, tension: .4 }]
         },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' }}}, scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }}, y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }}}}
+        options: { responsive: true, plugins: { legend: { labels: { color: '#64748b' }}}, scales: { x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(0,0,0,.06)' }}, y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(0,0,0,.06)' }}}}
     });
 </script>
 {% endblock %}
