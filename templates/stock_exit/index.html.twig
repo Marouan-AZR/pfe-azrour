@@ -171,7 +171,7 @@
                                 <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ exit.id) }}">
                                 <div class="modal-header border-0">
                                     <h5 class="modal-title"><i class="bi bi-x-circle text-danger me-2"></i>Rejeter la sortie</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
                                     <p class="text-muted">Sortie <strong>{{ exit.bonLivraisonNumber ?? 'SRT-' ~ exit.id }}</strong> — {{ exit.stockItem.productName }}</p>

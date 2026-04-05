@@ -6,41 +6,38 @@
 {{ parent() }}
 <style>
     :root {
-        --glass-bg: rgba(255,255,255,0.05);
-        --glass-border: rgba(255,255,255,0.1);
-        --glass-shadow: 0 8px 32px rgba(0,0,0,0.4);
-        --text-primary: #e2e8f0;
-        --text-muted: #94a3b8;
+        --glass-bg: #ffffff;
+        --glass-border: #e2e8f0;
+        --glass-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        --text-primary: #1e293b;
+        --text-muted: #64748b;
     }
-    body { background: #0f172a; color: var(--text-primary); }
+    body { background: #f1f5f9; color: var(--text-primary); }
     .glass {
-        background: var(--glass-bg);
+        background: #fff;
         border: 1px solid var(--glass-border);
         border-radius: 1rem;
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
         box-shadow: var(--glass-shadow);
         padding: 1.5rem;
     }
-    .glass .card-title { color: #f8fafc; font-weight: 600; }
+    .glass .card-title { color: #1e293b; font-weight: 600; }
     .info-label { color: var(--text-muted); font-size: .85rem; margin-bottom: .15rem; }
     .info-value { color: var(--text-primary); font-weight: 500; font-size: 1.05rem; }
     .btn-glass {
-        background: var(--glass-bg);
+        background: #f8fafc;
         border: 1px solid var(--glass-border);
         color: var(--text-primary);
-        backdrop-filter: blur(8px);
     }
-    .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .btn-glass:hover { background: #f1f5f9; color: var(--text-primary); }
     .modal-content.glass-modal {
-        background: #1e293b;
+        background: #fff;
         border: 1px solid var(--glass-border);
         color: var(--text-primary);
     }
-    .glass-modal .btn-close { filter: invert(1); }
+    .glass-modal .btn-close { filter: none; }
     .glass-modal textarea {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid var(--glass-border);
+        background: #fff;
+        border: 1px solid #cbd5e1;
         color: var(--text-primary);
     }
     .glass-modal textarea:focus {
