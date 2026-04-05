@@ -1,240 +1,233 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Sorties de stock{% endblock %}
+{% block title %}Sorties de Stock{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-        <div class="alert alert-danger">{{ message }}</div>
+<style>
+    .kpi-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        text-align: center;
+        backdrop-filter: blur(12px);
+        transition: transform .2s, box-shadow .2s;
+    }
+    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+    .kpi-card .kpi-value { font-size: 1.75rem; font-weight: 700; color: var(--primary); }
+    .kpi-card .kpi-label { font-size: .85rem; color: var(--text-muted); margin-top: .25rem; }
+    .exit-row { transition: background .15s; }
+    .exit-row:hover { background: var(--glass-border) !important; }
+</style>
+
+<div class="container-fluid py-4">
+
+    {# Flash messages #}
+    {% for type in ['success', 'error'] %}
+        {% for msg in app.flashes(type) %}
+            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-{{ type == 'success' ? 'check-circle' : 'exclamation-triangle' }} me-2"></i>{{ msg }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
     {% endfor %}
 
-    <div class="page-header">
-        <div class="header-content">
-            <h1><i class="bi bi-box-arrow-up"></i> Sorties de stock</h1>
-            {% if is_granted('STOCK_EXIT_CREATE') %}
-            <a href="{{ path('app_stock_exit_new') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Nouvelle sortie
-            </a>
-            {% endif %}
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1" style="color:var(--text)"><i class="bi bi-box-arrow-up-right me-2"></i>Sorties de Stock</h2>
+            <p class="mb-0" style="color:var(--text-muted)">Gestion et suivi des sorties de stock</p>
+        </div>
+        {% if is_granted('STOCK_EXIT_CREATE') %}
+            <a href="{{ path('app_stock_exit_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Nouvelle sortie</a>
+        {% endif %}
+    </div>
+
+    {# KPI Cards #}
+    {% set pendingCount = exits|filter(e => e.status.value == 'pending')|length %}
+    {% set validatedExits = exits|filter(e => e.status.value == 'validated') %}
+    {% set validatedCount = validatedExits|length %}
+    {% set totalTons = 0 %}
+    {% set totalDays = 0 %}
+    {% for e in validatedExits %}
+        {% set totalTons = totalTons + e.quantityTons %}
+        {% set totalDays = totalDays + e.storageDays %}
+    {% endfor %}
+    {% set avgDays = validatedCount > 0 ? (totalDays / validatedCount)|round(1) : 0 %}
+
+    <div class="row g-3 mb-4">
+        <div class="col">
+            <div class="kpi-card">
+                <div class="kpi-value">{{ exits|length }}</div>
+                <div class="kpi-label"><i class="bi bi-box-arrow-up-right me-1"></i>Total sorties</div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="kpi-card">
+                <div class="kpi-value" style="color:#f0ad4e">{{ pendingCount }}</div>
+                <div class="kpi-label"><i class="bi bi-hourglass-split me-1"></i>En attente</div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="kpi-card">
+                <div class="kpi-value" style="color:#198754">{{ validatedCount }}</div>
+                <div class="kpi-label"><i class="bi bi-check-circle me-1"></i>Validées</div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="kpi-card">
+                {% set kg = (totalTons * 1000)|round(0) %}
+                <div class="kpi-value">{{ totalTons|number_format(2) }} T</div>
+                <div class="kpi-label"><i class="bi bi-speedometer me-1"></i>Poids total ({{ kg }} kg)</div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="kpi-card">
+                <div class="kpi-value">{{ avgDays }}</div>
+                <div class="kpi-label"><i class="bi bi-calendar-range me-1"></i>Jours stockage moyen</div>
+            </div>
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
-                <i class="bi bi-box-arrow-up"></i>
+    {# Filters #}
+    <div class="card mb-4" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius)">
+        <div class="card-body d-flex align-items-center gap-3 flex-wrap">
+            <div class="flex-grow-1">
+                <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par client, produit, BL..." style="background:transparent;border-color:var(--glass-border);color:var(--text)">
             </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ exits|length }}</div>
-                <div class="stat-label">Total sorties</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);">
-                <i class="bi bi-hourglass-split"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">
-                    {% set pendingCount = 0 %}
-                    {% for exit in exits %}
-                        {% if exit.status.value == 'pending' %}{% set pendingCount = pendingCount + 1 %}{% endif %}
-                    {% endfor %}
-                    {{ pendingCount }}
-                </div>
-                <div class="stat-label">En attente</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #059669);">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">
-                    {% set validatedCount = 0 %}
-                    {% for exit in exits %}
-                        {% if exit.status.value == 'validated' %}{% set validatedCount = validatedCount + 1 %}{% endif %}
-                    {% endfor %}
-                    {{ validatedCount }}
-                </div>
-                <div class="stat-label">Validées</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--secondary), #0284c7);">
-                <i class="bi bi-speedometer2"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">
-                    {% set totalTons = 0 %}
-                    {% for exit in exits %}
-                        {% if exit.status.value == 'validated' %}
-                            {% set totalTons = totalTons + exit.quantityTons %}
-                        {% endif %}
-                    {% endfor %}
-                    {{ totalTons|number_format(1, ',', ' ') }}
-                </div>
-                <div class="stat-label">Tonnes expédiées</div>
+            <div class="btn-group" role="group" id="statusFilter">
+                <button type="button" class="btn btn-outline-primary active" data-filter="all">Tous</button>
+                <button type="button" class="btn btn-outline-warning" data-filter="pending">En attente</button>
+                <button type="button" class="btn btn-outline-success" data-filter="validated">Validé</button>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <i class="bi bi-table"></i> Liste des sorties
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>N° BL</th>
-                            <th>Date</th>
-                            <th>Client</th>
-                            <th>Produit</th>
-                            <th class="text-end">Quantité</th>
-                            <th class="text-center">Jours stock</th>
-                            <th class="text-center">Statut</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for exit in exits %}
-                        <tr>
+    {# Table #}
+    {% if exits|length > 0 %}
+        <div class="table-responsive" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius)">
+            <table class="table table-dark table-hover mb-0 align-middle">
+                <thead>
+                    <tr style="color:var(--text-muted)">
+                        <th>BL N°</th>
+                        <th>Date et Heure</th>
+                        <th>Client</th>
+                        <th>Produit</th>
+                        <th>Quantité</th>
+                        <th>Jours stockage</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exit in exits %}
+                        <tr class="exit-row" data-search="{{ exit.bonLivraisonNumber ?? '' }} {{ exit.stockItem.client.companyName|lower }} {{ exit.stockItem.productName|lower }}" data-status="{{ exit.status.value }}">
+                            <td class="fw-semibold">{{ exit.bonLivraisonNumber ?? 'SRT-' ~ exit.id }}</td>
                             <td>
-                                <code class="bon-number">{{ exit.bonLivraisonNumber ?? '#' ~ exit.id }}</code>
+                                {{ exit.createdAt|date('d/m/Y') }}
+                                <small class="text-muted d-block">{{ exit.createdAt|date('H:i:s') }}</small>
                             </td>
+                            <td>{{ exit.stockItem.client.companyName }}</td>
+                            <td>{{ exit.stockItem.productName }}</td>
                             <td>
-                                <div class="date-cell">
-                                    <span class="date">{{ exit.createdAt|date('d/m/Y') }}</span>
-                                    <span class="time">{{ exit.createdAt|date('H:i') }}</span>
-                                </div>
+                                {{ (exit.quantityTons * 1000)|number_format(0) }} kg
+                                <small class="text-muted d-block">{{ exit.quantityTons }} T</small>
                             </td>
+                            <td>{{ exit.storageDays }} j</td>
                             <td>
-                                <span class="client-name">{{ exit.client.companyName }}</span>
-                            </td>
-                            <td>
-                                <span class="product-name">{{ exit.productName }}</span>
+                                {% if exit.status.value == 'pending' %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En attente</span>
+                                {% elseif exit.status.value == 'validated' %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Validé</span>
+                                {% elseif exit.status.value == 'rejected' %}
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rejeté</span>
+                                {% endif %}
                             </td>
                             <td class="text-end">
-                                <span class="quantity">{{ exit.quantityTons|number_format(3, ',', ' ') }} T</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="days-badge">{{ exit.storageDays }}j</span>
-                            </td>
-                            <td class="text-center">
-                                {% if exit.status.value == 'pending' %}
-                                    <span class="status-badge status-pending">
-                                        <i class="bi bi-hourglass-split"></i> En attente
-                                    </span>
-                                {% elseif exit.status.value == 'validated' %}
-                                    <span class="status-badge status-validated">
-                                        <i class="bi bi-check-circle"></i> Validée
-                                    </span>
-                                {% else %}
-                                    <span class="status-badge status-rejected">
-                                        <i class="bi bi-x-circle"></i> Rejetée
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ path('app_stock_exit_show', {id: exit.id}) }}" class="btn btn-sm btn-outline-info" title="Voir détails">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{{ path('app_stock_exit_bon_livraison', {id: exit.id}) }}" class="btn btn-sm btn-outline-secondary" title="Bon de livraison" target="_blank">
-                                        <i class="bi bi-file-earmark-pdf"></i>
-                                    </a>
-                                    {% if exit.isPending %}
-                                        {% if is_granted('STOCK_EXIT_VALIDATE') %}
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a href="{{ path('app_stock_exit_show', {id: exit.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>Voir détails</a>
+                                    {% if exit.isPending and is_granted('STOCK_EXIT_VALIDATE') %}
                                         <form action="{{ path('app_stock_exit_validate', {id: exit.id}) }}" method="post" class="d-inline">
                                             <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ exit.id) }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Valider">
-                                                <i class="bi bi-check-lg"></i>
-                                            </button>
+                                            <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-lg me-1"></i>Valider</button>
                                         </form>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ exit.id }}" title="Rejeter">
-                                            <i class="bi bi-x-lg"></i>
-                                        </button>
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-
-                                {% if exit.isPending and is_granted('STOCK_EXIT_VALIDATE') %}
-                                <div class="modal fade" id="rejectModal{{ exit.id }}" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form action="{{ path('app_stock_exit_reject', {id: exit.id}) }}" method="post">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ exit.id) }}">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title"><i class="bi bi-x-circle text-danger"></i> Rejeter la sortie</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p>Sortie: <strong>{{ exit.productName }}</strong> - {{ exit.client.companyName }}</p>
-                                                    <div class="mb-3">
-                                                        <label for="reason{{ exit.id }}" class="form-label">Motif du rejet</label>
-                                                        <textarea name="reason" id="reason{{ exit.id }}" class="form-control" rows="3" required placeholder="Indiquez le motif du rejet..."></textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                    <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="8" class="text-center py-5">
-                                <div class="empty-state">
-                                    <i class="bi bi-inbox"></i>
-                                    <p>Aucune sortie de stock</p>
-                                    {% if is_granted('STOCK_EXIT_CREATE') %}
-                                    <a href="{{ path('app_stock_exit_new') }}" class="btn btn-primary">
-                                        <i class="bi bi-plus-lg"></i> Créer une sortie
-                                    </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ exit.id }}"><i class="bi bi-x-lg me-1"></i>Rejeter</button>
                                     {% endif %}
                                 </div>
                             </td>
                         </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </div>
+
+        {# Reject Modals #}
+        {% for exit in exits %}
+            {% if exit.isPending %}
+                <div class="modal fade" id="rejectModal{{ exit.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content" style="background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text)">
+                            <form action="{{ path('app_stock_exit_reject', {id: exit.id}) }}" method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ exit.id) }}">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title"><i class="bi bi-x-circle text-danger me-2"></i>Rejeter la sortie</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted">Sortie <strong>{{ exit.bonLivraisonNumber ?? 'SRT-' ~ exit.id }}</strong> — {{ exit.stockItem.productName }}</p>
+                                    <label for="reason{{ exit.id }}" class="form-label">Motif du rejet</label>
+                                    <textarea id="reason{{ exit.id }}" name="reason" class="form-control" rows="3" required style="background:transparent;border-color:var(--glass-border);color:var(--text)" placeholder="Indiquez le motif du rejet..."></textarea>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="submit" class="btn btn-danger"><i class="bi bi-x-lg me-1"></i>Confirmer le rejet</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+
+    {% else %}
+        {# Empty state #}
+        <div class="text-center py-5" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius)">
+            <i class="bi bi-inbox display-1" style="color:var(--text-muted)"></i>
+            <h4 class="mt-3" style="color:var(--text)">Aucune sortie de stock</h4>
+            <p style="color:var(--text-muted)">Les sorties de stock apparaîtront ici une fois créées.</p>
+            {% if is_granted('STOCK_EXIT_CREATE') %}
+                <a href="{{ path('app_stock_exit_new') }}" class="btn btn-primary mt-2"><i class="bi bi-plus-lg me-1"></i>Nouvelle sortie</a>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
 
-<style>
-.page-header { margin-bottom: 2rem; }
-.header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-.stat-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 1.5rem; display: flex; align-items: center; gap: 1rem; transition: transform 0.3s ease; }
-.stat-card:hover { transform: translateY(-5px); }
-.stat-icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
-.stat-value { font-size: 1.75rem; font-weight: 700; color: var(--text); }
-.stat-label { font-size: 0.85rem; color: var(--text-muted); }
-.bon-number { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
-.date-cell { display: flex; flex-direction: column; }
-.date-cell .date { font-weight: 600; color: var(--text); }
-.date-cell .time { font-size: 0.8rem; color: var(--text-muted); }
-.client-name { font-weight: 500; color: var(--text); }
-.product-name { font-weight: 600; color: var(--text); }
-.quantity { font-weight: 600; color: var(--primary-light); }
-.days-badge { background: rgba(14, 165, 233, 0.2); color: #38bdf8; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
-.status-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.8rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; }
-.status-pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-.status-validated { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-.status-rejected { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-.action-buttons { display: flex; gap: 0.5rem; justify-content: center; }
-.empty-state { color: var(--text-muted); }
-.empty-state i { font-size: 3rem; margin-bottom: 1rem; }
-</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.exit-row');
+    const searchInput = document.getElementById('searchInput');
+    const filterBtns = document.querySelectorAll('#statusFilter button');
+    let activeStatus = 'all';
+
+    function applyFilters() {
+        const q = searchInput.value.toLowerCase();
+        rows.forEach(r => {
+            const matchSearch = !q || r.dataset.search.toLowerCase().includes(q);
+            const matchStatus = activeStatus === 'all' || r.dataset.status === activeStatus;
+            r.style.display = matchSearch && matchStatus ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            activeStatus = this.dataset.filter;
+            applyFilters();
+        });
+    });
+});
+</script>
 {% endblock %}

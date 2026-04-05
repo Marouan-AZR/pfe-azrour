@@ -2,363 +2,162 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Bon de Réception - {{ entry.bonReceptionNumber ?? 'BR-' ~ entry.id }}</title>
+    <title>Ticket {{ entry.codePalette ?? 'PLT-' ~ entry.id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
-            color: #333;
-            background: #fff;
-            padding: 20px;
-        }
-        .document {
-            max-width: 800px;
-            margin: 0 auto;
-            border: 2px solid #1e3a5f;
-            padding: 0;
-        }
-        .header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo-section h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        .logo-section p {
-            font-size: 11px;
-            opacity: 0.9;
-        }
-        .doc-info {
-            text-align: right;
-        }
-        .doc-info .doc-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 4px;
-        }
-        .doc-info .doc-number {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .doc-info .doc-date {
-            font-size: 11px;
-            margin-top: 5px;
-        }
-        .content {
-            padding: 20px;
-        }
-        .section {
-            margin-bottom: 20px;
-        }
-        .section-title {
-            background: #f0f4f8;
-            padding: 8px 12px;
-            font-weight: 600;
-            font-size: 13px;
-            color: #1e3a5f;
-            border-left: 4px solid #1e3a5f;
-            margin-bottom: 10px;
-        }
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-        .info-grid-3 {
-            grid-template-columns: repeat(3, 1fr);
-        }
-        .info-item {
-            padding: 8px;
-            background: #fafafa;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-        }
-        .info-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #666;
-            margin-bottom: 3px;
-        }
-        .info-value {
-            font-weight: 600;
-            color: #1e3a5f;
-        }
-        .info-value.highlight {
-            font-size: 14px;
-            color: #0066cc;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background: #1e3a5f;
-            color: white;
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-        td {
-            font-size: 12px;
-        }
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .signatures {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-        }
-        .signature-box {
-            text-align: center;
-        }
-        .signature-box .title {
-            font-weight: 600;
-            font-size: 11px;
-            color: #1e3a5f;
-            margin-bottom: 50px;
-        }
-        .signature-box .line {
-            border-top: 1px solid #333;
-            padding-top: 5px;
-            font-size: 10px;
-            color: #666;
-        }
-        .footer {
-            background: #f0f4f8;
-            padding: 15px 20px;
-            text-align: center;
-            font-size: 10px;
-            color: #666;
-            border-top: 2px solid #1e3a5f;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-        .status-validated {
-            background: #d4edda;
-            color: #155724;
-        }
-        .status-rejected {
-            background: #f8d7da;
-            color: #721c24;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; padding: 2rem; }
+        .ticket { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+        .ticket-header { padding: 2rem; border-bottom: 4px solid #0ea5e9; }
+        .ticket-header h1 { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin: 0; }
+        .ticket-header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .ticket-number { color: #0ea5e9; font-weight: 800; font-size: 1.5rem; }
+        .ticket-number small { display: block; color: #94a3b8; font-size: 0.75rem; font-weight: 500; }
+        .qr-section { text-align: center; padding: 2rem; background: #f8fafc; border: 1px dashed #e2e8f0; margin: 1.5rem; border-radius: 12px; }
+        .qr-section img { max-width: 180px; }
+        .qr-section p { color: #64748b; font-size: 0.85rem; margin-top: 0.75rem; }
+        .info-section { padding: 0 2rem 2rem; }
+        .info-block { margin-bottom: 1.5rem; }
+        .info-block-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding-left: 0.75rem; margin-bottom: 0.75rem; }
+        .info-block-title.blue { color: #0ea5e9; border-left: 3px solid #0ea5e9; }
+        .info-block-title.orange { color: #f59e0b; border-left: 3px solid #f59e0b; }
+        .info-block-title.green { color: #10b981; border-left: 3px solid #10b981; }
+        .info-block-title.teal { color: #14b8a6; border-left: 3px solid #14b8a6; }
+        .info-value { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+        .info-label { font-size: 0.8rem; color: #94a3b8; }
+        .quantity-box { background: #fff7ed; border-radius: 10px; padding: 1rem; text-align: center; }
+        .quantity-box .value { font-size: 1.8rem; font-weight: 800; color: #ea580c; }
+        .quantity-box .label { font-size: 0.75rem; color: #9a3412; }
+        .location-box { background: #f0fdfa; border-radius: 10px; padding: 1rem; text-align: center; }
+        .location-box .value { font-size: 1.8rem; font-weight: 800; color: #0d9488; }
+        .location-box .label { font-size: 0.75rem; color: #115e59; }
+        .btn-print { position: fixed; top: 1rem; right: 1rem; z-index: 100; }
+        .btn-back { position: fixed; top: 1rem; left: 1rem; z-index: 100; }
         @media print {
-            body {
-                padding: 0;
-            }
-            .document {
-                border: none;
-            }
-            .no-print {
-                display: none;
-            }
+            body { padding: 0; background: #fff; }
+            .ticket { box-shadow: none; border-radius: 0; }
+            .btn-print, .btn-back { display: none !important; }
         }
     </style>
 </head>
 <body>
-    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
-        <button onclick="window.print()" style="padding: 10px 30px; font-size: 14px; cursor: pointer; background: #1e3a5f; color: white; border: none; border-radius: 4px;">
-            🖨️ Imprimer
-        </button>
-    </div>
+    <a href="{{ path('app_stock_entry_show', {id: entry.id}) }}" class="btn btn-outline-secondary btn-sm btn-back">
+        <i class="bi bi-arrow-left"></i> Retour
+    </a>
+    <button onclick="window.print()" class="btn btn-primary btn-sm btn-print">
+        🖨️ Imprimer
+    </button>
 
-    <div class="document">
-        <div class="header">
-            <div class="logo-section">
-                <h1>🧊 GOLDEN LOGISTICS</h1>
-                <p>Entrepôt Frigorifique - Dakhla, Maroc</p>
+    <div class="ticket">
+        {# En-tête #}
+        <div class="ticket-header d-flex justify-content-between align-items-start">
+            <div>
+                <h1>Golden Logistics</h1>
+                <div class="subtitle">Entrepôt Frigorifique</div>
+                <div class="subtitle">Système de Gestion de Stock</div>
+                <div class="mt-2 text-muted" style="font-size: 0.85rem;">
+                    Date d'émission : {{ "now"|date("d F Y") }} à {{ "now"|date("H:i") }}
+                </div>
+                <div class="text-muted" style="font-size: 0.85rem;">
+                    N° Bon : {{ entry.bonReceptionNumber ?? '—' }}
+                </div>
             </div>
-            <div class="doc-info">
-                <div class="doc-title">BON DE RÉCEPTION</div>
-                <div class="doc-number">{{ entry.bonReceptionNumber ?? 'BR-' ~ entry.id }}</div>
-                <div class="doc-date">{{ entry.createdAt|date('d/m/Y à H:i') }}</div>
+            <div class="text-end">
+                <div class="ticket-number">
+                    <small>Ticket N°</small>
+                    {{ entry.codePalette ?? 'PLT-' ~ entry.id }}
+                </div>
             </div>
         </div>
 
-        <div class="content">
-            <div class="section">
-                <div class="section-title">📋 INFORMATIONS CLIENT</div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Raison sociale</div>
-                        <div class="info-value highlight">{{ entry.client.companyName }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Code client</div>
-                        <div class="info-value">{{ entry.client.code }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">CD Lot Client</div>
-                        <div class="info-value">{{ entry.cdLotClient ?? '-' }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Contact</div>
-                        <div class="info-value">{{ entry.client.email }}</div>
-                    </div>
-                </div>
-            </div>
+        {# QR Code #}
+        <div class="qr-section">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ entry.codePalette ?? 'PAL-' ~ entry.id }}" alt="QR Code">
+            <p>Scanner pour identifier la palette</p>
+        </div>
 
-            <div class="section">
-                <div class="section-title">📦 DÉTAILS DU PRODUIT</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Produit</th>
-                            <th>Famille</th>
-                            <th>Qualité</th>
-                            <th>Moule</th>
-                            <th class="text-center">Cartons</th>
-                            <th class="text-right">Poids Brut</th>
-                            <th class="text-right">Poids Net</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>{{ entry.productName }}</strong></td>
-                            <td>{{ entry.famille ?? '-' }}</td>
-                            <td>{{ entry.qualite ?? '-' }}</td>
-                            <td>{{ entry.moule ?? '-' }}</td>
-                            <td class="text-center">{{ entry.nombreCartons ?? '-' }}</td>
-                            <td class="text-right"><strong>{{ entry.quantityTons|number_format(3, ',', ' ') }} T</strong></td>
-                            <td class="text-right">{{ entry.poidsNet ? entry.poidsNet|number_format(3, ',', ' ') ~ ' T' : '-' }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="section">
-                <div class="section-title">🧊 EMPLACEMENT DE STOCKAGE</div>
-                <div class="info-grid info-grid-3">
-                    <div class="info-item">
-                        <div class="info-label">Chambre froide</div>
-                        <div class="info-value highlight">{{ entry.coldRoom.name }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Rayon</div>
-                        <div class="info-value">{{ entry.rayon ?? '-' }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Code Rack</div>
-                        <div class="info-value">{{ entry.codeRack ?? '-' }}</div>
-                    </div>
-                    <div class="info-item">
+        {# Informations #}
+        <div class="info-section">
+            <div class="row g-4">
+                {# Identification #}
+                <div class="col-md-6">
+                    <div class="info-block">
+                        <div class="info-block-title blue">IDENTIFICATION</div>
                         <div class="info-label">Code Palette</div>
-                        <div class="info-value">{{ entry.codePalette ?? '-' }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Température chambre</div>
-                        <div class="info-value">{{ entry.coldRoom.temperature ?? '-18' }} °C</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Capacité chambre</div>
-                        <div class="info-value">{{ entry.coldRoom.capacityTons|number_format(0, ',', ' ') }} T</div>
+                        <div class="info-value">{{ entry.codePalette ?? 'PLT-' ~ entry.id }}</div>
+                        <div class="info-label mt-2">Code Lot Client</div>
+                        <div class="info-value">{{ entry.cdLotClient ?? '—' }}</div>
                     </div>
                 </div>
-            </div>
 
-            <div class="section">
-                <div class="section-title">🚚 TRANSPORT & RÉCEPTION</div>
-                <div class="info-grid info-grid-3">
-                    <div class="info-item">
-                        <div class="info-label">Transporteur</div>
-                        <div class="info-value">{{ entry.transporteur ?? '-' }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Immatriculation</div>
-                        <div class="info-value">{{ entry.immatriculation ?? '-' }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Température à réception</div>
-                        <div class="info-value">{{ entry.temperature ? entry.temperature ~ ' °C' : '-' }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="section-title">✅ STATUT & VALIDATION</div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Statut</div>
-                        <div class="info-value">
-                            {% if entry.status.value == 'pending' %}
-                                <span class="status-badge status-pending">⏳ En attente de validation</span>
-                            {% elseif entry.status.value == 'validated' %}
-                                <span class="status-badge status-validated">✓ Validé</span>
-                            {% else %}
-                                <span class="status-badge status-rejected">✗ Rejeté</span>
-                            {% endif %}
+                {# Quantités #}
+                <div class="col-md-6">
+                    <div class="info-block">
+                        <div class="info-block-title orange">QUANTITÉS</div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="quantity-box">
+                                    <div class="label">Cartons</div>
+                                    <div class="value">{{ entry.nombreCartons ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="quantity-box">
+                                    <div class="label">Poids</div>
+                                    <div class="value">{{ (entry.quantityTons * 1000)|number_format(0) }} kg</div>
+                                    <div class="label">({{ entry.quantityTons|number_format(2) }} T)</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Enregistré par</div>
-                        <div class="info-value">{{ entry.createdBy.fullName }}</div>
+                </div>
+
+                {# Client #}
+                <div class="col-md-6">
+                    <div class="info-block">
+                        <div class="info-block-title green">CLIENT</div>
+                        <div class="info-value">{{ entry.client.companyName }}</div>
+                        <div class="text-muted" style="font-size: 0.85rem;">{{ entry.client.email ?? '' }}</div>
                     </div>
-                    {% if entry.validatedAt %}
-                    <div class="info-item">
-                        <div class="info-label">Validé par</div>
-                        <div class="info-value">{{ entry.validatedBy.fullName }}</div>
+                </div>
+
+                {# Localisation #}
+                <div class="col-md-6">
+                    <div class="info-block">
+                        <div class="info-block-title teal">LOCALISATION</div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="location-box">
+                                    <div class="label">Chambre</div>
+                                    <div class="value">{{ entry.coldRoom.name }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="location-box">
+                                    <div class="label">Rayon</div>
+                                    <div class="value">{{ entry.rayon ?? '—' }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Date de validation</div>
-                        <div class="info-value">{{ entry.validatedAt|date('d/m/Y à H:i') }}</div>
+                </div>
+
+                {# Produit #}
+                <div class="col-12">
+                    <div class="info-block">
+                        <div class="info-block-title blue">PRODUIT</div>
+                        <div class="row">
+                            <div class="col-3"><span class="info-label">Espèce</span><br><strong>{{ entry.productName }}</strong></div>
+                            <div class="col-3"><span class="info-label">Famille</span><br><strong>{{ entry.famille ?? '—' }}</strong></div>
+                            <div class="col-3"><span class="info-label">Qualité</span><br><strong>{{ entry.qualite ?? '—' }}</strong></div>
+                            <div class="col-3"><span class="info-label">Moule</span><br><strong>{{ entry.moule ?? '—' }}</strong></div>
+                        </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
-
-            <div class="signatures">
-                <div class="signature-box">
-                    <div class="title">Contrôleur</div>
-                    <div class="line">Nom & Signature</div>
-                </div>
-                <div class="signature-box">
-                    <div class="title">Chef de Stock</div>
-                    <div class="line">Nom & Signature</div>
-                </div>
-                <div class="signature-box">
-                    <div class="title">Client / Transporteur</div>
-                    <div class="line">Nom & Signature</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <strong>GOLDEN LOGISTICS SARL</strong> - Zone Industrielle, Dakhla, Maroc<br>
-            Tél: +212 5XX XX XX XX | Email: contact@golden-logistics.ma | RC: XXXXX | IF: XXXXXXXX<br>
-            Document généré le {{ "now"|date('d/m/Y à H:i') }}
         </div>
     </div>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 </body>
 </html>

@@ -13,7 +13,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/historique')]
-#[IsGranted('ROLE_CHEF_STOCK')]
 class HistoryController extends AbstractController
 {
     public function __construct(
@@ -23,6 +22,7 @@ class HistoryController extends AbstractController
     ) {}
 
     #[Route('', name: 'app_history_index', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function index(Request $request): Response
     {
         $userId = $request->query->get('user_id');
@@ -54,6 +54,7 @@ class HistoryController extends AbstractController
     }
 
     #[Route('/export', name: 'app_history_export', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function export(Request $request): StreamedResponse
     {
         $userId = $request->query->get('user_id');

@@ -39,7 +39,8 @@ class InvoiceVoter extends Voter
 
     private function canCreate(User $user): bool
     {
-        return $user->hasRole(UserRole::CHEF_STOCK->value);
+        return $user->hasRole(UserRole::CHEF_STOCK->value)
+            || $user->hasRole(UserRole::DIRECTEUR->value);
     }
 
     private function canView(User $user, ?Invoice $invoice): bool
@@ -50,8 +51,11 @@ class InvoiceVoter extends Voter
             return true;
         }
 
-        // Client can only view their own invoices
-        if ($user->hasRole(UserRole::CLIENT->value) && $invoice !== null) {
+        // Client can view the list (null subject) and their own invoices
+        if ($user->hasRole(UserRole::CLIENT->value)) {
+            if ($invoice === null) {
+                return true;
+            }
             return $user->getClient() === $invoice->getClient();
         }
 

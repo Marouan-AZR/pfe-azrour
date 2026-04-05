@@ -1,587 +1,358 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Tableau de bord - Golden Logistics{% endblock %}
+{% block title %}Tableau de bord opérationnel{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .kpi-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        transition: transform .2s;
+        position: relative;
+        overflow: hidden;
+    }
+    .kpi-card:hover { transform: translateY(-5px); }
+    .kpi-card .kpi-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        opacity: .15;
+    }
+    .kpi-card h3 { font-size: 2rem; margin: 0; color: var(--text); }
+    .kpi-card p { margin: 0; color: var(--text-muted); font-size: .85rem; }
+    .chart-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+    }
+    .chart-card h5 { color: var(--text); margin-bottom: 1rem; }
+    .glass-table {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+    }
+    .glass-table h5 { color: var(--text); }
+    .room-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 1.25rem;
+        transition: transform .2s;
+    }
+    .room-card:hover { transform: translateY(-5px); }
+    .room-card h6 { color: var(--text); }
+    .room-card .text-muted { color: var(--text-muted) !important; }
+    .quick-action {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        text-align: center;
+        text-decoration: none;
+        color: var(--text);
+        transition: transform .2s, border-color .2s;
+        display: block;
+    }
+    .quick-action:hover { transform: translateY(-5px); border-color: var(--primary); color: var(--primary); }
+    .quick-action i { font-size: 2rem; display: block; margin-bottom: .5rem; color: var(--primary); }
+</style>
+{% endblock %}
 
 {% block body %}
 <div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+
+    {# ── Header ── #}
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h1 class="mb-1">
-                <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-            </h1>
-            <p class="text-muted mb-0">
-                Bienvenue, {{ app.user.fullName }} 
-                <span class="badge bg-primary ms-2">
-                    {% if is_granted('ROLE_CHEF_STOCK') %}Chef de Stock{% else %}Contrôleur{% endif %}
-                </span>
-            </p>
-        </div>
-        <div class="d-flex gap-2">
-            <select class="form-select" id="monthSelector" style="width: auto;">
-                {% for i in 0..11 %}
-                    {% set date = "now"|date_modify("-" ~ i ~ " months") %}
-                    <option value="{{ date|date('Y-m') }}" {{ i == 0 ? 'selected' : '' }}>
-                        {{ date|date('F Y')|capitalize }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
-    <!-- Alert Rooms -->
-    {% if alertRooms|length > 0 %}
-    <div class="alert alert-danger d-flex align-items-center mb-4">
-        <div class="alert-icon me-3">
-            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
-        </div>
-        <div>
-            <strong>Alerte capacité critique !</strong>
-            <span class="ms-2">
-                {% for room in alertRooms %}
-                    {{ room.name }} ({{ room.occupancyRate|number_format(1) }}%){% if not loop.last %}, {% endif %}
-                {% endfor %}
-            </span>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Stats Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <div class="stat-card stat-card-warning">
-                <div class="stat-card-icon">
-                    <i class="bi bi-box-arrow-in-down"></i>
-                </div>
-                <div class="stat-card-content">
-                    <div class="stat-card-value">{{ pendingEntriesCount }}</div>
-                    <div class="stat-card-label">Entrées en attente</div>
-                </div>
-                <a href="{{ path('app_stock_entry_index') }}" class="stat-card-link">
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="stat-card stat-card-info">
-                <div class="stat-card-icon">
-                    <i class="bi bi-box-arrow-up"></i>
-                </div>
-                <div class="stat-card-content">
-                    <div class="stat-card-value">{{ pendingExitsCount }}</div>
-                    <div class="stat-card-label">Sorties en attente</div>
-                </div>
-                <a href="{{ path('app_stock_exit_index') }}" class="stat-card-link">
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="stat-card stat-card-success">
-                <div class="stat-card-icon">
-                    <i class="bi bi-thermometer-snow"></i>
-                </div>
-                <div class="stat-card-content">
-                    <div class="stat-card-value">{{ coldRooms|length }}</div>
-                    <div class="stat-card-label">Chambres actives</div>
-                </div>
-                <a href="{{ path('app_cold_room_index') }}" class="stat-card-link">
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="stat-card stat-card-primary">
-                <div class="stat-card-icon">
-                    <i class="bi bi-box-seam"></i>
-                </div>
-                <div class="stat-card-content">
-                    {% set totalStock = 0 %}
-                    {% for room in coldRooms %}
-                        {% set totalStock = totalStock + room.usedCapacity %}
-                    {% endfor %}
-                    <div class="stat-card-value">{{ totalStock|number_format(1) }} T</div>
-                    <div class="stat-card-label">Stock total</div>
-                </div>
-                <a href="{{ path('app_stock_index') }}" class="stat-card-link">
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4">
-        <!-- Pending Entries -->
-        <div class="col-lg-6">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="bi bi-box-arrow-in-down me-2 text-warning"></i>
-                        Entrées en attente de validation
-                    </div>
-                    <span class="badge bg-warning">{{ pendingEntriesCount }}</span>
-                </div>
-                <div class="card-body p-0">
-                    {% if pendingEntries|length > 0 %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Client</th>
-                                    <th>Produit</th>
-                                    <th>Quantité</th>
-                                    <th>Date</th>
-                                    {% if is_granted('ROLE_CHEF_STOCK') %}
-                                    <th>Actions</th>
-                                    {% endif %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for entry in pendingEntries %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">{{ entry.client.companyName }}</div>
-                                    </td>
-                                    <td>{{ entry.productName }}</td>
-                                    <td>
-                                        <span class="badge bg-primary">{{ entry.quantityTons }} T</span>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">{{ entry.createdAt|date('d/m/Y H:i') }}</small>
-                                    </td>
-                                    {% if is_granted('ROLE_CHEF_STOCK') %}
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <form action="{{ path('app_stock_entry_validate', {id: entry.id}) }}" method="post" class="d-inline">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ entry.id) }}">
-                                                <button type="submit" class="btn btn-success btn-sm" title="Valider">
-                                                    <i class="bi bi-check-lg"></i>
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#rejectModal{{ entry.id }}"
-                                                    title="Rejeter">
-                                                <i class="bi bi-x-lg"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    {% endif %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="card-footer text-center">
-                        <a href="{{ path('app_stock_entry_index') }}" class="btn btn-sm btn-outline-warning">
-                            Voir toutes les entrées <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-2 mb-0">Aucune entrée en attente</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Pending Exits -->
-        <div class="col-lg-6">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="bi bi-box-arrow-up me-2 text-info"></i>
-                        Sorties en attente
-                    </div>
-                    <span class="badge bg-info">{{ pendingExitsCount }}</span>
-                </div>
-                <div class="card-body p-0">
-                    {% if pendingExits|length > 0 %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Client</th>
-                                    <th>Produit</th>
-                                    <th>Quantité</th>
-                                    <th>Date</th>
-                                    {% if is_granted('ROLE_CHEF_STOCK') %}
-                                    <th>Actions</th>
-                                    {% endif %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for exit in pendingExits %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">{{ exit.stockItem.client.companyName }}</div>
-                                    </td>
-                                    <td>{{ exit.stockItem.productName }}</td>
-                                    <td>
-                                        <span class="badge bg-info">{{ exit.quantityTons }} T</span>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">{{ exit.createdAt|date('d/m/Y H:i') }}</small>
-                                    </td>
-                                    {% if is_granted('ROLE_CHEF_STOCK') %}
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <form action="{{ path('app_stock_exit_validate', {id: exit.id}) }}" method="post" class="d-inline">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ exit.id) }}">
-                                                <button type="submit" class="btn btn-success btn-sm" title="Valider">
-                                                    <i class="bi bi-check-lg"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                    {% endif %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="card-footer text-center">
-                        <a href="{{ path('app_stock_exit_index') }}" class="btn btn-sm btn-outline-info">
-                            Voir toutes les sorties <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-2 mb-0">Aucune sortie en attente</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cold Rooms Status -->
-    <div class="mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0">
-                <i class="bi bi-thermometer-snow me-2"></i>État des chambres froides
-            </h4>
-            <a href="{{ path('app_cold_room_index') }}" class="btn btn-sm btn-outline-primary">
-                Gérer <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
-        <div class="row g-3">
-            {% for room in coldRooms %}
-            <div class="col-md-6 col-lg-4 col-xl-3">
-                <div class="cold-room-card {{ room.occupancyRate > 90 ? 'critical' : (room.occupancyRate > 70 ? 'warning' : '') }}">
-                    <div class="cold-room-header">
-                        <div class="cold-room-name">
-                            <i class="bi bi-snow2 me-2"></i>{{ room.name }}
-                        </div>
-                        <div class="cold-room-temp">
-                            <i class="bi bi-thermometer-half"></i> {{ room.targetTemperature }}°C
-                        </div>
-                    </div>
-                    <div class="cold-room-body">
-                        <div class="cold-room-progress">
-                            {% set occupancy = room.occupancyRate %}
-                            <div class="progress" style="height: 12px;">
-                                <div class="progress-bar {{ occupancy > 90 ? 'bg-danger' : (occupancy > 70 ? 'bg-warning' : 'bg-success') }}" 
-                                     style="width: {{ occupancy }}%">
-                                </div>
-                            </div>
-                            <div class="cold-room-stats">
-                                <span>{{ room.usedCapacity|number_format(1) }} / {{ room.maxCapacityTons }} T</span>
-                                <span class="fw-bold {{ occupancy > 90 ? 'text-danger' : (occupancy > 70 ? 'text-warning' : 'text-success') }}">
-                                    {{ occupancy|number_format(0) }}%
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_CONTROLEUR') %}
-    <div class="mt-4">
-        <h4 class="mb-3">
-            <i class="bi bi-lightning-charge me-2"></i>Actions rapides
-        </h4>
-        <div class="row g-3">
-            <div class="col-md-6 col-lg-3">
-                <a href="{{ path('app_stock_entry_new') }}" class="quick-action-card">
-                    <div class="quick-action-icon bg-success">
-                        <i class="bi bi-plus-circle"></i>
-                    </div>
-                    <div class="quick-action-content">
-                        <div class="quick-action-title">Nouvelle entrée</div>
-                        <div class="quick-action-desc">Enregistrer une réception</div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <a href="{{ path('app_stock_exit_new') }}" class="quick-action-card">
-                    <div class="quick-action-icon bg-info">
-                        <i class="bi bi-box-arrow-up-right"></i>
-                    </div>
-                    <div class="quick-action-content">
-                        <div class="quick-action-title">Nouvelle sortie</div>
-                        <div class="quick-action-desc">Préparer une expédition</div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <a href="{{ path('app_stock_index') }}" class="quick-action-card">
-                    <div class="quick-action-icon bg-primary">
-                        <i class="bi bi-search"></i>
-                    </div>
-                    <div class="quick-action-content">
-                        <div class="quick-action-title">Consulter le stock</div>
-                        <div class="quick-action-desc">Voir l'état du stock</div>
-                    </div>
-                </a>
-            </div>
+            <h2 class="mb-1" style="color:var(--text)">Tableau de bord</h2>
+            <span style="color:var(--text-muted)">{{ app.user.fullName ?? app.user.username }}</span>
             {% if is_granted('ROLE_CHEF_STOCK') %}
-            <div class="col-md-6 col-lg-3">
-                <a href="{{ path('app_client_index') }}" class="quick-action-card">
-                    <div class="quick-action-icon bg-secondary">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <div class="quick-action-content">
-                        <div class="quick-action-title">Gérer les clients</div>
-                        <div class="quick-action-desc">Liste des clients</div>
-                    </div>
-                </a>
-            </div>
+                <span class="badge ms-2" style="background:var(--primary)">Chef de Stock</span>
+            {% elseif is_granted('ROLE_CONTROLEUR') %}
+                <span class="badge ms-2" style="background:#0ea5e9">Contrôleur</span>
             {% endif %}
         </div>
+        <div>
+            <input type="month" class="form-control form-control-sm" value="{{ 'now'|date('Y-m') }}" style="background:var(--glass-bg);border-color:var(--glass-border);color:var(--text)">
+        </div>
     </div>
-    {% endif %}
-</div>
 
-<!-- Reject Modals -->
-{% for entry in pendingEntries %}
-<div class="modal fade" id="rejectModal{{ entry.id }}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Rejeter l'entrée</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    {# ── Alert Banner ── #}
+    {% if alertRooms is not empty %}
+        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+            <div>
+                <strong>Alerte capacité !</strong>
+                {% for room in alertRooms %}
+                    {{ room.name }} ({{ room.occupancyRate|number_format(0) }}%){% if not loop.last %}, {% endif %}
+                {% endfor %}
+                — occupation supérieure à 90%.
             </div>
-            <form action="{{ path('app_stock_entry_reject', {id: entry.id}) }}" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ entry.id) }}">
-                    <div class="mb-3">
-                        <label class="form-label">Motif du rejet</label>
-                        <textarea name="reason" class="form-control" rows="3" required 
-                                  placeholder="Indiquez la raison du rejet..."></textarea>
+        </div>
+    {% endif %}
+
+    {# ── KPI Cards ── #}
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#6366f1;color:#6366f1"><i class="bi bi-box-arrow-in-down"></i></div>
+                <h3>{{ pendingEntriesCount }}</h3>
+                <p>Entrées en attente</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#0ea5e9;color:#0ea5e9"><i class="bi bi-box-arrow-up"></i></div>
+                <h3>{{ pendingExitsCount }}</h3>
+                <p>Sorties en attente</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#10b981;color:#10b981"><i class="bi bi-snow2"></i></div>
+                <h3>{{ coldRooms|length }}</h3>
+                <p>Chambres actives</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#f59e0b;color:#f59e0b"><i class="bi bi-archive"></i></div>
+                {% set totalStock = 0 %}
+                {% for room in coldRooms %}{% set totalStock = totalStock + room.usedCapacity %}{% endfor %}
+                <h3>{{ totalStock|number_format(1) }} <small style="font-size:.6em">T</small></h3>
+                <p>Stock total</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#ef4444;color:#ef4444"><i class="bi bi-grid-3x3-gap"></i></div>
+                <h3>—</h3>
+                <p>Total Palettes</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-2">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:#6366f1;color:#6366f1"><i class="bi bi-building"></i></div>
+                {% set totalCapacity = 0 %}
+                {% for room in coldRooms %}{% set totalCapacity = totalCapacity + room.maxCapacityTons %}{% endfor %}
+                <h3>{{ totalCapacity|number_format(0) }} <small style="font-size:.6em">T</small></h3>
+                <p>Capacité totale</p>
+            </div>
+        </div>
+    </div>
+
+    {# ── Charts ── #}
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h5><i class="bi bi-bar-chart me-2"></i>Activité du Stock (Entrées vs Sorties)</h5>
+                <canvas id="activityChart" height="260"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h5><i class="bi bi-pie-chart me-2"></i>Occupation des Chambres</h5>
+                <canvas id="occupancyChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="chart-card">
+                <h5><i class="bi bi-graph-up me-2"></i>Évolution mensuelle du stock</h5>
+                <canvas id="evolutionChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {# ── Pending Tables ── #}
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="glass-table">
+                <h5><i class="bi bi-box-arrow-in-down me-2"></i>Entrées en attente</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless mb-0" style="color:var(--text)">
+                        <thead><tr><th>Client</th><th>Produit</th><th>Quantité</th><th>Date</th><th></th></tr></thead>
+                        <tbody>
+                        {% for entry in pendingEntries %}
+                            <tr>
+                                <td>{{ entry.client.companyName }}</td>
+                                <td>{{ entry.productName }}</td>
+                                <td>{{ entry.quantityTons }} T</td>
+                                <td>{{ entry.createdAt|date('d/m/Y') }}</td>
+                                <td class="text-end">
+                                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                                        <form method="post" action="{{ path('app_stock_entry_validate', {id: entry.id}) }}" class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('validate'~entry.id) }}">
+                                            <button class="btn btn-sm btn-outline-success" title="Valider"><i class="bi bi-check-lg"></i></button>
+                                        </form>
+                                        <button class="btn btn-sm btn-outline-danger" title="Rejeter" data-bs-toggle="modal" data-bs-target="#rejectModal{{ entry.id }}"><i class="bi bi-x-lg"></i></button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="text-center" style="color:var(--text-muted)">Aucune entrée en attente</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="glass-table">
+                <h5><i class="bi bi-box-arrow-up me-2"></i>Sorties en attente</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless mb-0" style="color:var(--text)">
+                        <thead><tr><th>Client</th><th>Produit</th><th>Quantité</th><th>Date</th><th></th></tr></thead>
+                        <tbody>
+                        {% for exit in pendingExits %}
+                            <tr>
+                                <td>{{ exit.stockItem.client.companyName }}</td>
+                                <td>{{ exit.stockItem.productName }}</td>
+                                <td>{{ exit.quantityTons }} T</td>
+                                <td>{{ exit.createdAt|date('d/m/Y') }}</td>
+                                <td class="text-end">
+                                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                                        <form method="post" action="{{ path('app_stock_exit_validate', {id: exit.id}) }}" class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('validate'~exit.id) }}">
+                                            <button class="btn btn-sm btn-outline-success" title="Valider"><i class="bi bi-check-lg"></i></button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="text-center" style="color:var(--text-muted)">Aucune sortie en attente</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Cold Rooms ── #}
+    <h5 class="mb-3" style="color:var(--text)"><i class="bi bi-snow2 me-2"></i>État des Chambres Froides</h5>
+    <div class="row g-3 mb-4">
+        {% for room in coldRooms %}
+            <div class="col-sm-6 col-lg-3">
+                <div class="room-card">
+                    <h6>{{ room.name }}</h6>
+                    <small class="text-muted"><i class="bi bi-thermometer-half"></i> {{ room.targetTemperature }}°C</small>
+                    <div class="progress mt-2" style="height:8px;background:var(--glass-border)">
+                        {% set pct = room.occupancyRate|number_format(0) %}
+                        <div class="progress-bar {% if pct > 90 %}bg-danger{% elseif pct > 70 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ pct }}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small class="text-muted">{{ room.usedCapacity|number_format(1) }} / {{ room.maxCapacityTons }} T</small>
+                        <small class="text-muted">{{ pct }}%</small>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-danger">Rejeter</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# ── Quick Actions ── #}
+    <h5 class="mb-3" style="color:var(--text)"><i class="bi bi-lightning me-2"></i>Actions rapides</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <a href="{{ path('app_stock_entry_new') }}" class="quick-action"><i class="bi bi-box-arrow-in-down"></i>Nouvelle entrée</a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <a href="{{ path('app_stock_exit_new') }}" class="quick-action"><i class="bi bi-box-arrow-up"></i>Nouvelle sortie</a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <a href="{{ path('app_stock_index') }}" class="quick-action"><i class="bi bi-search"></i>Consulter stock</a>
+        </div>
+        <div class="col-6 col-lg-3">
+            <a href="{{ path('app_client_index') }}" class="quick-action"><i class="bi bi-people"></i>Gérer clients</a>
+        </div>
+    </div>
+
+</div>
+
+{# ── Reject Modals ── #}
+{% for entry in pendingEntries %}
+    <div class="modal fade" id="rejectModal{{ entry.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="post" action="{{ path('app_stock_entry_reject', {id: entry.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('reject'~entry.id) }}">
+                <div class="modal-content" style="background:var(--glass-bg);border-color:var(--glass-border);color:var(--text)">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title">Rejeter l'entrée</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Rejeter l'entrée de <strong>{{ entry.productName }}</strong> pour <strong>{{ entry.client.companyName }}</strong> ?</p>
+                        <textarea name="reason" class="form-control" rows="3" placeholder="Motif du rejet…" required style="background:var(--glass-bg);border-color:var(--glass-border);color:var(--text)"></textarea>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-sm btn-danger">Confirmer le rejet</button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
-</div>
 {% endfor %}
 {% endblock %}
 
-{% block stylesheets %}
-<style>
-    /* Stat Cards */
-    .stat-card {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartColors = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444'];
+    const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow);
-    }
+    // Activity Bar Chart
+    new Chart(document.getElementById('activityChart'), {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                { label: 'Entrées', data: [12,19,8,15,12,10,14,18,9,11,13,16], backgroundColor: '#6366f1' },
+                { label: 'Sorties', data: [8,14,6,12,9,7,11,15,7,9,10,13], backgroundColor: '#0ea5e9' }
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' }}}, scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }}, y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }}}}
+    });
 
-    .stat-card-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        flex-shrink: 0;
-    }
+    // Occupancy Doughnut Chart
+    (function(){
+        const labels = [], data = [], bg = [];
+        {% for room in coldRooms %}
+            labels.push('{{ room.name }}');
+            data.push({{ room.occupancyRate|number_format(1) }});
+            bg.push(chartColors[labels.length % chartColors.length]);
+        {% endfor %}
+        new Chart(document.getElementById('occupancyChart'), {
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: data, backgroundColor: bg, borderWidth: 0 }] },
+            options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#94a3b8' }}}}
+        });
+    })();
 
-    .stat-card-warning .stat-card-icon {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
-        color: #f59e0b;
-    }
-
-    .stat-card-info .stat-card-icon {
-        background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0.1));
-        color: #0ea5e9;
-    }
-
-    .stat-card-success .stat-card-icon {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
-        color: #10b981;
-    }
-
-    .stat-card-primary .stat-card-icon {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
-        color: #6366f1;
-    }
-
-    .stat-card-value {
-        font-size: 1.75rem;
-        font-weight: 800;
-        line-height: 1;
-    }
-
-    .stat-card-label {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
-    }
-
-    .stat-card-link {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-        transition: all 0.3s ease;
-    }
-
-    .stat-card:hover .stat-card-link {
-        background: var(--primary);
-        color: white;
-    }
-
-    /* Cold Room Cards */
-    .cold-room-card {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .cold-room-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .cold-room-card.warning {
-        border-color: rgba(245, 158, 11, 0.5);
-    }
-
-    .cold-room-card.critical {
-        border-color: rgba(239, 68, 68, 0.5);
-    }
-
-    .cold-room-header {
-        padding: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(99, 102, 241, 0.1);
-    }
-
-    .cold-room-name {
-        font-weight: 600;
-    }
-
-    .cold-room-temp {
-        font-size: 0.85rem;
-        color: var(--secondary);
-    }
-
-    .cold-room-body {
-        padding: 1rem;
-    }
-
-    .cold-room-stats {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 0.5rem;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-    }
-
-    /* Quick Action Cards */
-    .quick-action-card {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.25rem;
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        text-decoration: none;
-        color: var(--text);
-        transition: all 0.3s ease;
-    }
-
-    .quick-action-card:hover {
-        transform: translateY(-3px);
-        border-color: var(--primary);
-        color: var(--text);
-    }
-
-    .quick-action-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-        color: white;
-        flex-shrink: 0;
-    }
-
-    .quick-action-title {
-        font-weight: 600;
-    }
-
-    .quick-action-desc {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-    }
-
-    /* Alert Icon */
-    .alert-icon {
-        width: 50px;
-        height: 50px;
-        background: rgba(239, 68, 68, 0.2);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Card Footer */
-    .card-footer {
-        background: transparent;
-        border-top: 1px solid var(--glass-border);
-        padding: 1rem;
-    }
-</style>
+    // Evolution Line Chart
+    new Chart(document.getElementById('evolutionChart'), {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{ label: 'Stock (T)', data: [45,52,48,55,60,58,62,70,65,68,72,75], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,.1)', fill: true, tension: .4 }]
+        },
+        options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' }}}, scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }}, y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }}}}
+    });
+</script>
 {% endblock %}

@@ -33,7 +33,7 @@ security:
     role_hierarchy:
         ROLE_CHEF_STOCK: [ROLE_CONTROLEUR]
         ROLE_DIRECTEUR: [ROLE_USER]
-        ROLE_PATRON: [ROLE_USER]
+        ROLE_PATRON: [ROLE_DIRECTEUR]
         ROLE_CLIENT: [ROLE_USER]
 
 when@test:

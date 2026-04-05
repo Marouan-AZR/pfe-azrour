@@ -1,266 +1,282 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Nouvelle entrée de stock{% endblock %}
+{% block title %}Nouvelle Entrée de Stock{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="page-header">
-        <div class="header-content">
-            <h1><i class="bi bi-box-arrow-in-down"></i> Nouvelle entrée de stock</h1>
-            <a href="{{ path('app_stock_entry_index') }}" class="btn btn-outline-light">
+<div class="container-fluid py-4">
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ path('app_stock_entry_index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> Retour
             </a>
+            <div>
+                <h2 class="mb-0">Nouvelle Entrée de Stock</h2>
+                <small class="text-muted">
+                    {% if is_granted('ROLE_CHEF_STOCK') %}Chef de Stock{% else %}Contrôleur{% endif %} – Formulaire de saisie
+                </small>
+            </div>
+        </div>
+        <div class="text-end">
+            <small class="text-muted d-block">Code Palette Généré</small>
+            <span class="fs-5 fw-bold text-primary" id="codePaletteDisplay">PAL-{{ "now"|date("Y") }}-<span id="paletteRandom">{{ random(1000, 9999) }}</span></span>
         </div>
     </div>
 
-    <div class="form-container">
-        {{ form_start(form, {'attr': {'class': 'entry-form'}}) }}
-        
-        <div class="form-section">
-            <div class="section-header">
-                <i class="bi bi-person-badge"></i>
-                <h3>Informations client</h3>
-            </div>
-            <div class="form-grid">
-                <div class="form-group">
-                    {{ form_label(form.client) }}
-                    {{ form_widget(form.client) }}
-                    {{ form_errors(form.client) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.cdLotClient) }}
-                    {{ form_widget(form.cdLotClient) }}
-                    {{ form_errors(form.cdLotClient) }}
-                    <small class="form-hint">Code lot interne du client</small>
-                </div>
+    {{ form_start(form, {'attr': {'class': 'entry-form', 'id': 'entryForm', 'novalidate': 'novalidate'}}) }}
+
+    {# Section 1: Informations Client #}
+    <div class="form-section mb-4">
+        <div class="section-header">
+            <span class="section-icon section-icon-client">👤</span>
+            <div>
+                <h5 class="mb-0">Informations Client</h5>
+                <small class="text-muted">Sélectionner le client et son code lot</small>
             </div>
         </div>
-
-        <div class="form-section">
-            <div class="section-header">
-                <i class="bi bi-box-seam"></i>
-                <h3>Informations produit</h3>
+        <div class="row g-3">
+            <div class="col-md-6">
+                {{ form_label(form.client, 'Client *', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.client, {'attr': {'class': 'form-select'}}) }}
+                {{ form_errors(form.client) }}
             </div>
-            <div class="form-grid form-grid-3">
-                <div class="form-group">
-                    {{ form_label(form.productName) }}
-                    {{ form_widget(form.productName) }}
-                    {{ form_errors(form.productName) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.famille) }}
-                    {{ form_widget(form.famille) }}
-                    {{ form_errors(form.famille) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.qualite) }}
-                    {{ form_widget(form.qualite) }}
-                    {{ form_errors(form.qualite) }}
-                </div>
-            </div>
-            <div class="form-grid form-grid-4">
-                <div class="form-group">
-                    {{ form_label(form.moule) }}
-                    {{ form_widget(form.moule) }}
-                    {{ form_errors(form.moule) }}
-                    <small class="form-hint">Calibre du produit</small>
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.nombreCartons) }}
-                    {{ form_widget(form.nombreCartons) }}
-                    {{ form_errors(form.nombreCartons) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.quantityTons) }}
-                    {{ form_widget(form.quantityTons) }}
-                    {{ form_errors(form.quantityTons) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.poidsNet) }}
-                    {{ form_widget(form.poidsNet) }}
-                    {{ form_errors(form.poidsNet) }}
-                </div>
+            <div class="col-md-6">
+                {{ form_label(form.cdLotClient, 'Code Lot Client', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.cdLotClient, {'attr': {'class': 'form-control', 'placeholder': 'Ex: LOT-2026-001'}}) }}
+                {{ form_errors(form.cdLotClient) }}
             </div>
         </div>
-
-        <div class="form-section">
-            <div class="section-header">
-                <i class="bi bi-snow2"></i>
-                <h3>Emplacement stockage</h3>
-            </div>
-            <div class="form-grid form-grid-4">
-                <div class="form-group">
-                    {{ form_label(form.coldRoom) }}
-                    {{ form_widget(form.coldRoom) }}
-                    {{ form_errors(form.coldRoom) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.rayon) }}
-                    {{ form_widget(form.rayon) }}
-                    {{ form_errors(form.rayon) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.codeRack) }}
-                    {{ form_widget(form.codeRack) }}
-                    {{ form_errors(form.codeRack) }}
-                    <small class="form-hint">Ex: 1G, 5D, 22G...</small>
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.codePalette) }}
-                    {{ form_widget(form.codePalette) }}
-                    {{ form_errors(form.codePalette) }}
-                </div>
-            </div>
-        </div>
-
-        <div class="form-section">
-            <div class="section-header">
-                <i class="bi bi-truck"></i>
-                <h3>Transport & Réception</h3>
-            </div>
-            <div class="form-grid form-grid-3">
-                <div class="form-group">
-                    {{ form_label(form.transporteur) }}
-                    {{ form_widget(form.transporteur) }}
-                    {{ form_errors(form.transporteur) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.immatriculation) }}
-                    {{ form_widget(form.immatriculation) }}
-                    {{ form_errors(form.immatriculation) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.temperature) }}
-                    {{ form_widget(form.temperature) }}
-                    {{ form_errors(form.temperature) }}
-                    <small class="form-hint">Température à réception</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-check-lg"></i> Enregistrer l'entrée
-            </button>
-            <a href="{{ path('app_stock_entry_index') }}" class="btn btn-secondary btn-lg">
-                <i class="bi bi-x-lg"></i> Annuler
-            </a>
-        </div>
-
-        {{ form_end(form) }}
     </div>
+
+    {# Section 2: Informations Produit #}
+    <div class="form-section mb-4">
+        <div class="section-header">
+            <span class="section-icon section-icon-product">🐟</span>
+            <div>
+                <h5 class="mb-0">Informations Produit</h5>
+                <small class="text-muted">Caractéristiques du produit reçu</small>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                {{ form_label(form.productName, 'Espèce *', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.productName, {'attr': {'class': 'form-control', 'placeholder': 'Espèce...'}}) }}
+                {{ form_errors(form.productName) }}
+            </div>
+            <div class="col-md-3">
+                {{ form_label(form.famille, 'Famille *', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.famille, {'attr': {'class': 'form-select'}}) }}
+                {{ form_errors(form.famille) }}
+            </div>
+            <div class="col-md-3">
+                {{ form_label(form.qualite, 'Qualité *', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.qualite, {'attr': {'class': 'form-select'}}) }}
+                {{ form_errors(form.qualite) }}
+            </div>
+            <div class="col-md-3">
+                {{ form_label(form.moule, 'Moule', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.moule, {'attr': {'class': 'form-control', 'placeholder': 'Moule...'}}) }}
+                {{ form_errors(form.moule) }}
+            </div>
+        </div>
+    </div>
+
+    {# Section 3: Informations Quantitatives #}
+    <div class="form-section mb-4">
+        <div class="section-header">
+            <span class="section-icon section-icon-quantity">⚖️</span>
+            <div>
+                <h5 class="mb-0">Informations Quantitatives</h5>
+                <small class="text-muted">Quantité et poids de la marchandise</small>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                {{ form_label(form.nombreCartons, 'Nombre de Cartons *', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.nombreCartons, {'attr': {'class': 'form-control', 'placeholder': 'Ex: 120'}}) }}
+                {{ form_errors(form.nombreCartons) }}
+            </div>
+            <div class="col-md-6">
+                {{ form_label(form.quantityTons, 'Poids (kg) *', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.quantityTons, {'attr': {'class': 'form-control', 'placeholder': 'Ex: 2400'}}) }}
+                {{ form_errors(form.quantityTons) }}
+            </div>
+        </div>
+    </div>
+
+    {# Section 4: Localisation #}
+    <div class="form-section mb-4">
+        <div class="section-header">
+            <span class="section-icon section-icon-location">❄️</span>
+            <div>
+                <h5 class="mb-0">Localisation</h5>
+                <small class="text-muted">Emplacement dans l'entrepôt frigorifique</small>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                {{ form_label(form.coldRoom, 'Chambre Frigorifique *', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.coldRoom, {'attr': {'class': 'form-select'}}) }}
+                {{ form_errors(form.coldRoom) }}
+            </div>
+            <div class="col-md-4">
+                {{ form_label(form.rayon, 'Rayon *', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                <select name="{{ form.rayon.vars.full_name }}" id="{{ form.rayon.vars.id }}" class="form-select">
+                    <option value="">Sélectionner...</option>
+                    <optgroup label="Gauche">
+                        {% for i in 1..22 %}
+                            <option value="GR{{ i }}" {{ form.rayon.vars.value == 'GR' ~ i ? 'selected' : '' }}>GR{{ i }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Droite">
+                        {% for i in 1..22 %}
+                            <option value="DR{{ i }}" {{ form.rayon.vars.value == 'DR' ~ i ? 'selected' : '' }}>DR{{ i }}</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+                {{ form_errors(form.rayon) }}
+            </div>
+            <div class="col-md-4">
+                {{ form_label(form.codePalette, 'Code Palette', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.codePalette, {'attr': {'class': 'form-control', 'readonly': true, 'id': 'codePaletteInput'}}) }}
+                {{ form_errors(form.codePalette) }}
+            </div>
+        </div>
+    </div>
+
+    {# Section 5: Date de réception #}
+    <div class="form-section mb-4">
+        <div class="section-header">
+            <span class="section-icon section-icon-date">📅</span>
+            <div>
+                <h5 class="mb-0">Date de Réception</h5>
+                <small class="text-muted">Date et informations de transport</small>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Date de réception</label>
+                <input type="date" class="form-control" value="{{ "now"|date("Y-m-d") }}" name="reception_date">
+            </div>
+            <div class="col-md-4">
+                {{ form_label(form.transporteur, 'Transporteur', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.transporteur, {'attr': {'class': 'form-control', 'placeholder': 'Nom du transporteur'}}) }}
+                {{ form_errors(form.transporteur) }}
+            </div>
+            <div class="col-md-4">
+                {{ form_label(form.temperature, 'Température (°C)', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.temperature, {'attr': {'class': 'form-control', 'placeholder': '-18.0'}}) }}
+                {{ form_errors(form.temperature) }}
+            </div>
+        </div>
+    </div>
+
+    {# Section 6: Équipe (Contrôleur uniquement) #}
+    {% if not is_granted('ROLE_CHEF_STOCK') and is_granted('ROLE_CONTROLEUR') %}
+    <div class="form-section mb-4">
+        <div class="section-header">
+            <span class="section-icon section-icon-team">👥</span>
+            <div>
+                <h5 class="mb-0">Équipe de Réception</h5>
+                <small class="text-muted">Spécifique au contrôleur</small>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Contrôleur principal</label>
+                <input type="text" class="form-control" value="{{ app.user.fullName }}" readonly>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Hidden fields #}
+    {{ form_rest(form) }}
+
+    {# Boutons d'action différenciés par rôle #}
+    <div class="d-flex gap-3 mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-save"></i> 💾 Enregistrer
+        </button>
+        {% if is_granted('ROLE_CHEF_STOCK') %}
+        <button type="submit" name="validate_directly" value="1" class="btn btn-success btn-lg">
+            <i class="bi bi-check-circle"></i> ✅ Valider
+        </button>
+        {% endif %}
+        <button type="reset" class="btn btn-outline-secondary btn-lg">
+            <i class="bi bi-arrow-counterclockwise"></i> 🔄 Réinitialiser
+        </button>
+        <a href="{{ path('app_stock_entry_index') }}" class="btn btn-outline-danger btn-lg">
+            <i class="bi bi-x-lg"></i> ❌ Annuler
+        </a>
+    </div>
+
+    {{ form_end(form) }}
 </div>
 
 <style>
-.page-header {
-    margin-bottom: 2rem;
-}
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-.form-container {
-    max-width: 1000px;
-}
 .form-section {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
+    background: var(--glass-bg, #fff);
+    border: 1px solid var(--glass-border, #e2e8f0);
+    border-radius: 16px;
+    padding: 1.75rem;
+    transition: box-shadow 0.3s ease;
+}
+.form-section:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 .section-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border, #e2e8f0);
 }
-.section-header i {
+.section-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.5rem;
-    color: var(--primary-light);
+    flex-shrink: 0;
 }
-.section-header h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text);
+.section-icon-client { background: rgba(99, 102, 241, 0.15); }
+.section-icon-product { background: rgba(14, 165, 233, 0.15); }
+.section-icon-quantity { background: rgba(245, 158, 11, 0.15); }
+.section-icon-location { background: rgba(16, 185, 129, 0.15); }
+.section-icon-date { background: rgba(139, 92, 246, 0.15); }
+.section-icon-team { background: rgba(236, 72, 153, 0.15); }
+.form-control, .form-select {
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
 }
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-}
-.form-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
-}
-.form-grid-4 {
-    grid-template-columns: repeat(4, 1fr);
-}
-.form-group {
-    display: flex;
-    flex-direction: column;
-}
-.form-group label {
-    color: var(--text);
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-}
-.form-group .form-control,
-.form-group .form-select {
-    background: var(--dark-light);
-    border: 1px solid var(--glass-border);
-    color: var(--text);
-    border-radius: var(--radius-sm);
-    padding: 0.75rem 1rem;
-    transition: all 0.3s ease;
-}
-.form-group .form-control:focus,
-.form-group .form-select:focus {
-    background: var(--dark-lighter);
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-.form-group .form-control::placeholder {
-    color: var(--text-muted);
-}
-.form-hint {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-top: 0.25rem;
-}
-.form-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-start;
-    padding-top: 1rem;
-}
-.btn-lg {
-    padding: 0.75rem 2rem;
-    font-size: 1rem;
-}
-@media (max-width: 992px) {
-    .form-grid-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-@media (max-width: 768px) {
-    .form-grid,
-    .form-grid-3,
-    .form-grid-4 {
-        grid-template-columns: 1fr;
-    }
-    .form-actions {
-        flex-direction: column;
-    }
-    .form-actions .btn {
-        width: 100%;
-    }
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary, #6366f1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 </style>
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-generate palette code
+    const code = 'PAL-{{ "now"|date("Y") }}-' + Math.floor(1000 + Math.random() * 9000);
+    const input = document.getElementById('codePaletteInput');
+    if (input && !input.value) {
+        input.value = code;
+    }
+    const display = document.getElementById('codePaletteDisplay');
+    if (display && input) {
+        display.textContent = input.value;
+    }
+});
+</script>
+{% endblock %}
 {% endblock %}

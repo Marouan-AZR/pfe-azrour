@@ -33,25 +33,59 @@ class StockExitController extends AbstractController
 
     #[Route('/nouveau', name: 'app_stock_exit_new', methods: ['GET', 'POST'])]
     #[IsGranted(StockExitVoter::CREATE)]
-    public function new(Request $request): Response
-    {
-        $exit = new StockExit();
-        $form = $this->createForm(StockExitType::class, $exit);
-        $form->handleRequest($request);
+    public function new(
+        Request $request,
+        \App\Repository\ClientRepository $clientRepository,
+        \App\Repository\StockItemRepository $stockItemRepository,
+        \App\Repository\UserRepository $userRepository
+    ): Response {
+        // Get selected client
+        $clientId = $request->query->get('client') ?? $request->request->get('client');
+        $selectedClient = $clientId ? $clientRepository->find($clientId) : null;
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        // Get available stock items for selected client
+        $stockItems = $selectedClient
+            ? array_filter($stockItemRepository->findByClient($selectedClient), fn($item) => $item->getRemainingQuantity() > 0)
+            : [];
+
+        // Get controleurs for assignment
+        $controleurs = $userRepository->findByRole('ROLE_CONTROLEUR');
+
+        // Handle form submission
+        if ($request->isMethod('POST') && $request->request->has('palettes')) {
+            $paletteIds = $request->request->all('palettes');
+            $controleurIds = $request->request->all('controleurs');
+
+            if (empty($paletteIds)) {
+                $this->addFlash('error', 'Veuillez sélectionner au moins une palette.');
+                return $this->redirectToRoute('app_stock_exit_new', ['client' => $clientId]);
+            }
+
             try {
-                $exit->setBonLivraisonNumber($this->generateBonLivraisonNumber());
-                $this->stockService->createExit($exit, $this->getUser());
-                $this->addFlash('success', 'Sortie de stock créée avec succès. N° BL: ' . $exit->getBonLivraisonNumber());
+                foreach ($paletteIds as $itemId) {
+                    $stockItem = $stockItemRepository->find($itemId);
+                    if ($stockItem && $stockItem->getRemainingQuantity() > 0) {
+                        $exit = new StockExit();
+                        $exit->setBonLivraisonNumber($this->generateBonLivraisonNumber());
+                        $exit->setStockItem($stockItem);
+                        $exit->setQuantityTons((string)$stockItem->getRemainingQuantity());
+                        $this->stockService->createExit($stockItem, (string)$stockItem->getRemainingQuantity(), $this->getUser());
+                    }
+                }
+                $this->addFlash('success', 'Sortie(s) enregistrée(s) avec succès.');
                 return $this->redirectToRoute('app_stock_exit_index');
             } catch (\Exception $e) {
                 $this->addFlash('error', $e->getMessage());
             }
         }
 
+        $clients = $clientRepository->findBy(['isActive' => true], ['companyName' => 'ASC']);
+
         return $this->render('stock_exit/new.html.twig', [
-            'form' => $form,
+            'clients' => $clients,
+            'selectedClient' => $selectedClient,
+            'stockItems' => $stockItems,
+            'controleurs' => $controleurs,
         ]);
     }
 

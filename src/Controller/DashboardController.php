@@ -48,7 +48,7 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/rapports', name: 'app_reports')]
-    #[IsGranted('ROLE_DIRECTEUR')]
+    #[IsGranted('ROLE_USER')]
     public function reports(
         StockItemRepository $stockItemRepository,
         ClientRepository $clientRepository,
@@ -57,6 +57,12 @@ class DashboardController extends AbstractController
         StockEntryRepository $entryRepository,
         StockExitRepository $exitRepository
     ): Response {
+        /** @var User $user */
+        $user = $this->getUser();
+        if (!$user->hasRole(UserRole::DIRECTEUR->value) && !$user->hasRole(UserRole::PATRON->value)) {
+            throw $this->createAccessDeniedException();
+        }
+
         $coldRooms = $coldRoomRepository->findBy(['isActive' => true]);
         $clients = $clientRepository->findBy(['isActive' => true]);
         

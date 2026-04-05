@@ -13,7 +13,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/chambres-froides')]
-#[IsGranted('ROLE_CHEF_STOCK')]
 class ColdRoomController extends AbstractController
 {
     public function __construct(
@@ -21,7 +20,7 @@ class ColdRoomController extends AbstractController
     ) {}
 
     #[Route('', name: 'app_cold_room_index', methods: ['GET'])]
-    #[IsGranted('ROLE_CONTROLEUR')]
+    #[IsGranted('ROLE_USER')]
     public function index(ColdRoomRepository $repository): Response
     {
         $coldRooms = $repository->findAll();
@@ -32,6 +31,7 @@ class ColdRoomController extends AbstractController
     }
 
     #[Route('/nouveau', name: 'app_cold_room_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_CHEF_STOCK')]
     public function new(Request $request): Response
     {
         $coldRoom = new ColdRoom();
@@ -52,7 +52,7 @@ class ColdRoomController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_cold_room_show', methods: ['GET'])]
-    #[IsGranted('ROLE_CONTROLEUR')]
+    #[IsGranted('ROLE_USER')]
     public function show(ColdRoom $coldRoom): Response
     {
         $racks = [];
@@ -71,6 +71,7 @@ class ColdRoomController extends AbstractController
     }
 
     #[Route('/{id}/modifier', name: 'app_cold_room_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_CHEF_STOCK')]
     public function edit(ColdRoom $coldRoom, Request $request): Response
     {
         $form = $this->createForm(ColdRoomType::class, $coldRoom);
@@ -90,6 +91,7 @@ class ColdRoomController extends AbstractController
     }
 
     #[Route('/{id}/toggle', name: 'app_cold_room_toggle', methods: ['POST'])]
+    #[IsGranted('ROLE_CHEF_STOCK')]
     public function toggle(ColdRoom $coldRoom, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('toggle' . $coldRoom->getId(), $request->request->get('_token'))) {

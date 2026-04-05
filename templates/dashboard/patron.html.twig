@@ -1,552 +1,120 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Tableau de bord Patron - Golden Logistics{% endblock %}
+{% block title %}Vue Stratégique — Patron{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    :root { --c1:#6366f1;--c2:#0ea5e9;--c3:#10b981;--c4:#f59e0b;--c5:#ef4444;--c6:#8b5cf6; }
+    body { background: #0f172a; color: #e2e8f0; }
+    .glass { background: rgba(30,41,59,.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,.08); border-radius: 1rem; }
+    .kpi-card { transition: transform .2s; }
+    .kpi-card:hover { transform: translateY(-4px); }
+    .kpi-icon { width:48px;height:48px;border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem; }
+    .badge-role { font-size:.75rem;padding:.35em .75em;border-radius:2rem; }
+    .btn-action { border-radius:.75rem;padding:.75rem 1.25rem;font-weight:500;transition:all .2s; }
+    .btn-action:hover { transform:translateY(-2px); }
+    canvas { max-height: 300px; }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid py-4 px-4">
+
+    {# ── Header ── #}
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h1 class="mb-1">
-                <i class="bi bi-building me-2"></i>Vue Stratégique
-            </h1>
-            <p class="text-muted mb-0">
-                Bienvenue, {{ app.user.fullName }}
-                <span class="badge bg-secondary ms-2">Patron</span>
-            </p>
+            <h2 class="mb-1 fw-bold">Vue Stratégique</h2>
+            <span class="badge badge-role bg-warning bg-opacity-25 text-warning"><i class="bi bi-star me-1"></i>Patron</span>
         </div>
         <div class="d-flex gap-2">
-            <span class="badge bg-primary p-2">
-                <i class="bi bi-calendar3 me-1"></i>
-                {{ "now"|date("d F Y") }}
-            </span>
+            <select class="form-select form-select-sm bg-dark text-light border-secondary" style="width:auto">
+                <option>Ce mois</option><option>Ce trimestre</option><option>Cette année</option>
+            </select>
         </div>
     </div>
 
-    <!-- Main KPIs -->
-    <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <div class="kpi-card kpi-revenue">
-                <div class="kpi-icon">
-                    <i class="bi bi-cash-coin"></i>
-                </div>
-                <div class="kpi-content">
-                    <div class="kpi-value">{{ revenueThisMonth|number_format(0, ',', ' ') }}</div>
-                    <div class="kpi-unit">DH</div>
-                    <div class="kpi-label">Chiffre d'affaires mensuel</div>
-                </div>
-                <div class="kpi-trend up">
-                    <i class="bi bi-arrow-up"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="kpi-card kpi-annual">
-                <div class="kpi-icon">
-                    <i class="bi bi-graph-up-arrow"></i>
-                </div>
-                <div class="kpi-content">
-                    <div class="kpi-value">{{ revenueThisYear|number_format(0, ',', ' ') }}</div>
-                    <div class="kpi-unit">DH</div>
-                    <div class="kpi-label">Chiffre d'affaires annuel</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="kpi-card kpi-occupancy">
-                <div class="kpi-icon">
-                    <i class="bi bi-pie-chart"></i>
-                </div>
-                <div class="kpi-content">
-                    <div class="kpi-value">{{ avgOccupancy|number_format(1) }}</div>
-                    <div class="kpi-unit">%</div>
-                    <div class="kpi-label">Taux d'occupation moyen</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="kpi-card kpi-capacity">
-                <div class="kpi-icon">
-                    <i class="bi bi-box-seam"></i>
-                </div>
-                <div class="kpi-content">
-                    <div class="kpi-value">{{ usedCapacity|number_format(0) }} / {{ totalCapacity|number_format(0) }}</div>
-                    <div class="kpi-unit">T</div>
-                    <div class="kpi-label">Capacité utilisée</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4">
-        <!-- Capacity Overview -->
-        <div class="col-lg-8">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
+    {# ── KPI Cards ── #}
+    {% set kpis = [
+        { icon:'bi-cash-stack',     color:'var(--c1)', label:'CA mensuel',         value: revenueThisMonth|number_format(2,'.',',')|default('0') ~ ' DH' },
+        { icon:'bi-calendar-range', color:'var(--c2)', label:'CA annuel',          value: revenueThisYear|number_format(2,'.',',')|default('0') ~ ' DH' },
+        { icon:'bi-speedometer2',   color:'var(--c3)', label:'Taux occupation',    value: avgOccupancy|round(1) ~ ' %' },
+        { icon:'bi-box-seam',       color:'var(--c4)', label:'Capacité utilisée',  value: usedCapacity ~ ' / ' ~ totalCapacity ~ ' T' },
+        { icon:'bi-snow2',          color:'var(--c6)', label:'Chambres actives',   value: coldRooms|length }
+    ] %}
+    <div class="row g-3 mb-4">
+        {% for k in kpis %}
+        <div class="col-xl col-md-4 col-6">
+            <div class="glass p-3 kpi-card h-100">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:{{ k.color }}22;color:{{ k.color }}"><i class="bi {{ k.icon }}"></i></div>
                     <div>
-                        <i class="bi bi-thermometer-snow me-2"></i>
-                        État des Chambres Froides
-                    </div>
-                    <span class="badge bg-primary">{{ coldRooms|length }} chambres</span>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        {% for room in coldRooms %}
-                        <div class="col-md-6">
-                            <div class="room-overview-card {{ room.occupancyRate > 90 ? 'critical' : (room.occupancyRate > 70 ? 'warning' : '') }}">
-                                <div class="room-header">
-                                    <div class="room-name">
-                                        <i class="bi bi-snow2 me-2"></i>{{ room.name }}
-                                    </div>
-                                    <div class="room-temp">
-                                        <i class="bi bi-thermometer-half"></i> {{ room.targetTemperature }}°C
-                                    </div>
-                                </div>
-                                <div class="room-body">
-                                    <div class="room-gauge">
-                                        <div class="gauge-fill" style="width: {{ room.occupancyRate }}%"></div>
-                                    </div>
-                                    <div class="room-stats">
-                                        <div class="room-stat">
-                                            <span class="stat-label">Utilisé</span>
-                                            <span class="stat-value">{{ room.usedCapacity|number_format(1) }} T</span>
-                                        </div>
-                                        <div class="room-stat">
-                                            <span class="stat-label">Capacité</span>
-                                            <span class="stat-value">{{ room.maxCapacityTons }} T</span>
-                                        </div>
-                                        <div class="room-stat">
-                                            <span class="stat-label">Taux</span>
-                                            <span class="stat-value {{ room.occupancyRate > 90 ? 'text-danger' : (room.occupancyRate > 70 ? 'text-warning' : 'text-success') }}">
-                                                {{ room.occupancyRate|number_format(0) }}%
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
+                        <small class="text-secondary">{{ k.label }}</small>
+                        <h5 class="mb-0 fw-bold">{{ k.value }}</h5>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Summary Panel -->
-        <div class="col-lg-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <i class="bi bi-clipboard-data me-2"></i>
-                    Résumé Global
-                </div>
-                <div class="card-body">
-                    <div class="summary-list">
-                        <div class="summary-row">
-                            <div class="summary-icon bg-primary">
-                                <i class="bi bi-building"></i>
-                            </div>
-                            <div class="summary-info">
-                                <div class="summary-title">Chambres actives</div>
-                                <div class="summary-value">{{ coldRooms|length }}</div>
-                            </div>
-                        </div>
-                        <div class="summary-row">
-                            <div class="summary-icon bg-success">
-                                <i class="bi bi-box-seam"></i>
-                            </div>
-                            <div class="summary-info">
-                                <div class="summary-title">Stock total</div>
-                                <div class="summary-value">{{ usedCapacity|number_format(1) }} T</div>
-                            </div>
-                        </div>
-                        <div class="summary-row">
-                            <div class="summary-icon bg-info">
-                                <i class="bi bi-arrow-down-up"></i>
-                            </div>
-                            <div class="summary-info">
-                                <div class="summary-title">Capacité disponible</div>
-                                <div class="summary-value">{{ (totalCapacity - usedCapacity)|number_format(1) }} T</div>
-                            </div>
-                        </div>
-                        <div class="summary-row">
-                            <div class="summary-icon bg-warning">
-                                <i class="bi bi-percent"></i>
-                            </div>
-                            <div class="summary-info">
-                                <div class="summary-title">Occupation moyenne</div>
-                                <div class="summary-value">{{ avgOccupancy|number_format(1) }}%</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 
-    <!-- Financial Overview -->
-    <div class="row g-4 mt-2">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <i class="bi bi-currency-dollar me-2"></i>
-                    Aperçu Financier
-                </div>
-                <div class="card-body">
-                    <div class="row g-4">
-                        <div class="col-md-4">
-                            <div class="finance-card">
-                                <div class="finance-icon">
-                                    <i class="bi bi-calendar-month"></i>
-                                </div>
-                                <div class="finance-content">
-                                    <div class="finance-label">Ce mois</div>
-                                    <div class="finance-value">{{ revenueThisMonth|number_format(0, ',', ' ') }} DH</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="finance-card">
-                                <div class="finance-icon">
-                                    <i class="bi bi-calendar-year"></i>
-                                </div>
-                                <div class="finance-content">
-                                    <div class="finance-label">Cette année</div>
-                                    <div class="finance-value">{{ revenueThisYear|number_format(0, ',', ' ') }} DH</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="finance-card">
-                                <div class="finance-icon">
-                                    <i class="bi bi-calculator"></i>
-                                </div>
-                                <div class="finance-content">
-                                    <div class="finance-label">Moyenne mensuelle</div>
-                                    <div class="finance-value">{{ (revenueThisYear / max(1, "now"|date("n")))|number_format(0, ',', ' ') }} DH</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    {# ── Charts ── #}
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8"><div class="glass p-3"><h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Entrées vs Sorties par mois</h6><canvas id="chartBar"></canvas></div></div>
+        <div class="col-lg-4"><div class="glass p-3"><h6 class="mb-3"><i class="bi bi-pie-chart me-2"></i>Répartition stock par client</h6><canvas id="chartPie"></canvas></div></div>
+        <div class="col-lg-6"><div class="glass p-3"><h6 class="mb-3"><i class="bi bi-graph-up me-2"></i>Évolution du stock</h6><canvas id="chartLine"></canvas></div></div>
+        <div class="col-lg-6"><div class="glass p-3"><h6 class="mb-3"><i class="bi bi-building me-2"></i>Occupation chambres froides</h6><canvas id="chartOccupancy"></canvas></div></div>
     </div>
 
-    <!-- Quick Access -->
-    <div class="mt-4">
-        <h4 class="mb-3">
-            <i class="bi bi-grid me-2"></i>Accès rapide
-        </h4>
-        <div class="row g-3">
-            <div class="col-md-6 col-lg-3">
-                <a href="{{ path('app_invoice_index') }}" class="quick-access-card">
-                    <div class="quick-access-icon">
-                        <i class="bi bi-receipt"></i>
-                    </div>
-                    <div class="quick-access-title">Factures</div>
-                </a>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <a href="{{ path('app_cold_room_index') }}" class="quick-access-card">
-                    <div class="quick-access-icon">
-                        <i class="bi bi-thermometer-snow"></i>
-                    </div>
-                    <div class="quick-access-title">Chambres froides</div>
-                </a>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <a href="{{ path('app_client_index') }}" class="quick-access-card">
-                    <div class="quick-access-icon">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <div class="quick-access-title">Clients</div>
-                </a>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <a href="{{ path('app_stock_index') }}" class="quick-access-card">
-                    <div class="quick-access-icon">
-                        <i class="bi bi-box-seam"></i>
-                    </div>
-                    <div class="quick-access-title">Stock</div>
-                </a>
-            </div>
+    {# ── Quick Actions ── #}
+    <div class="row g-3 mb-4">
+        {% set actions = [
+            { route:'app_reports',       icon:'bi-file-earmark-bar-graph', label:'Rapports',   color:'var(--c2)' },
+            { route:'app_invoice_index', icon:'bi-receipt',    label:'Factures',   color:'var(--c1)' },
+            { route:'app_history_index', icon:'bi-clock-history',label:'Historique', color:'var(--c4)' }
+        ] %}
+        {% for a in actions %}
+        <div class="col-md-4 col-6">
+            <a href="{{ path(a.route) }}" class="glass p-3 d-flex align-items-center gap-3 text-decoration-none text-light btn-action">
+                <div class="kpi-icon" style="background:{{ a.color }}22;color:{{ a.color }}"><i class="bi {{ a.icon }}"></i></div>
+                <span class="fw-semibold">{{ a.label }}</span>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    {# ── Export ── #}
+    <div class="glass p-3">
+        <h6 class="mb-3"><i class="bi bi-download me-2"></i>Exporter</h6>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i>Excel</button>
+            <button class="btn btn-outline-danger btn-sm"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+            <button class="btn btn-outline-info btn-sm"><i class="bi bi-bar-chart me-1"></i>Graphiques</button>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block stylesheets %}
-<style>
-    /* KPI Cards */
-    .kpi-card {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+const C=['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6'];
+const dOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8'}}}};
+const scaleOpts={x:{ticks:{color:'#94a3b8'},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'#94a3b8'},grid:{color:'rgba(255,255,255,.05)'}}};
+const months=['Jan','Fév','Mar','Avr','Mai','Jun'];
 
-    .kpi-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow);
-    }
+new Chart(document.getElementById('chartBar'),{type:'bar',data:{labels:months,datasets:[
+    {label:'Entrées',data:[120,150,180,140,200,170],backgroundColor:C[0]+'cc'},
+    {label:'Sorties',data:[80,110,130,100,160,140],backgroundColor:C[1]+'cc'}
+]},options:{...dOpts,scales:scaleOpts}});
 
-    .kpi-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-    }
+new Chart(document.getElementById('chartPie'),{type:'pie',data:{labels:['Client A','Client B','Client C','Client D'],datasets:[{data:[35,25,22,18],backgroundColor:[C[0],C[1],C[2],C[3]]}]},options:dOpts});
 
-    .kpi-revenue::before { background: linear-gradient(180deg, #10b981, #059669); }
-    .kpi-annual::before { background: linear-gradient(180deg, #6366f1, #4f46e5); }
-    .kpi-occupancy::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
-    .kpi-capacity::before { background: linear-gradient(180deg, #0ea5e9, #0284c7); }
+new Chart(document.getElementById('chartLine'),{type:'line',data:{labels:months,datasets:[{label:'Stock (T)',data:[500,520,480,530,510,540],borderColor:C[2],backgroundColor:C[2]+'22',fill:true,tension:.4}]},options:{...dOpts,scales:scaleOpts}});
 
-    .kpi-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        flex-shrink: 0;
-    }
-
-    .kpi-revenue .kpi-icon { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-    .kpi-annual .kpi-icon { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
-    .kpi-occupancy .kpi-icon { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-    .kpi-capacity .kpi-icon { background: rgba(14, 165, 233, 0.15); color: #0ea5e9; }
-
-    .kpi-value {
-        font-size: 1.75rem;
-        font-weight: 800;
-        line-height: 1;
-    }
-
-    .kpi-unit {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        font-weight: 600;
-    }
-
-    .kpi-label {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
-    }
-
-    .kpi-trend {
-        position: absolute;
-        right: 1rem;
-        top: 1rem;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .kpi-trend.up {
-        background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
-    }
-
-    /* Room Overview Cards */
-    .room-overview-card {
-        background: rgba(99, 102, 241, 0.05);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .room-overview-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .room-overview-card.warning {
-        border-color: rgba(245, 158, 11, 0.5);
-    }
-
-    .room-overview-card.critical {
-        border-color: rgba(239, 68, 68, 0.5);
-    }
-
-    .room-header {
-        padding: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(99, 102, 241, 0.1);
-    }
-
-    .room-name {
-        font-weight: 600;
-    }
-
-    .room-temp {
-        font-size: 0.85rem;
-        color: var(--secondary);
-    }
-
-    .room-body {
-        padding: 1rem;
-    }
-
-    .room-gauge {
-        height: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        overflow: hidden;
-        margin-bottom: 1rem;
-    }
-
-    .gauge-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
-        border-radius: 4px;
-        transition: width 0.5s ease;
-    }
-
-    .room-stats {
-        display: flex;
-        justify-content: space-between;
-    }
-
-    .room-stat {
-        text-align: center;
-    }
-
-    .room-stat .stat-label {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-    }
-
-    .room-stat .stat-value {
-        font-weight: 700;
-        font-size: 0.9rem;
-    }
-
-    /* Summary List */
-    .summary-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .summary-row {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        background: rgba(99, 102, 241, 0.05);
-        border-radius: 12px;
-    }
-
-    .summary-icon {
-        width: 45px;
-        height: 45px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        color: white;
-        flex-shrink: 0;
-    }
-
-    .summary-title {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-    }
-
-    .summary-value {
-        font-weight: 700;
-        font-size: 1.1rem;
-    }
-
-    /* Finance Cards */
-    .finance-card {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(14, 165, 233, 0.1));
-        border-radius: 16px;
-        border: 1px solid var(--glass-border);
-    }
-
-    .finance-icon {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        flex-shrink: 0;
-    }
-
-    .finance-label {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-    }
-
-    .finance-value {
-        font-size: 1.5rem;
-        font-weight: 800;
-    }
-
-    /* Quick Access */
-    .quick-access-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        text-decoration: none;
-        color: var(--text);
-        transition: all 0.3s ease;
-    }
-
-    .quick-access-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--primary);
-        background: rgba(99, 102, 241, 0.1);
-        color: var(--text);
-    }
-
-    .quick-access-icon {
-        width: 70px;
-        height: 70px;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        color: white;
-        margin-bottom: 1rem;
-    }
-
-    .quick-access-title {
-        font-weight: 600;
-        font-size: 1rem;
-    }
-</style>
+// Occupancy chart uses real coldRooms data from controller
+const roomLabels=[{% for room in coldRooms %}'{{ room.name }}'{{ not loop.last ? ',' }}{% endfor %}];
+const roomData=[{% for room in coldRooms %}{{ room.occupancyRate }}{{ not loop.last ? ',' }}{% endfor %}];
+new Chart(document.getElementById('chartOccupancy'),{type:'bar',data:{labels:roomLabels,datasets:[{label:'Occupation %',data:roomData,backgroundColor:roomLabels.map((_,i)=>C[i%C.length])}]},options:{...dOpts,indexAxis:'y',scales:{x:{max:100,ticks:{color:'#94a3b8',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'#94a3b8'},grid:{color:'rgba(255,255,255,.05)'}}}}});
+</script>
 {% endblock %}

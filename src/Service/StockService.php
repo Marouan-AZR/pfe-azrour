@@ -2,8 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Client;
-use App\Entity\ColdRoom;
 use App\Entity\StockEntry;
 use App\Entity\StockExit;
 use App\Entity\StockItem;
@@ -25,21 +23,16 @@ class StockService
         private AuditService $auditService
     ) {}
 
-    public function createEntry(Client $client, ColdRoom $coldRoom, string $productName, string $quantityTons, User $createdBy): StockEntry
+    public function createEntry(StockEntry $entry, User $createdBy): StockEntry
     {
-        if (!$client->isActive()) {
+        if (!$entry->getClient()->isActive()) {
             throw new BadRequestHttpException('Ce client est désactivé');
         }
 
-        if (!$coldRoom->isActive()) {
+        if (!$entry->getColdRoom()->isActive()) {
             throw new BadRequestHttpException('Cette chambre froide est désactivée');
         }
 
-        $entry = new StockEntry();
-        $entry->setClient($client);
-        $entry->setColdRoom($coldRoom);
-        $entry->setProductName($productName);
-        $entry->setQuantityTons($quantityTons);
         $entry->setCreatedBy($createdBy);
         $entry->setStatus(StockStatus::PENDING);
 

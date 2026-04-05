@@ -29,7 +29,7 @@
                         </a>
                     </li>
                     
-                    {% if is_granted('ROLE_CONTROLEUR') or is_granted('ROLE_CHEF_STOCK') %}
+                    {% if is_granted('ROLE_CONTROLEUR') or is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-box-seam"></i> Stock
@@ -55,12 +55,15 @@
                     </li>
                     {% endif %}
 
-                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                    {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_CONTROLEUR') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_client_index') }}">
                             <i class="bi bi-people"></i> Clients
                         </a>
                     </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_CHEF_STOCK') %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_user_index') }}">
                             <i class="bi bi-person-gear"></i> Utilisateurs
@@ -92,7 +95,7 @@
                     </li>
                     {% endif %}
 
-                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                    {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_history_index') }}">
                             <i class="bi bi-clock-history"></i> Historique

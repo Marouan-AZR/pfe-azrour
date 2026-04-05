@@ -1,132 +1,294 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Factures{% endblock %}
+{% block title %}Facturation{% endblock %}
 
 {% block body %}
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="mb-1">
-                <i class="bi bi-receipt me-2"></i>Factures
-            </h1>
-            <p class="text-muted mb-0">Gestion et suivi des factures clients</p>
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ path('app_dashboard') }}" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+            <div>
+                <h2 class="text-white mb-0">Facturation</h2>
+                <small class="text-white-50">Gestion complète des factures</small>
+            </div>
         </div>
-        {% if is_granted('INVOICE_CREATE') %}
-        <a href="{{ path('app_invoice_generate') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i> Générer une facture
-        </a>
-        {% endif %}
+        <select id="monthSelector" class="form-select form-select-sm w-auto bg-dark text-white border-secondary">
+            <option>Janvier 2025</option>
+            <option>Février 2025</option>
+            <option selected>Mars 2025</option>
+            <option>Avril 2025</option>
+            <option>Mai 2025</option>
+            <option>Juin 2025</option>
+        </select>
     </div>
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">
-            <i class="bi bi-check-circle me-2"></i>{{ message }}
-        </div>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-        <div class="alert alert-danger">
-            <i class="bi bi-exclamation-circle me-2"></i>{{ message }}
-        </div>
-    {% endfor %}
+    {# Tabs #}
+    <ul class="nav nav-tabs border-0 mb-4" id="facturationTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active bg-transparent text-white border-0 border-bottom border-3" id="recap-tab" data-bs-toggle="tab" data-bs-target="#recap" type="button" role="tab">
+                <i class="bi bi-bar-chart-line me-1"></i> Récapitulatif
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link bg-transparent text-white-50 border-0" id="tarifs-tab" data-bs-toggle="tab" data-bs-target="#tarifs" type="button" role="tab">
+                <i class="bi bi-tags me-1"></i> Tarifs
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link bg-transparent text-white-50 border-0" id="factures-tab" data-bs-toggle="tab" data-bs-target="#factures" type="button" role="tab">
+                <i class="bi bi-receipt me-1"></i> Factures
+            </button>
+        </li>
+    </ul>
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <i class="bi bi-funnel me-2"></i>Filtres
-        </div>
-        <div class="card-body">
-            {{ form_start(filterForm, {'attr': {'class': 'row g-3'}}) }}
-                <div class="col-md-3">{{ form_row(filterForm.client) }}</div>
-                <div class="col-md-2">{{ form_row(filterForm.status) }}</div>
-                <div class="col-md-2">{{ form_row(filterForm.dateFrom) }}</div>
-                <div class="col-md-2">{{ form_row(filterForm.dateTo) }}</div>
-                <div class="col-md-3 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search me-1"></i>Filtrer
-                    </button>
-                    <a href="{{ path('app_invoice_index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
+    <div class="tab-content">
+        {# TAB 1 - Récapitulatif #}
+        <div class="tab-pane fade show active" id="recap" role="tabpanel">
+            <div class="card border-0 rounded-4 shadow" style="background:rgba(255,255,255,.05);backdrop-filter:blur(12px)">
+                <div class="card-body p-4">
+                    <h5 class="text-white mb-1"><i class="bi bi-graph-up me-2"></i>Tableau Récapitulatif Mensuel</h5>
+                    <p class="text-white-50 small mb-4">Vue synthétique de l'activité de chaque client pour <span id="selectedMonthLabel">Mars 2025</span></p>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0" style="background:transparent">
+                            <thead>
+                                <tr class="text-white-50 small text-uppercase">
+                                    <th>Client</th>
+                                    <th>CA (MAD)</th>
+                                    <th>Stock Initial (kg)</th>
+                                    <th>Entrées (kg)</th>
+                                    <th>Sorties (kg)</th>
+                                    <th>Stock Final (kg)</th>
+                                    <th>Stock Moyen (kg)</th>
+                                    <th>Stock Moyen (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-white">Maroc Fruits Export</td>
+                                    <td class="fw-bold" style="color:#f0a500">120.000</td>
+                                    <td class="text-white">5.000</td>
+                                    <td class="text-success">+2.000</td>
+                                    <td class="text-danger">-1.500</td>
+                                    <td class="text-white">5.500</td>
+                                    <td class="text-white">5.250</td>
+                                    <td><span class="badge bg-primary">10%</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-white">Atlas Seafood</td>
+                                    <td class="fw-bold" style="color:#f0a500">85.000</td>
+                                    <td class="text-white">3.000</td>
+                                    <td class="text-success">+1.200</td>
+                                    <td class="text-danger">-900</td>
+                                    <td class="text-white">3.300</td>
+                                    <td class="text-white">3.150</td>
+                                    <td><span class="badge bg-primary">6%</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-white">Casablanca Fresh</td>
+                                    <td class="fw-bold" style="color:#f0a500">95.000</td>
+                                    <td class="text-white">4.000</td>
+                                    <td class="text-success">+1.800</td>
+                                    <td class="text-danger">-1.200</td>
+                                    <td class="text-white">4.600</td>
+                                    <td class="text-white">4.300</td>
+                                    <td><span class="badge bg-primary">8%</span></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold border-top border-secondary">
+                                    <td class="text-white">TOTAL</td>
+                                    <td style="color:#f0a500">300.000</td>
+                                    <td class="text-white">12.000</td>
+                                    <td class="text-success">+5.000</td>
+                                    <td class="text-danger">-3.600</td>
+                                    <td class="text-white">13.400</td>
+                                    <td class="text-white">12.700</td>
+                                    <td><span class="badge bg-primary">94.8%</span></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
-            {{ form_end(filterForm) }}
+            </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="card-header">
-            <i class="bi bi-list-ul me-2"></i>Liste des factures
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>N° Facture</th>
-                            <th>Client</th>
-                            <th>Période</th>
-                            <th>Total HT</th>
-                            <th>Total TTC</th>
-                            <th>Statut</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for invoice in invoices %}
-                        <tr>
-                            <td>
-                                <a href="{{ path('app_invoice_show', {id: invoice.id}) }}" class="fw-semibold text-primary">
-                                    {{ invoice.invoiceNumber }}
-                                </a>
-                            </td>
-                            <td>{{ invoice.client.companyName }}</td>
-                            <td>
-                                <small class="text-muted">
-                                    {{ invoice.periodStart|date('d/m/Y') }} - {{ invoice.periodEnd|date('d/m/Y') }}
-                                </small>
-                            </td>
-                            <td>{{ invoice.totalHt|number_format(2, ',', ' ') }} DH</td>
-                            <td>
-                                <span class="badge bg-success">{{ invoice.totalTtc|number_format(2, ',', ' ') }} DH</span>
-                            </td>
-                            <td>
-                                {% if invoice.status.value == 'draft' %}
-                                    <span class="badge bg-secondary">Brouillon</span>
-                                {% elseif invoice.status.value == 'pending_validation' %}
-                                    <span class="badge bg-warning">En attente</span>
-                                {% elseif invoice.status.value == 'validated' %}
-                                    <span class="badge bg-success">Validée</span>
-                                {% elseif invoice.status.value == 'paid' %}
-                                    <span class="badge bg-info">Payée</span>
-                                {% else %}
-                                    <span class="badge bg-primary">{{ invoice.status.value }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <small class="text-muted">{{ invoice.createdAt|date('d/m/Y') }}</small>
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ path('app_invoice_show', {id: invoice.id}) }}" class="btn btn-outline-primary" title="Voir">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    {% if is_granted('INVOICE_EXPORT') %}
-                                    <a href="{{ path('app_invoice_pdf', {id: invoice.id}) }}" class="btn btn-outline-secondary" title="PDF" target="_blank">
-                                        <i class="bi bi-file-pdf"></i>
-                                    </a>
-                                    {% endif %}
+        {# TAB 2 - Tarifs #}
+        <div class="tab-pane fade" id="tarifs" role="tabpanel">
+            <div class="card border-0 rounded-4 shadow" style="background:rgba(255,255,255,.05);backdrop-filter:blur(12px)">
+                <div class="card-body p-4">
+                    <h5 class="text-white mb-4"><i class="bi bi-tags me-2"></i>Grille Tarifaire</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0" style="background:transparent">
+                            <thead>
+                                <tr class="text-white-50 small text-uppercase">
+                                    <th>Client</th>
+                                    <th>Type</th>
+                                    <th>Manip. Entrée (DH/T)</th>
+                                    <th>Manip. Sortie (DH/T)</th>
+                                    <th>PU Stockage (DH)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set tarifs = [
+                                    {client:'Maroc Fruits Export', type:'Séjour', entree:150, sortie:120, pu:80},
+                                    {client:'Atlas Seafood', type:'Forfait', entree:180, sortie:140, pu:95},
+                                    {client:'Casablanca Fresh', type:'Séjour', entree:160, sortie:130, pu:85}
+                                ] %}
+                                {% for t in tarifs %}
+                                <tr>
+                                    <td class="text-white">{{ t.client }}</td>
+                                    <td><span class="badge bg-info">{{ t.type }}</span></td>
+                                    <td class="text-white">{{ t.entree }}</td>
+                                    <td class="text-white">{{ t.sortie }}</td>
+                                    <td class="text-white">{{ t.pu }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-warning rounded-pill" data-bs-toggle="modal" data-bs-target="#tarifModal"
+                                            data-client="{{ t.client }}" data-type="{{ t.type }}" data-entree="{{ t.entree }}" data-sortie="{{ t.sortie }}" data-pu="{{ t.pu }}">
+                                            <i class="bi bi-pencil me-1"></i>Modifier
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {# Tarif Modal #}
+            <div class="modal fade" id="tarifModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content bg-dark border border-secondary rounded-4">
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title text-white"><i class="bi bi-pencil-square me-2"></i>Modifier Tarif</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="tarifForm">
+                                <div class="mb-3">
+                                    <label class="form-label text-white-50">Manipulation entrée (DH/T)</label>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary" id="modalEntree">
                                 </div>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="8" class="text-center py-5">
-                                <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
-                                <p class="text-muted mt-2 mb-0">Aucune facture trouvée</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                <div class="mb-3">
+                                    <label class="form-label text-white-50">Manipulation sortie (DH/T)</label>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary" id="modalSortie">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-white-50">PU Stockage (DH)</label>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary" id="modalPu">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-white-50">Type</label>
+                                    <select class="form-select bg-dark text-white border-secondary" id="modalType">
+                                        <option value="Séjour">Séjour</option>
+                                        <option value="Forfait">Forfait</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer border-secondary">
+                            <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Annuler</button>
+                            <button type="button" class="btn btn-warning rounded-pill">Enregistrer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# TAB 3 - Factures #}
+        <div class="tab-pane fade" id="factures" role="tabpanel">
+            <div class="card border-0 rounded-4 shadow" style="background:rgba(255,255,255,.05);backdrop-filter:blur(12px)">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="text-white mb-0"><i class="bi bi-receipt me-2"></i>Liste des Factures</h5>
+                        {% if is_granted('INVOICE_CREATE') %}
+                            <a href="{{ path('app_invoice_generate') }}" class="btn btn-success rounded-pill">
+                                <i class="bi bi-plus-circle me-1"></i>Générer une facture
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0" style="background:transparent">
+                            <thead>
+                                <tr class="text-white-50 small text-uppercase">
+                                    <th>N° Facture</th>
+                                    <th>Client</th>
+                                    <th>Période</th>
+                                    <th>Montant (DH)</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in invoices %}
+                                <tr>
+                                    <td class="text-white">{{ invoice.invoiceNumber }}</td>
+                                    <td class="text-white">{{ invoice.client.companyName }}</td>
+                                    <td class="text-white-50">{{ invoice.periodStart|date('d/m/Y') }} - {{ invoice.periodEnd|date('d/m/Y') }}</td>
+                                    <td class="text-white fw-bold">{{ invoice.totalTtc|number_format(2, ',', '.') }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ invoice.status.cssClass }}">{{ invoice.status.label }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_invoice_show', {id: invoice.id}) }}" class="btn btn-sm btn-outline-light rounded-pill me-1">
+                                            <i class="bi bi-eye"></i> Consulter
+                                        </a>
+                                        <a href="{{ path('app_invoice_pdf', {id: invoice.id}) }}" class="btn btn-sm btn-outline-danger rounded-pill">
+                                            <i class="bi bi-file-pdf"></i> PDF
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-white-50 py-4">Aucune facture trouvée.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Tab active styling
+    document.querySelectorAll('#facturationTabs .nav-link').forEach(function (tab) {
+        tab.addEventListener('shown.bs.tab', function () {
+            document.querySelectorAll('#facturationTabs .nav-link').forEach(function (t) {
+                t.classList.remove('border-bottom', 'border-3', 'text-white');
+                t.classList.add('text-white-50');
+            });
+            this.classList.add('border-bottom', 'border-3', 'text-white');
+            this.classList.remove('text-white-50');
+        });
+    });
+
+    // Month selector label update
+    document.getElementById('monthSelector').addEventListener('change', function () {
+        document.getElementById('selectedMonthLabel').textContent = this.value;
+    });
+
+    // Tarif modal population
+    var tarifModal = document.getElementById('tarifModal');
+    if (tarifModal) {
+        tarifModal.addEventListener('show.bs.modal', function (e) {
+            var btn = e.relatedTarget;
+            document.getElementById('modalEntree').value = btn.getAttribute('data-entree');
+            document.getElementById('modalSortie').value = btn.getAttribute('data-sortie');
+            document.getElementById('modalPu').value = btn.getAttribute('data-pu');
+            document.getElementById('modalType').value = btn.getAttribute('data-type');
+        });
+    }
+});
+</script>
 {% endblock %}

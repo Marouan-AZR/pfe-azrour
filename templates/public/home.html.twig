@@ -83,6 +83,137 @@
             100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
         }
 
+        /* ===== WEB 4.0 MESH BACKGROUND ===== */
+        .hero-mesh {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .mesh-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.35;
+            animation: morphMove 20s ease-in-out infinite alternate;
+        }
+
+        .mesh-blob:nth-child(1) {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #0ea5e9, #6366f1);
+            top: -10%; right: -5%;
+            animation-duration: 18s;
+        }
+
+        .mesh-blob:nth-child(2) {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #8b5cf6, #ec4899);
+            bottom: -10%; left: -5%;
+            animation-duration: 22s;
+            animation-delay: -5s;
+        }
+
+        .mesh-blob:nth-child(3) {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, #f59e0b, #ef4444);
+            top: 40%; left: 40%;
+            animation-duration: 25s;
+            animation-delay: -10s;
+        }
+
+        @keyframes morphMove {
+            0%   { transform: translate(0, 0) scale(1) rotate(0deg); border-radius: 50%; }
+            33%  { transform: translate(60px, -40px) scale(1.15) rotate(120deg); border-radius: 40% 60% 55% 45%; }
+            66%  { transform: translate(-40px, 50px) scale(0.9) rotate(240deg); border-radius: 55% 45% 40% 60%; }
+            100% { transform: translate(30px, -20px) scale(1.05) rotate(360deg); border-radius: 50%; }
+        }
+
+        /* Floating geometric shapes */
+        .geo-shapes {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .geo {
+            position: absolute;
+            border: 1.5px solid rgba(148, 163, 184, 0.15);
+            animation: geoDrift 15s ease-in-out infinite alternate;
+        }
+
+        .geo--ring {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            top: 15%; right: 12%;
+            animation-duration: 18s;
+        }
+
+        .geo--square {
+            width: 60px; height: 60px;
+            border-radius: 8px;
+            bottom: 20%; right: 25%;
+            animation-duration: 14s;
+            animation-delay: -3s;
+        }
+
+        .geo--diamond {
+            width: 50px; height: 50px;
+            border-radius: 4px;
+            top: 60%; left: 8%;
+            transform: rotate(45deg);
+            animation-duration: 20s;
+            animation-delay: -7s;
+        }
+
+        .geo--cross {
+            width: 80px; height: 80px;
+            border: none;
+            top: 25%; left: 30%;
+            animation-duration: 16s;
+            animation-delay: -4s;
+        }
+
+        .geo--cross::before, .geo--cross::after {
+            content: '';
+            position: absolute;
+            background: rgba(148, 163, 184, 0.12);
+            border-radius: 2px;
+        }
+
+        .geo--cross::before {
+            width: 100%; height: 2px;
+            top: 50%; left: 0;
+        }
+
+        .geo--cross::after {
+            width: 2px; height: 100%;
+            left: 50%; top: 0;
+        }
+
+        .geo--dots {
+            width: 6px; height: 6px;
+            border: none;
+            background: rgba(14, 165, 233, 0.4);
+            border-radius: 50%;
+            bottom: 35%; left: 20%;
+            box-shadow:
+                20px 0 0 rgba(99, 102, 241, 0.3),
+                40px 0 0 rgba(14, 165, 233, 0.2),
+                0 20px 0 rgba(245, 158, 11, 0.3),
+                20px 20px 0 rgba(99, 102, 241, 0.2);
+            animation-duration: 22s;
+            animation-delay: -9s;
+        }
+
+        @keyframes geoDrift {
+            0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
+            50%  { opacity: 0.8; }
+            100% { transform: translate(25px, -30px) rotate(90deg); opacity: 0.4; }
+        }
+
         /* ===== NAVBAR ===== */
         .navbar-public {
             position: fixed;
@@ -393,6 +524,62 @@
             line-height: 1.6;
         }
 
+        .feature-icon img {
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover .feature-icon img {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        /* ===== HOW IT WORKS ===== */
+        .how-it-works {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%);
+        }
+        .step-card {
+            padding: 2rem 1.5rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .step-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 15px 30px rgba(245, 158, 11, 0.15);
+        }
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), #d97706);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: white;
+        }
+        .step-icon-img {
+            margin: 1rem 0;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        [data-aos="fade-up"] {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+        [data-aos="fade-up"].aos-animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         /* ===== STATS SECTION ===== */
         .stats-section {
             padding: 6rem 0;
@@ -545,6 +732,20 @@
 
     <!-- Hero Section -->
     <section class="hero">
+        <!-- Mesh gradient blobs -->
+        <div class="hero-mesh">
+            <div class="mesh-blob"></div>
+            <div class="mesh-blob"></div>
+            <div class="mesh-blob"></div>
+        </div>
+        <!-- Floating geometric shapes -->
+        <div class="geo-shapes">
+            <div class="geo geo--ring"></div>
+            <div class="geo geo--square"></div>
+            <div class="geo geo--diamond"></div>
+            <div class="geo geo--cross"></div>
+            <div class="geo geo--dots"></div>
+        </div>
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
@@ -622,8 +823,10 @@
             </div>
             <div class="row g-4">
                 <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">🧊</div>
+                    <div class="feature-card" data-aos="fade-up">
+                        <div class="feature-icon">
+                            <img src="https://img.icons8.com/3d-fluency/94/storage.png" alt="Stockage" width="60" height="60">
+                        </div>
                         <h3 class="feature-title">Stockage Frigorifique</h3>
                         <p class="feature-description">
                             5 chambres froides avec contrôle de température précis de -25°C à +5°C pour tous types de produits.
@@ -631,8 +834,10 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">📦</div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="feature-icon">
+                            <img src="https://img.icons8.com/3d-fluency/94/open-box.png" alt="Entrées" width="60" height="60">
+                        </div>
                         <h3 class="feature-title">Gestion des Entrées</h3>
                         <p class="feature-description">
                             Réception et enregistrement des marchandises avec traçabilité complète et génération de bons de réception.
@@ -640,8 +845,10 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">🚚</div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="feature-icon">
+                            <img src="https://img.icons8.com/3d-fluency/94/truck.png" alt="Expédition" width="60" height="60">
+                        </div>
                         <h3 class="feature-title">Préparation d'Expédition</h3>
                         <p class="feature-description">
                             Organisation des sorties avec fiches de charge, scan PDA et bons de livraison automatisés.
@@ -649,8 +856,10 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">📊</div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="feature-icon">
+                            <img src="https://img.icons8.com/3d-fluency/94/combo-chart.png" alt="Suivi" width="60" height="60">
+                        </div>
                         <h3 class="feature-title">Suivi en Temps Réel</h3>
                         <p class="feature-description">
                             Tableaux de bord personnalisés avec statistiques, graphiques et indicateurs de performance.
@@ -658,8 +867,10 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">💰</div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                        <div class="feature-icon">
+                            <img src="https://img.icons8.com/3d-fluency/94/bill.png" alt="Facturation" width="60" height="60">
+                        </div>
                         <h3 class="feature-title">Facturation Automatique</h3>
                         <p class="feature-description">
                             Calcul automatique des frais de stockage et manipulation avec génération de factures PDF.
@@ -667,12 +878,70 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">🔒</div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+                        <div class="feature-icon">
+                            <img src="https://img.icons8.com/3d-fluency/94/lock-2.png" alt="Sécurité" width="60" height="60">
+                        </div>
                         <h3 class="feature-title">Sécurité & Traçabilité</h3>
                         <p class="feature-description">
                             Historique complet des opérations, gestion des rôles et audit de toutes les actions.
                         </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works Section -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: var(--accent);">
+                    <i class="bi bi-gear-wide-connected"></i>
+                    Processus
+                </div>
+                <h2 class="section-title">Comment ça marche ?</h2>
+                <p class="section-description">Un processus simple et efficace en 4 étapes</p>
+            </div>
+            <div class="row g-4 align-items-center">
+                <div class="col-md-6 col-lg-3 text-center">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-icon-img">
+                            <img src="https://img.icons8.com/3d-fluency/94/receive-cash.png" alt="Réception" width="64" height="64">
+                        </div>
+                        <h5>Réception</h5>
+                        <p class="text-muted small">Le contrôleur saisit les marchandises reçues</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 text-center">
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-icon-img">
+                            <img src="https://img.icons8.com/3d-fluency/94/checkmark.png" alt="Validation" width="64" height="64">
+                        </div>
+                        <h5>Validation</h5>
+                        <p class="text-muted small">Le chef de stock valide et met à jour le stock</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 text-center">
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-icon-img">
+                            <img src="https://img.icons8.com/3d-fluency/94/pallet.png" alt="Stockage" width="64" height="64">
+                        </div>
+                        <h5>Stockage</h5>
+                        <p class="text-muted small">Suivi en temps réel dans les chambres froides</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 text-center">
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <div class="step-icon-img">
+                            <img src="https://img.icons8.com/3d-fluency/94/delivery.png" alt="Expédition" width="64" height="64">
+                        </div>
+                        <h5>Expédition</h5>
+                        <p class="text-muted small">Préparation et sortie avec traçabilité complète</p>
                     </div>
                 </div>
             </div>
@@ -773,6 +1042,18 @@
                 navbar.classList.remove('scrolled');
             }
         });
+
+        // Scroll animation (simple AOS alternative)
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('aos-animate');
+                    }, parseInt(entry.target.dataset.aosDelay || 0));
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('[data-aos]').forEach(el => observer.observe(el));
     </script>
 </body>
 </html>
