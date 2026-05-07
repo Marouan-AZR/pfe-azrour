@@ -1,0 +1,254 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvelle Entrée de Stock{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-box-arrow-in-down me-2"></i>Nouvelle Entrée de Stock</h1>
+        <a href="{{ path('app_operation_entry_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <form method="post" id="entryForm">
+        {% if existingOperation %}
+        <input type="hidden" name="operation_id" value="{{ existingOperation.id }}">
+        {% endif %}
+
+        <div class="row g-4">
+            {# Section 1: Client #}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-person me-2"></i>👤 Informations Client</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Client <span class="text-danger">*</span></label>
+                                <select name="client" class="form-select" required {% if existingOperation %}disabled{% endif %}>
+                                    <option value="">-- Sélectionner un client --</option>
+                                    {% for client in clients %}
+                                    <option value="{{ client.id }}" {% if existingOperation and existingOperation.client.id == client.id %}selected{% endif %}>
+                                        {{ client.companyName }} ({{ client.code }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if existingOperation %}
+                                <input type="hidden" name="client" value="{{ existingOperation.client.id }}">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Code Lot Client</label>
+                                <input type="text" name="cd_lot_client" class="form-control" placeholder="Référence lot client"
+                                    value="{{ existingOperation ? existingOperation.cdLotClient : '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Section 2: Produit #}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-box-seam me-2"></i>🐟 Informations Produit</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Espèce <span class="text-danger">*</span></label>
+                                <input type="text" name="espece" class="form-control" required placeholder="Ex: Sardine, Bonito..."
+                                    value="{{ existingOperation ? existingOperation.palettes|first.espece : '' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Famille</label>
+                                <input type="text" name="famille" class="form-control" placeholder="Ex: Pélagique"
+                                    value="{{ existingOperation ? existingOperation.palettes|first.famille : '' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Qualité</label>
+                                <input type="text" name="qualite" class="form-control" placeholder="Ex: A, B, Export"
+                                    value="{{ existingOperation ? existingOperation.palettes|first.qualite : '' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Moule</label>
+                                <input type="text" name="moule" class="form-control" placeholder="Ex: S, M, L"
+                                    value="{{ existingOperation ? existingOperation.palettes|first.moule : '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Section 3: Quantités #}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-calculator me-2"></i>⚖️ Informations Quantitatives</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Nombre de palettes <span class="text-danger">*</span></label>
+                                <input type="number" name="nombre_palettes" id="nombrePalettes" class="form-control" min="1" value="1" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Cartons par palette <span class="text-danger">*</span></label>
+                                <input type="number" name="nombre_cartons" id="nombreCartons" class="form-control" min="1" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Poids par carton (kg) <span class="text-danger">*</span></label>
+                                <input type="number" name="poids_carton" id="poidsCarton" class="form-control" step="0.001" min="0.001" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Poids total estimé</label>
+                                <input type="text" id="poidsTotal" class="form-control" readonly disabled>
+                            </div>
+                        </div>
+
+                        {# Aperçu palettes #}
+                        <div class="mt-3" id="palettePreview" style="display:none;">
+                            <label class="form-label fw-bold">📋 Aperçu des palettes générées</label>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr><th>N°</th><th>Code Palette</th><th>Cartons</th><th>Poids (kg)</th></tr>
+                                    </thead>
+                                    <tbody id="palettePreviewBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Section 4: Localisation #}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-geo-alt me-2"></i>📍 Localisation</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Chambre frigorifique <span class="text-danger">*</span></label>
+                                <select name="cold_room" id="coldRoomSelect" class="form-select" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    {% for room in coldRooms %}
+                                    <option value="{{ room.id }}">{{ room.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Rayon</label>
+                                <select name="rayon" id="rayonSelect" class="form-select">
+                                    <option value="">-- Sélectionner chambre d'abord --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">📅 Date de réception</label>
+                                <input type="date" name="date_reception" class="form-control" value="{{ 'now'|date('Y-m-d') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Section 5: Contrôleur (chef de stock only) #}
+            {% if is_granted('ROLE_CHEF_STOCK') %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-people me-2"></i>👥 Équipe de Réception</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Contrôleur responsable</label>
+                                <select name="controleur" class="form-select">
+                                    <option value="">-- Aucun (auto) --</option>
+                                    {% for ctrl in controleurs %}
+                                    <option value="{{ ctrl.id }}">{{ ctrl.fullName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Boutons d'action #}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body d-flex gap-2 justify-content-end">
+                        <button type="reset" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i> 🔄 Réinitialiser</button>
+                        <a href="{{ path('app_operation_entry_index') }}" class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> ❌ Annuler</a>
+                        <button type="submit" name="action" value="save" class="btn btn-primary"><i class="bi bi-floppy"></i> 💾 Enregistrer</button>
+                        {% if is_granted('ROLE_CHEF_STOCK') %}
+                        <button type="submit" name="action" value="validate" class="btn btn-success"><i class="bi bi-check-circle"></i> ✅ Valider</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nbPalettes = document.getElementById('nombrePalettes');
+    const nbCartons = document.getElementById('nombreCartons');
+    const poidsCarton = document.getElementById('poidsCarton');
+    const poidsTotal = document.getElementById('poidsTotal');
+    const preview = document.getElementById('palettePreview');
+    const previewBody = document.getElementById('palettePreviewBody');
+    const coldRoomSelect = document.getElementById('coldRoomSelect');
+    const rayonSelect = document.getElementById('rayonSelect');
+
+    function updatePreview() {
+        const np = parseInt(nbPalettes.value) || 0;
+        const nc = parseInt(nbCartons.value) || 0;
+        const pc = parseFloat(poidsCarton.value) || 0;
+        const total = np * nc * pc;
+
+        poidsTotal.value = total > 0 ? total.toLocaleString('fr-FR') + ' kg (' + (total/1000).toFixed(2) + ' T)' : '';
+
+        if (np > 0 && nc > 0 && pc > 0) {
+            preview.style.display = 'block';
+            previewBody.innerHTML = '';
+            for (let i = 1; i <= Math.min(np, 20); i++) {
+                const code = 'BR-XXXXXX-' + String(i).padStart(2, '0');
+                previewBody.innerHTML += `<tr><td>${i}</td><td><code>${code}</code></td><td>${nc}</td><td>${(nc*pc).toLocaleString('fr-FR')}</td></tr>`;
+            }
+            if (np > 20) {
+                previewBody.innerHTML += `<tr><td colspan="4" class="text-muted text-center">... et ${np-20} autres palettes</td></tr>`;
+            }
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    [nbPalettes, nbCartons, poidsCarton].forEach(el => el.addEventListener('input', updatePreview));
+
+    // Dynamic rayons based on cold room
+    coldRoomSelect.addEventListener('change', function() {
+        const id = this.value;
+        rayonSelect.innerHTML = '<option value="">Chargement...</option>';
+        if (!id) { rayonSelect.innerHTML = '<option value="">-- Sélectionner chambre d\'abord --</option>'; return; }
+
+        fetch('/operations/api/rayons/' + id)
+            .then(r => r.json())
+            .then(rayons => {
+                rayonSelect.innerHTML = '<option value="">-- Sélectionner --</option>';
+                rayons.forEach(r => { rayonSelect.innerHTML += `<option value="${r}">${r}</option>`; });
+            });
+    });
+
+    // Form validation
+    document.getElementById('entryForm').addEventListener('submit', function(e) {
+        const np = parseInt(nbPalettes.value);
+        const nc = parseInt(nbCartons.value);
+        const pc = parseFloat(poidsCarton.value);
+        if (np < 1 || nc < 1 || pc <= 0) {
+            e.preventDefault();
+            alert('Veuillez remplir correctement les quantités (palettes > 0, cartons > 0, poids > 0).');
+        }
+    });
+});
+</script>
+{% endblock %}

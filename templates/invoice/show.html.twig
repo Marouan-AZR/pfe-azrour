@@ -94,30 +94,23 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Produit</th>
-                            <th class="text-end">Quantité (T)</th>
-                            <th class="text-end">Jours stockage</th>
-                            <th class="text-end">Tarif/jour/T</th>
+                            <th>Désignation</th>
+                            <th class="text-end">Quantité</th>
+                            <th class="text-end">Prix unitaire</th>
                             <th class="text-end">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for line in invoice.lines %}
                         <tr>
-                            <td>
-                                <span class="product-name">{{ line.productName }}</span>
-                            </td>
-                            <td class="text-end">{{ line.quantityTons|number_format(3, ',', ' ') }}</td>
-                            <td class="text-end">{{ line.storageDays }}</td>
-                            <td class="text-end">{{ line.dailyRatePerTon|number_format(4, ',', ' ') }} DH</td>
+                            <td><span class="product-name">{{ line.designation }}</span></td>
+                            <td class="text-end">{{ line.quantity|number_format(3, ',', ' ') }}</td>
+                            <td class="text-end">{{ line.unitPrice|number_format(4, ',', ' ') }} DH</td>
                             <td class="text-end"><span class="amount">{{ line.lineTotal|number_format(2, ',', ' ') }} DH</span></td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                                <p class="mt-2 mb-0">Aucune ligne de facturation</p>
-                            </td>
+                            <td colspan="4" class="text-center text-muted py-4">Aucune ligne</td>
                         </tr>
                         {% endfor %}
                     </tbody>

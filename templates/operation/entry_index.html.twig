@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Entrées de Stock{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-box-arrow-in-down me-2"></i>Opérations d'Entrée</h1>
+        <a href="{{ path('app_operation_entry_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nouvelle Entrée
+        </a>
+    </div>
+
+    {# Filtres #}
+    <div class="card mb-4">
+        <div class="card-body py-2">
+            <div class="d-flex align-items-center gap-3">
+                <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="🔍 Rechercher..." style="max-width:300px;">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-primary btn-sm active" data-filter="">Tous</button>
+                    <button class="btn btn-outline-warning btn-sm" data-filter="pending">En attente</button>
+                    <button class="btn btn-outline-success btn-sm" data-filter="validated">Validé</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Tableau #}
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Code Opération</th>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th class="text-center">Palettes</th>
+                            <th class="text-center">Cartons</th>
+                            <th class="text-end">Poids Total</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for op in operations %}
+                        <tr class="op-row" data-status="{{ op.status.value }}" data-search="{{ op.code }} {{ op.client.companyName }}">
+                            <td><code class="fw-bold">{{ op.code }}</code></td>
+                            <td>
+                                {{ op.dateReception|date('d/m/Y') }}
+                                <br><small class="text-muted">{{ op.createdAt|date('H:i') }}</small>
+                            </td>
+                            <td class="fw-semibold">{{ op.client.companyName }}</td>
+                            <td class="text-center"><span class="badge bg-primary">{{ op.nombrePalettes }}</span></td>
+                            <td class="text-center">{{ op.totalCartons }}</td>
+                            <td class="text-end">
+                                {{ op.poidsTotal|number_format(0, ',', ' ') }} kg
+                                <br><small class="text-muted">{{ op.poidsTotalTonnes|number_format(2) }} T</small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-{{ op.status.cssClass }}">{{ op.status.label }}</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <a href="{{ path('app_operation_show', {id: op.id}) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Détails
+                                    </a>
+                                    {% if op.isPending and is_granted('ROLE_CHEF_STOCK') %}
+                                    <form action="{{ path('app_operation_validate', {id: op.id}) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ op.id) }}">
+                                        <button class="btn btn-sm btn-outline-success" title="Valider"><i class="bi bi-check-circle"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="8" class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2rem;"></i><p>Aucune opération</p></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('.op-row').forEach(r => {
+            r.style.display = r.dataset.search.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active', 'btn-primary'));
+            this.classList.add('active', 'btn-primary');
+            const f = this.dataset.filter;
+            document.querySelectorAll('.op-row').forEach(r => {
+                r.style.display = (!f || r.dataset.status === f) ? '' : 'none';
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

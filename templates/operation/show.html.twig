@@ -1,0 +1,251 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Opération {{ operation.code }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-clipboard-data me-2"></i>Détails de l'opération</h1>
+        <div class="d-flex gap-2">
+            {% if operation.type.value == 'entry' %}
+            <a href="{{ path('app_operation_entry_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+            {% endif %}
+            {% if operation.isValidated %}
+            <a href="{{ path('app_operation_bon_entree', {id: operation.id}) }}" class="btn btn-outline-success" target="_blank">
+                <i class="bi bi-file-earmark-text"></i> 📄 Bon d'Entrée
+            </a>
+            {% endif %}
+            {% if not operation.ficheDecharge and is_granted('ROLE_CONTROLEUR') %}
+            <a href="{{ path('app_operation_generate_fiche', {id: operation.id}) }}" class="btn btn-primary">
+                <i class="bi bi-file-earmark-plus"></i> 📄 Générer Fiche
+            </a>
+            {% elseif operation.ficheDecharge %}
+            <a href="{{ path('app_fiche_show', {id: operation.ficheDecharge.id}) }}" class="btn btn-outline-info">
+                <i class="bi bi-file-earmark-check"></i> Voir Fiche
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Informations générales #}
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-info-circle me-2"></i>Informations Générales</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <small class="text-muted d-block">📋 Code opération</small>
+                    <strong><code>{{ operation.code }}</code></strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">📅 Date et Heure</small>
+                    <strong>{{ operation.createdAt|date('d/m/Y H:i:s') }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">👤 Client</small>
+                    <strong>{{ operation.client.companyName }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Statut</small>
+                    <span class="badge bg-{{ operation.status.cssClass }} fs-6">{{ operation.status.label }}</span>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Nombre de Palettes</small>
+                    <strong>{{ operation.nombrePalettes }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Total Cartons</small>
+                    <strong>{{ operation.totalCartons }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">⚖️ Poids Total</small>
+                    <strong>{{ operation.poidsTotal|number_format(0, ',', ' ') }} kg ({{ operation.poidsTotalTonnes|number_format(2) }} T)</strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Créé par</small>
+                    <strong>{{ operation.createdBy.fullName }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Tableau des palettes #}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-grid-3x3 me-2"></i>Palettes associées ({{ operation.nombrePalettes }})</span>
+            {% if operation.isPending and is_granted('ROLE_CONTROLEUR') %}
+            <a href="{{ path('app_operation_entry_new', {operation: operation.id}) }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> Ajouter Nouvelle Entrée
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>N° Palette</th>
+                            <th>Espèce</th>
+                            <th>Qualité</th>
+                            <th>Moule</th>
+                            <th>Famille</th>
+                            <th class="text-center">Cartons</th>
+                            <th class="text-end">Poids</th>
+                            <th>Chambre</th>
+                            <th>Rayon</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for palette in operation.palettes %}
+                        <tr>
+                            <td><code class="fw-bold">{{ palette.codePalette }}</code></td>
+                            <td class="fw-semibold">{{ palette.espece }}</td>
+                            <td>{{ palette.qualite ?? '—' }}</td>
+                            <td>{{ palette.moule ?? '—' }}</td>
+                            <td>{{ palette.famille ?? '—' }}</td>
+                            <td class="text-center">{{ palette.nombreCartons }}</td>
+                            <td class="text-end">{{ palette.poidsTotal|number_format(0, ',', ' ') }} kg</td>
+                            <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
+                            <td>{{ palette.rayon ?? '—' }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-{{ palette.status.cssClass }}">{{ palette.status.label }}</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailModal{{ palette.id }}" title="Voir">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    {% if (is_granted('ROLE_CHEF_STOCK')) or (is_granted('ROLE_CONTROLEUR') and operation.isPending) %}
+                                    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ palette.id }}" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+
+                        {# Detail Modal #}
+                        <div class="modal fade" id="detailModal{{ palette.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Palette {{ palette.codePalette }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <dl class="row mb-0">
+                                            <dt class="col-5">Code</dt><dd class="col-7"><code>{{ palette.codePalette }}</code></dd>
+                                            <dt class="col-5">Espèce</dt><dd class="col-7">{{ palette.espece }}</dd>
+                                            <dt class="col-5">Famille</dt><dd class="col-7">{{ palette.famille ?? '—' }}</dd>
+                                            <dt class="col-5">Qualité</dt><dd class="col-7">{{ palette.qualite ?? '—' }}</dd>
+                                            <dt class="col-5">Moule</dt><dd class="col-7">{{ palette.moule ?? '—' }}</dd>
+                                            <dt class="col-5">Cartons</dt><dd class="col-7">{{ palette.nombreCartons }}</dd>
+                                            <dt class="col-5">Poids/carton</dt><dd class="col-7">{{ palette.poidsCarton }} kg</dd>
+                                            <dt class="col-5">Poids total</dt><dd class="col-7">{{ palette.poidsTotal|number_format(0, ',', ' ') }} kg</dd>
+                                            <dt class="col-5">Chambre</dt><dd class="col-7">{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</dd>
+                                            <dt class="col-5">Rayon</dt><dd class="col-7">{{ palette.rayon ?? '—' }}</dd>
+                                            <dt class="col-5">Observation</dt><dd class="col-7">{{ palette.observation ?? '—' }}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Edit Modal #}
+                        <div class="modal fade" id="editModal{{ palette.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <form action="{{ path('app_operation_palette_edit', {id: operation.id, paletteId: palette.id}) }}" method="post">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">✏️ Modifier {{ palette.codePalette }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Espèce</label>
+                                                    <input type="text" name="espece" class="form-control" value="{{ palette.espece }}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Famille</label>
+                                                    <input type="text" name="famille" class="form-control" value="{{ palette.famille }}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Qualité</label>
+                                                    <input type="text" name="qualite" class="form-control" value="{{ palette.qualite }}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Moule</label>
+                                                    <input type="text" name="moule" class="form-control" value="{{ palette.moule }}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Nombre de cartons</label>
+                                                    <input type="number" name="nombre_cartons" class="form-control" value="{{ palette.nombreCartons }}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Poids par carton (kg)</label>
+                                                    <input type="number" name="poids_carton" class="form-control" step="0.001" value="{{ palette.poidsCarton }}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Rayon</label>
+                                                    <input type="text" name="rayon" class="form-control" value="{{ palette.rayon }}">
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label">Observation</label>
+                                                    <textarea name="observation" class="form-control" rows="2">{{ palette.observation }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <tr><td colspan="11" class="text-center py-4 text-muted">Aucune palette</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Actions de validation #}
+    {% if operation.isPending and is_granted('ROLE_CHEF_STOCK') %}
+    <div class="card">
+        <div class="card-body d-flex gap-2 justify-content-end">
+            <form action="{{ path('app_operation_validate', {id: operation.id}) }}" method="post" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ operation.id) }}">
+                <button class="btn btn-success"><i class="bi bi-check-circle"></i> ✅ Valider l'opération</button>
+            </form>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                <i class="bi bi-x-circle"></i> ❌ Rejeter
+            </button>
+        </div>
+    </div>
+
+    {# Reject Modal #}
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ path('app_operation_reject', {id: operation.id}) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ operation.id) }}">
+                    <div class="modal-header"><h5 class="modal-title">Motif de rejet</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="modal-body">
+                        <textarea name="reason" class="form-control" rows="3" required placeholder="Indiquez le motif du rejet..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -26,7 +26,7 @@ class ClientController extends AbstractController
 
     #[Route('', name: 'app_client_index', methods: ['GET'])]
     #[IsGranted(ClientVoter::VIEW)]
-    public function index(Request $request, ClientRepository $repository): Response
+    public function index(Request $request, ClientRepository $repository, \App\Repository\PaletteRepository $paletteRepository, \App\Repository\ColdRoomRepository $coldRoomRepository): Response
     {
         $search = $request->query->get('q', '');
         
@@ -36,9 +36,22 @@ class ClientController extends AbstractController
             $clients = $repository->findBy([], ['companyName' => 'ASC']);
         }
 
+        // Calculate total warehouse capacity
+        $coldRooms = $coldRoomRepository->findBy(['isActive' => true]);
+        $totalCapacity = array_reduce($coldRooms, fn($sum, $room) => $sum + (float)$room->getMaxCapacityTons(), 0.0);
+
+        // Get stock per client
+        $clientStock = [];
+        foreach ($clients as $client) {
+            $stock = $paletteRepository->getTotalStockByClient($client);
+            $clientStock[$client->getId()] = $stock;
+        }
+
         return $this->render('client/index.html.twig', [
             'clients' => $clients,
             'search' => $search,
+            'clientStock' => $clientStock,
+            'totalCapacity' => $totalCapacity,
         ]);
     }
 

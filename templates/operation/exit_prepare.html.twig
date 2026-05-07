@@ -1,0 +1,187 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Préparation Sortie{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-box-arrow-up me-2"></i>Préparation de Sortie</h1>
+        <a href="{{ path('app_operation_exit_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+    </div>
+
+    {# Client selection #}
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-person me-2"></i>Sélection du client</div>
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Client</label>
+                    <select name="client" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Sélectionner un client --</option>
+                        {% for client in clients %}
+                        <option value="{{ client.id }}" {{ selectedClient and selectedClient.id == client.id ? 'selected' : '' }}>
+                            {{ client.companyName }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if selectedClient %}
+    {# Palette table with filters #}
+    <form method="post">
+        <input type="hidden" name="client" value="{{ selectedClient.id }}">
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-grid me-2"></i>Palettes disponibles — {{ selectedClient.companyName }} ({{ palettes|length }})</span>
+            </div>
+
+            {# Inline filters #}
+            <div class="card-body border-bottom py-2">
+                <div class="row g-2">
+                    <div class="col-md-2">
+                        <input type="text" class="form-control form-control-sm" id="filterEspece" placeholder="Espèce">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control form-control-sm" id="filterQualite" placeholder="Qualité">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control form-control-sm" id="filterMoule" placeholder="Moule">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control form-control-sm" id="filterChambre" placeholder="Chambre">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control form-control-sm" id="filterRayon" placeholder="Rayon">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="clearFilters()">Effacer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="paletteTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAll"></th>
+                                <th>Code Palette</th>
+                                <th>Espèce</th>
+                                <th>Qualité</th>
+                                <th>Moule</th>
+                                <th>Famille</th>
+                                <th>Code Lot</th>
+                                <th>Date Réception</th>
+                                <th>Chambre</th>
+                                <th>Rayon</th>
+                                <th class="text-center">Cartons Dispo</th>
+                                <th class="text-end">Poids Dispo (kg)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for palette in palettes %}
+                            <tr class="palette-row" data-espece="{{ palette.espece }}" data-qualite="{{ palette.qualite }}" data-moule="{{ palette.moule }}" data-chambre="{{ palette.coldRoom ? palette.coldRoom.name : '' }}" data-rayon="{{ palette.rayon }}">
+                                <td><input type="checkbox" name="selected_palettes[]" value="{{ palette.id }}"></td>
+                                <td><code>{{ palette.codePalette }}</code></td>
+                                <td>{{ palette.espece }}</td>
+                                <td>{{ palette.qualite ?? '—' }}</td>
+                                <td>{{ palette.moule ?? '—' }}</td>
+                                <td>{{ palette.famille ?? '—' }}</td>
+                                <td>{{ palette.operation.cdLotClient ?? '—' }}</td>
+                                <td>{{ palette.operation.dateReception|date('d/m/Y') }}</td>
+                                <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
+                                <td>{{ palette.rayon ?? '—' }}</td>
+                                <td class="text-center fw-bold">{{ palette.cartonsRestants }}</td>
+                                <td class="text-end fw-bold">{{ palette.poidsRestant|number_format(0, ',', ' ') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="12" class="text-center py-4 text-muted">Aucune palette disponible</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% if palettes|length > 0 %}
+        {# Controleur + Submit #}
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Contrôleur responsable</label>
+                        <select name="controleur" class="form-select">
+                            <option value="">-- Sélectionner --</option>
+                            {% for ctrl in controleurs %}
+                            <option value="{{ ctrl.id }}">{{ ctrl.fullName }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="selectionSummary" class="text-muted">0 palette(s) sélectionnée(s)</div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Enregistrer la sortie</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </form>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all
+    document.getElementById('selectAll')?.addEventListener('change', function() {
+        document.querySelectorAll('.palette-row:not([style*="display: none"]) input[type="checkbox"]').forEach(cb => { cb.checked = this.checked; });
+        updateSummary();
+    });
+
+    // Update summary on checkbox change
+    document.querySelectorAll('input[name="selected_palettes[]"]').forEach(cb => {
+        cb.addEventListener('change', updateSummary);
+    });
+
+    function updateSummary() {
+        const checked = document.querySelectorAll('input[name="selected_palettes[]"]:checked').length;
+        document.getElementById('selectionSummary').textContent = checked + ' palette(s) sélectionnée(s)';
+    }
+
+    // Inline filters
+    const filterFields = ['filterEspece', 'filterQualite', 'filterMoule', 'filterChambre', 'filterRayon'];
+    filterFields.forEach(id => {
+        document.getElementById(id)?.addEventListener('input', applyFilters);
+    });
+
+    function applyFilters() {
+        const espece = document.getElementById('filterEspece').value.toLowerCase();
+        const qualite = document.getElementById('filterQualite').value.toLowerCase();
+        const moule = document.getElementById('filterMoule').value.toLowerCase();
+        const chambre = document.getElementById('filterChambre').value.toLowerCase();
+        const rayon = document.getElementById('filterRayon').value.toLowerCase();
+
+        document.querySelectorAll('.palette-row').forEach(row => {
+            const show = (!espece || row.dataset.espece.toLowerCase().includes(espece))
+                && (!qualite || (row.dataset.qualite || '').toLowerCase().includes(qualite))
+                && (!moule || (row.dataset.moule || '').toLowerCase().includes(moule))
+                && (!chambre || (row.dataset.chambre || '').toLowerCase().includes(chambre))
+                && (!rayon || (row.dataset.rayon || '').toLowerCase().includes(rayon));
+            row.style.display = show ? '' : 'none';
+        });
+    }
+
+    window.clearFilters = function() {
+        filterFields.forEach(id => { document.getElementById(id).value = ''; });
+        document.querySelectorAll('.palette-row').forEach(r => r.style.display = '');
+    };
+});
+</script>
+{% endblock %}

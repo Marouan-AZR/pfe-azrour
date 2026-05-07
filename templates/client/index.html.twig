@@ -90,6 +90,7 @@
                             <th>Code</th>
                             <th>Raison sociale</th>
                             <th>Contact</th>
+                            <th>Stockage</th>
                             <th class="text-center">Statut</th>
                             <th class="text-center">Actions</th>
                         </tr>
@@ -113,6 +114,17 @@
                                     <div class="contact-item">
                                         <i class="bi bi-telephone"></i> {{ client.phone }}
                                     </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                {% set stock = clientStock[client.id] ?? 0 %}
+                                {% set pct = totalCapacity > 0 ? ((stock / totalCapacity) * 100)|round(1) : 0 %}
+                                {% set remaining = 100 - pct %}
+                                <div style="min-width:120px">
+                                    <div class="progress" style="height:8px;background:var(--glass-border)">
+                                        <div class="progress-bar {% if remaining <= 20 %}bg-danger{% elseif remaining <= 40 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ pct }}%"></div>
+                                    </div>
+                                    <small class="text-muted">{{ stock|number_format(2) }} T ({{ pct }}%)</small>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -186,7 +198,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="5" class="text-center py-5">
+                            <td colspan="6" class="text-center py-5">
                                 <div class="empty-state">
                                     <i class="bi bi-people"></i>
                                     <p>Aucun client trouvé</p>

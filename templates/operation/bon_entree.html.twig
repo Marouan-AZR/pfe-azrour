@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bon d'Entrée - {{ operation.code }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+    @media print {
+        .sidebar, .main-header, .no-print { display: none !important; }
+        .main-content { margin-left: 0 !important; }
+        .main-body { padding: 0 !important; }
+    }
+    .bon-header { text-align: center; border-bottom: 2px solid #1e40af; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    .bon-header h2 { color: #1e40af; margin: 0; }
+    .bon-table th { background: #f1f5f9; }
+    .bon-total { background: #f1f5f9; font-weight: bold; }
+    .signatures { display: flex; justify-content: space-between; margin-top: 3rem; }
+    .signature-box { text-align: center; width: 200px; border-top: 1px solid #333; padding-top: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="no-print d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ path('app_operation_show', {id: operation.id}) }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+        <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Imprimer</button>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-4">
+            <div class="bon-header">
+                <h4>🏭 GOLDEN LOGISTIQUE</h4>
+                <h2>BON D'ENTRÉE</h2>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-6">
+                    <p><strong>N° Bon :</strong> {{ operation.code }}</p>
+                    <p><strong>Date :</strong> {{ operation.validatedAt|date('d/m/Y') }}</p>
+                    <p><strong>Client :</strong> {{ operation.client.companyName }}</p>
+                </div>
+                <div class="col-6 text-end">
+                    <p><strong>Réf. Opération :</strong> {{ operation.code }}</p>
+                    <p><strong>Contrôleur :</strong> {{ operation.controleur ? operation.controleur.fullName : '—' }}</p>
+                    <p><strong>Validé par :</strong> {{ operation.validatedBy ? operation.validatedBy.fullName : '—' }}</p>
+                </div>
+            </div>
+
+            {# Regroupement par espèce #}
+            <table class="table table-bordered bon-table">
+                <thead>
+                    <tr>
+                        <th>Espèce / Désignation</th>
+                        <th>Qualité</th>
+                        <th>Moule</th>
+                        <th class="text-center">Cartons Entrés</th>
+                        <th class="text-end">Poids (kg)</th>
+                        <th>Chambre</th>
+                        <th>Rayon</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set totalCartons = 0 %}
+                    {% set totalPoids = 0 %}
+                    {% for palette in operation.palettes %}
+                    <tr>
+                        <td class="fw-semibold">{{ palette.espece }}</td>
+                        <td>{{ palette.qualite ?? '—' }}</td>
+                        <td>{{ palette.moule ?? '—' }}</td>
+                        <td class="text-center">{{ palette.nombreCartons }}</td>
+                        <td class="text-end">{{ palette.poidsTotal|number_format(0, ',', ' ') }}</td>
+                        <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
+                        <td>{{ palette.rayon ?? '—' }}</td>
+                    </tr>
+                    {% set totalCartons = totalCartons + palette.nombreCartons %}
+                    {% set totalPoids = totalPoids + palette.poidsTotal %}
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="bon-total">
+                        <td colspan="3"><strong>TOTAL</strong></td>
+                        <td class="text-center"><strong>{{ totalCartons }}</strong></td>
+                        <td class="text-end"><strong>{{ totalPoids|number_format(0, ',', ' ') }} kg</strong></td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="signatures">
+                <div class="signature-box">Responsable Client</div>
+                <div class="signature-box">Chef de Stock</div>
+                <div class="signature-box">Cachet Entreprise</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

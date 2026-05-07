@@ -1,0 +1,117 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Assistant Golden Logistics{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card" style="height: calc(100vh - 180px); display: flex; flex-direction: column;">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="bi bi-robot" style="font-size:1.5rem; color: var(--primary);"></i>
+                    <div>
+                        <strong>Assistant Golden Logistics</strong>
+                        <br><small class="text-muted">En ligne • Posez vos questions</small>
+                    </div>
+                </div>
+                <div class="card-body" id="chatMessages" style="overflow-y: auto; flex: 1;">
+                    <div class="chat-msg bot">
+                        <div class="chat-bubble bot-bubble">
+                            Bonjour {{ app.user.firstName }} ! 👋<br>
+                            Je suis l'assistant Golden Logistics. Comment puis-je vous aider ?<br><br>
+                            Essayez : <em>"état du stock"</em>, <em>"combien de clients"</em>, ou <em>"aide"</em>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <form id="chatForm" class="d-flex gap-2">
+                        <input type="text" id="chatInput" class="form-control" placeholder="Tapez votre message..." autocomplete="off">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-msg { margin-bottom: 1rem; display: flex; }
+.chat-msg.bot { justify-content: flex-start; }
+.chat-msg.user { justify-content: flex-end; }
+.chat-bubble {
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+.bot-bubble {
+    background: #f1f5f9;
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+}
+.user-bubble {
+    background: var(--primary);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+.typing { opacity: 0.6; font-style: italic; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('chatInput');
+    const messages = document.getElementById('chatMessages');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        addMessage(msg, 'user');
+        input.value = '';
+
+        // Typing indicator
+        const typing = document.createElement('div');
+        typing.className = 'chat-msg bot';
+        typing.innerHTML = '<div class="chat-bubble bot-bubble typing">En train d\'écrire...</div>';
+        messages.appendChild(typing);
+        scrollDown();
+
+        try {
+            const formData = new FormData();
+            formData.append('message', msg);
+            const res = await fetch('{{ path("app_chatbot_ask") }}', { method: 'POST', body: formData });
+            const data = await res.json();
+            typing.remove();
+            addMessage(data.reply, 'bot');
+        } catch (err) {
+            typing.remove();
+            addMessage('❌ Erreur de connexion. Réessayez.', 'bot');
+        }
+    });
+
+    function addMessage(text, type) {
+        const div = document.createElement('div');
+        div.className = 'chat-msg ' + type;
+        div.innerHTML = `<div class="chat-bubble ${type}-bubble">${escapeHtml(text)}</div>`;
+        messages.appendChild(div);
+        scrollDown();
+    }
+
+    function scrollDown() {
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    }
+
+    input.focus();
+});
+</script>
+{% endblock %}

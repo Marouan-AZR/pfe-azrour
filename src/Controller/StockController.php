@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Enum\UserRole;
 use App\Repository\ClientRepository;
 use App\Repository\ColdRoomRepository;
+use App\Repository\PaletteRepository;
 use App\Repository\StockItemRepository;
 use App\Service\StockService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +20,8 @@ class StockController extends AbstractController
 {
     public function __construct(
         private StockService $stockService,
-        private StockItemRepository $stockItemRepository
+        private StockItemRepository $stockItemRepository,
+        private PaletteRepository $paletteRepository
     ) {}
 
     #[Route('', name: 'app_stock_index', methods: ['GET'])]
@@ -36,16 +38,22 @@ class StockController extends AbstractController
             'coldRoom' => $request->query->get('cold_room'),
         ];
 
-        // Client can only see their own stock
+        $client = null;
         if ($user->hasRole(UserRole::CLIENT->value)) {
-            $filters['client'] = $user->getClient()?->getId();
-            $stockItems = $this->stockService->getStockByClient($user->getClient());
-        } else {
-            $stockItems = $this->stockItemRepository->findWithFilters($filters);
+            $client = $user->getClient();
+            $filters['client'] = $client?->getId();
+        } elseif ($filters['client']) {
+            $client = $clientRepository->find($filters['client']);
         }
+
+        $palettes = $this->paletteRepository->findStockByClient($client, $filters);
+        $stockItems = $user->hasRole(UserRole::CLIENT->value)
+            ? $this->stockService->getStockByClient($user->getClient())
+            : $this->stockItemRepository->findWithFilters($filters);
 
         return $this->render('stock/index.html.twig', [
             'stockItems' => $stockItems,
+            'palettes' => $palettes,
             'clients' => $user->hasRole(UserRole::CLIENT->value) ? [] : $clientRepository->findBy(['isActive' => true]),
             'coldRooms' => $coldRoomRepository->findBy(['isActive' => true]),
             'filters' => $filters,

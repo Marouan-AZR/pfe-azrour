@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sorties de Stock{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-box-arrow-up me-2"></i>Opérations de Sortie</h1>
+        {% if is_granted('ROLE_CHEF_STOCK') %}
+        <a href="{{ path('app_operation_exit_prepare') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Préparer une sortie
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="🔍 Rechercher..." style="max-width:300px;">
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>BL N°</th>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Espèces sorties</th>
+                            <th class="text-center">Cartons</th>
+                            <th class="text-end">Poids (kg)</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for op in operations %}
+                        <tr class="op-row" data-search="{{ op.code }} {{ op.client.companyName }}">
+                            <td><code class="fw-bold">{{ op.code }}</code></td>
+                            <td>{{ op.createdAt|date('d/m/Y H:i') }}</td>
+                            <td class="fw-semibold">{{ op.client.companyName }}</td>
+                            <td>{{ op.especes|join(', ') }}</td>
+                            <td class="text-center">{{ op.totalCartons }}</td>
+                            <td class="text-end">{{ op.poidsTotal|number_format(0, ',', ' ') }}</td>
+                            <td class="text-center"><span class="badge bg-{{ op.status.cssClass }}">{{ op.status.label }}</span></td>
+                            <td class="text-center">
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <a href="{{ path('app_operation_show', {id: op.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Détails</a>
+                                    {% if op.isValidated %}
+                                    <a href="{{ path('app_operation_bon_sortie', {id: op.id}) }}" class="btn btn-sm btn-outline-success" target="_blank"><i class="bi bi-file-earmark"></i> BS</a>
+                                    {% endif %}
+                                    {% if op.isPending and is_granted('ROLE_CHEF_STOCK') %}
+                                    <form action="{{ path('app_operation_validate', {id: op.id}) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ op.id) }}">
+                                        <button class="btn btn-sm btn-outline-success"><i class="bi bi-check"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="8" class="text-center py-4 text-muted">Aucune opération de sortie</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.op-row').forEach(r => {
+        r.style.display = r.dataset.search.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

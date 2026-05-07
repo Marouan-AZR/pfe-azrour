@@ -12,122 +12,264 @@
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
-    {% if app.user %}
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ path('app_dashboard') }}">
-                <i class="bi bi-snow"></i> Stock Frigo
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> Tableau de bord
+    {% set show_sidebar = app.user and app.request.attributes.get('_route') not in ['app_login', 'app_register', 'app_public_home', 'app_public_about'] %}
+
+    {% if show_sidebar %}
+    <div class="app-wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ path('app_dashboard') }}" class="sidebar-brand">
+                    <i class="bi bi-snow"></i>
+                    <span class="sidebar-brand-text">Golden Logistics</span>
+                </a>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul class="sidebar-menu">
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' : '' }}" href="{{ path('app_dashboard') }}">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Tableau de bord</span>
                         </a>
                     </li>
-                    
+
                     {% if is_granted('ROLE_CONTROLEUR') or is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="bi bi-box-seam"></i> Stock
+                    <li class="sidebar-heading">Stock</li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'app_stock_index' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_stock_index') }}">
+                            <i class="bi bi-clipboard-data"></i>
+                            <span>État du stock</span>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ path('app_stock_index') }}">État du stock</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_stock_entry_index') }}">Entrées</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_stock_exit_index') }}">Sorties</a></li>
-                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_cold_room_index') }}">
-                            <i class="bi bi-thermometer-snow"></i> Chambres froides
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'operation_entry' in app.request.attributes.get('_route') or 'stock_entry' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_operation_entry_index') }}">
+                            <i class="bi bi-box-arrow-in-down"></i>
+                            <span>Entrées</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'operation_exit' in app.request.attributes.get('_route') or 'stock_exit' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_operation_exit_index') }}">
+                            <i class="bi bi-box-arrow-up"></i>
+                            <span>Sorties</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'cold_room' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_cold_room_index') }}">
+                            <i class="bi bi-thermometer-snow"></i>
+                            <span>Chambres froides</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_CONTROLEUR') and not is_granted('ROLE_CHEF_STOCK') %}
+                    <li class="sidebar-heading">Contrôle</li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'transfer' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_dashboard') }}">
+                            <i class="bi bi-arrow-left-right"></i>
+                            <span>Transferts</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ path('app_dashboard') }}">
+                            <i class="bi bi-journal-text"></i>
+                            <span>Mon historique</span>
                         </a>
                     </li>
                     {% endif %}
 
                     {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_CONTROLEUR') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_stock_index') }}">
-                            <i class="bi bi-box-seam"></i> Mon stock
+                    <li class="sidebar-heading">Mon espace</li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'stock_index' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_stock_index') }}">
+                            <i class="bi bi-box-seam"></i>
+                            <span>Mon stock</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'invoice' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_invoice_index') }}">
+                            <i class="bi bi-receipt"></i>
+                            <span>Mes factures</span>
                         </a>
                     </li>
                     {% endif %}
 
                     {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_CONTROLEUR') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_client_index') }}">
-                            <i class="bi bi-people"></i> Clients
+                    <li class="sidebar-heading">Gestion</li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'client' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_client_index') }}">
+                            <i class="bi bi-people"></i>
+                            <span>Clients</span>
                         </a>
                     </li>
                     {% endif %}
 
                     {% if is_granted('ROLE_CHEF_STOCK') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_user_index') }}">
-                            <i class="bi bi-person-gear"></i> Utilisateurs
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'user' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_user_index') }}">
+                            <i class="bi bi-person-gear"></i>
+                            <span>Utilisateurs</span>
                         </a>
                     </li>
                     {% endif %}
 
                     {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_invoice_index') }}">
-                            <i class="bi bi-receipt"></i> Factures
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'invoice' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_invoice_index') }}">
+                            <i class="bi bi-receipt"></i>
+                            <span>Factures</span>
                         </a>
                     </li>
                     {% endif %}
 
                     {% if is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_reports') }}">
-                            <i class="bi bi-graph-up"></i> Rapports
-                        </a>
-                    </li>
-                    {% endif %}
-
-                    {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_CONTROLEUR') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_invoice_index') }}">
-                            <i class="bi bi-receipt"></i> Mes factures
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'reports' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_reports') }}">
+                            <i class="bi bi-graph-up"></i>
+                            <span>Rapports</span>
                         </a>
                     </li>
                     {% endif %}
 
                     {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_history_index') }}">
-                            <i class="bi bi-clock-history"></i> Historique
+                    <li class="sidebar-heading">Système</li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'history' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_history_index') }}">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Journal d'audit</span>
                         </a>
                     </li>
                     {% endif %}
                 </ul>
-                
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> {{ app.user.fullName }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text text-muted">{{ app.user.email }}</span></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item" href="{{ path('app_logout') }}">
-                                    <i class="bi bi-box-arrow-right"></i> Déconnexion
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <i class="bi bi-person-circle"></i>
+                    <div class="sidebar-user-info">
+                        <span class="sidebar-user-name">{{ app.user.fullName }}</span>
+                        <span class="sidebar-user-role">{{ app.user.roles[0]|replace({'ROLE_': ''})|replace({'_': ' '})|capitalize }}</span>
+                    </div>
+                </div>
+                <a href="{{ path('app_logout') }}" class="sidebar-link text-danger" title="Déconnexion">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Déconnexion</span>
+                </a>
             </div>
-        </div>
-    </nav>
+        </aside>
+
+        <main class="main-content" id="mainContent">
+            <header class="main-header">
+                <button class="sidebar-toggle-mobile d-lg-none" id="sidebarToggleMobile">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="header-title">
+                    {% block page_header %}{% endblock %}
+                </div>
+                <div class="header-actions">
+                    {% block header_actions %}{% endblock %}
+                </div>
+            </header>
+
+            <div class="main-body">
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
     {% endif %}
 
     {% block body %}{% endblock %}
 
+    {% if show_sidebar %}
+            </div>
+        </main>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    {% endif %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% if show_sidebar %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const toggleMobile = document.getElementById('sidebarToggleMobile');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        }
+
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+        }
+
+        if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+        if (toggleMobile) toggleMobile.addEventListener('click', toggleMobileSidebar);
+        if (overlay) overlay.addEventListener('click', toggleMobileSidebar);
+
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        }
+    });
+    </script>
+
+    {# Floating Chatbot Widget #}
+    <div id="chatWidget" class="chat-widget">
+        <div class="chat-window" id="chatWindow" style="display:none;">
+            <div class="chat-header">
+                <span><i class="bi bi-robot"></i> Assistant</span>
+                <button onclick="toggleChat()" class="chat-close">&times;</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-msg bot"><div class="chat-bubble bot-bubble">Bonjour {{ app.user.firstName }} ! 👋 Comment puis-je vous aider ?</div></div>
+            </div>
+            <form id="chatForm" class="chat-input">
+                <input type="text" id="chatInput" placeholder="Votre message..." autocomplete="off">
+                <button type="submit"><i class="bi bi-send-fill"></i></button>
+            </form>
+        </div>
+        <button class="chat-fab" id="chatFab" onclick="toggleChat()">
+            <i class="bi bi-chat-dots-fill"></i>
+        </button>
+    </div>
+    <style>
+    .chat-widget{position:fixed;bottom:24px;right:24px;z-index:9999}
+    .chat-fab{width:56px;height:56px;border-radius:50%;border:none;background:var(--primary);color:#fff;font-size:1.5rem;box-shadow:0 4px 16px rgba(30,64,175,.4);cursor:pointer;transition:transform .2s}
+    .chat-fab:hover{transform:scale(1.1)}
+    .chat-window{position:absolute;bottom:70px;right:0;width:360px;height:480px;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden}
+    .chat-header{background:var(--primary);color:#fff;padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.9rem}
+    .chat-close{background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;line-height:1}
+    .chat-messages{flex:1;overflow-y:auto;padding:1rem}
+    .chat-msg{margin-bottom:.75rem;display:flex}
+    .chat-msg.bot{justify-content:flex-start}
+    .chat-msg.user{justify-content:flex-end}
+    .chat-bubble{max-width:85%;padding:.6rem .9rem;border-radius:12px;font-size:.82rem;line-height:1.5;white-space:pre-line}
+    .bot-bubble{background:#f1f5f9;color:#1e293b;border-bottom-left-radius:4px}
+    .user-bubble{background:var(--primary);color:#fff;border-bottom-right-radius:4px}
+    .chat-input{display:flex;border-top:1px solid #e2e8f0;padding:.5rem;gap:.5rem}
+    .chat-input input{flex:1;border:1px solid #e2e8f0;border-radius:8px;padding:.5rem .75rem;font-size:.85rem;outline:none}
+    .chat-input input:focus{border-color:var(--primary)}
+    .chat-input button{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:.5rem .75rem;cursor:pointer}
+    @media(max-width:480px){.chat-window{width:calc(100vw - 32px);right:-8px}}
+    </style>
+    <script>
+    function toggleChat(){var w=document.getElementById('chatWindow'),f=document.getElementById('chatFab'),o=w.style.display==='none';w.style.display=o?'flex':'none';f.innerHTML=o?'<i class="bi bi-x-lg"></i>':'<i class="bi bi-chat-dots-fill"></i>';if(o)document.getElementById('chatInput').focus()}
+    document.getElementById('chatForm')?.addEventListener('submit',async function(e){e.preventDefault();var i=document.getElementById('chatInput'),m=i.value.trim();if(!m)return;addMsg(m,'user');i.value='';var fd=new FormData;fd.append('message',m);try{var r=await fetch('{{ path("app_chatbot_ask") }}',{method:'POST',body:fd});var d=await r.json();addMsg(d.reply,'bot')}catch(x){addMsg('❌ Erreur.','bot')}});
+    function addMsg(t,y){var b=document.getElementById('chatMessages'),d=document.createElement('div');d.className='chat-msg '+y;d.innerHTML='<div class="chat-bubble '+y+'-bubble">'+t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')+'</div>';b.appendChild(d);b.scrollTop=b.scrollHeight}
+    </script>
+    {% endif %}
     {% block javascripts %}{% endblock %}
 </body>
 </html>

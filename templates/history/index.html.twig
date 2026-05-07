@@ -223,16 +223,12 @@
                                                         <span class="detail-value">{{ log.entityType }} #{{ log.entityId }}</span>
                                                     </div>
                                                 </div>
-                                                {% if log.oldValues %}
+                                                {% if log.oldValues or log.newValues %}
                                                 <div class="values-section">
-                                                    <h6><i class="bi bi-arrow-left-circle"></i> Anciennes valeurs</h6>
-                                                    <pre class="values-pre">{{ log.oldValues|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
-                                                </div>
-                                                {% endif %}
-                                                {% if log.newValues %}
-                                                <div class="values-section">
-                                                    <h6><i class="bi bi-arrow-right-circle"></i> Nouvelles valeurs</h6>
-                                                    <pre class="values-pre">{{ log.newValues|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                                                    <h6><i class="bi bi-info-circle"></i> Résumé</h6>
+                                                    <div class="p-3 rounded" style="background:var(--dark);border:1px solid var(--glass-border);color:var(--text)">
+                                                        {{ log.newValues|audit_readable(log.action, log.oldValues)|raw }}
+                                                    </div>
                                                 </div>
                                                 {% endif %}
                                             </div>

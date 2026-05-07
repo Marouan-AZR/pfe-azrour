@@ -1,0 +1,159 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Fiche de Décharge {{ fiche.numero }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-file-earmark-text me-2"></i>Fiche de Décharge N° {{ fiche.numero }}</h1>
+        <a href="{{ path('app_fiche_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+    </div>
+
+    {# En-tête fiche #}
+    <div class="card mb-4">
+        <div class="card-header">En-tête</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3"><small class="text-muted">Fiche N°</small><br><strong>{{ fiche.numero }}</strong></div>
+                <div class="col-md-3"><small class="text-muted">Date</small><br><strong>{{ fiche.createdAt|date('d/m/Y') }}</strong></div>
+                <div class="col-md-3"><small class="text-muted">Client</small><br><strong>{{ fiche.client.companyName }}</strong></div>
+                <div class="col-md-3"><small class="text-muted">Statut</small><br><span class="badge bg-{{ fiche.status.cssClass }} fs-6">{{ fiche.status.label }}</span></div>
+                <div class="col-md-3"><small class="text-muted">Contrôleur</small><br><strong>{{ fiche.controleur.fullName }}</strong></div>
+                <div class="col-md-3"><small class="text-muted">Température</small><br><strong>{{ fiche.temperature ?? '—' }}</strong></div>
+                <div class="col-md-3"><small class="text-muted">Total Cartons</small><br><strong>{{ fiche.totalCartons }}</strong></div>
+                <div class="col-md-3"><small class="text-muted">Total Kg</small><br><strong>{{ fiche.poidsTotal|number_format(0, ',', ' ') }}</strong></div>
+            </div>
+        </div>
+    </div>
+
+    {# Tableau des palettes #}
+    <div class="card mb-4">
+        <div class="card-header">Tableau des palettes</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Code Palette</th>
+                            <th>Espèce</th>
+                            <th>Qualité</th>
+                            <th>Moule</th>
+                            <th>Famille</th>
+                            <th class="text-center">N° Cartons</th>
+                            <th class="text-end">Poids Carton</th>
+                            <th>CD Lot Client</th>
+                            <th>Chambre</th>
+                            <th>Rayon</th>
+                            <th>Observation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for palette in fiche.operation.palettes %}
+                        <tr>
+                            <td><code>{{ palette.codePalette }}</code></td>
+                            <td>{{ palette.espece }}</td>
+                            <td>{{ palette.qualite ?? '—' }}</td>
+                            <td>{{ palette.moule ?? '—' }}</td>
+                            <td>{{ palette.famille ?? '—' }}</td>
+                            <td class="text-center">{{ palette.nombreCartons }}</td>
+                            <td class="text-end">{{ palette.poidsCarton }} kg</td>
+                            <td>{{ fiche.operation.cdLotClient ?? '—' }}</td>
+                            <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
+                            <td>{{ palette.rayon ?? '—' }}</td>
+                            <td>{{ palette.observation ?? '' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Sommaire #}
+    <div class="card mb-4">
+        <div class="card-header">Sommaire (Récapitulatif)</div>
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <thead class="table-light">
+                    <tr><th>Produit</th><th>Qualité</th><th>Moule</th><th>Famille</th><th class="text-center">Nb Cartons</th><th class="text-end">Poids Total</th></tr>
+                </thead>
+                <tbody>
+                    {% set summary = {} %}
+                    {% set totalC = 0 %}
+                    {% set totalP = 0 %}
+                    {% for palette in fiche.operation.palettes %}
+                        {% set totalC = totalC + palette.nombreCartons %}
+                        {% set totalP = totalP + palette.poidsTotal %}
+                        <tr>
+                            <td>{{ palette.espece }}</td>
+                            <td>{{ palette.qualite ?? '—' }}</td>
+                            <td>{{ palette.moule ?? '—' }}</td>
+                            <td>{{ palette.famille ?? '—' }}</td>
+                            <td class="text-center">{{ palette.nombreCartons }}</td>
+                            <td class="text-end">{{ palette.poidsTotal|number_format(0, ',', ' ') }} kg</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="4">TOTAL GÉNÉRAL</td>
+                        <td class="text-center">{{ totalC }}</td>
+                        <td class="text-end">{{ totalP|number_format(0, ',', ' ') }} kg</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    {# Actions workflow #}
+    {% if fiche.isEnCoursControle and fiche.controleur == app.user %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="{{ path('app_fiche_submit', {id: fiche.id}) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('submit' ~ fiche.id) }}">
+                <div class="mb-3">
+                    <label class="form-label">Observation (optionnel)</label>
+                    <textarea name="observation" class="form-control" rows="2" placeholder="Remarques du contrôle...">{{ fiche.observation }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> 📤 Envoyer pour validation</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if fiche.isEnAttenteValidation and is_granted('ROLE_CHEF_STOCK') %}
+    <div class="card">
+        <div class="card-body d-flex gap-2 justify-content-end">
+            <form action="{{ path('app_fiche_validate', {id: fiche.id}) }}" method="post" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ fiche.id) }}">
+                <button class="btn btn-success"><i class="bi bi-check-circle"></i> ✅ Valider la fiche</button>
+            </form>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectFicheModal"><i class="bi bi-x-circle"></i> ❌ Rejeter</button>
+        </div>
+    </div>
+
+    <div class="modal fade" id="rejectFicheModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ path('app_fiche_reject', {id: fiche.id}) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ fiche.id) }}">
+                    <div class="modal-header"><h5 class="modal-title">Motif de rejet</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="modal-body">
+                        <textarea name="commentaire" class="form-control" rows="3" placeholder="Commentaire..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger">Rejeter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if fiche.commentaireRejet %}
+    <div class="alert alert-danger mt-3">
+        <strong>Motif de rejet :</strong> {{ fiche.commentaireRejet }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

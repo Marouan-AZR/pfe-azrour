@@ -14,112 +14,28 @@
         </a>
     </div>
 
-    {# ===== Cartes de résumé ===== #}
-    {% set totalPalettes = stockItems|length %}
-    {% set totalCartons = 0 %}
-    {% set totalPoids = 0 %}
-    {% set activeClients = [] %}
-    {% for item in stockItems %}
-        {% if item.stockEntry.nombreCartons %}
-            {% set totalCartons = totalCartons + item.stockEntry.nombreCartons %}
-        {% endif %}
-        {% set totalPoids = totalPoids + item.remainingQuantity %}
-        {% if item.client.companyName not in activeClients %}
-            {% set activeClients = activeClients|merge([item.client.companyName]) %}
-        {% endif %}
-    {% endfor %}
-
-    <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-xl-2">
-            <div class="summary-card">
-                <div class="summary-icon" style="background: rgba(99,102,241,0.15); color: #6366f1;">
-                    <i class="bi bi-palette2"></i>
-                </div>
-                <div class="summary-value">{{ totalPalettes }}</div>
-                <div class="summary-label">Palettes actives</div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-2">
-            <div class="summary-card">
-                <div class="summary-icon" style="background: rgba(14,165,233,0.15); color: #0ea5e9;">
-                    <i class="bi bi-boxes"></i>
-                </div>
-                <div class="summary-value">{{ totalCartons }}</div>
-                <div class="summary-label">Cartons restants</div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-2">
-            <div class="summary-card">
-                <div class="summary-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
-                    <i class="bi bi-speedometer"></i>
-                </div>
-                <div class="summary-value">{{ totalPoids|number_format(1) }} T</div>
-                <div class="summary-label">Poids total stocké</div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-2">
-            <div class="summary-card">
-                <div class="summary-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
-                    <i class="bi bi-people"></i>
-                </div>
-                <div class="summary-value">{{ activeClients|length }}</div>
-                <div class="summary-label">Clients actifs</div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-2">
-            <div class="summary-card">
-                <div class="summary-icon" style="background: rgba(139,92,246,0.15); color: #8b5cf6;">
-                    <i class="bi bi-thermometer-snow"></i>
-                </div>
-                <div class="summary-value">{{ coldRooms|length }}</div>
-                <div class="summary-label">Chambres actives</div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-2">
-            <div class="summary-card">
-                <div class="summary-icon" style="background: rgba(236,72,153,0.15); color: #ec4899;">
-                    <i class="bi bi-calendar3"></i>
-                </div>
-                <div class="summary-value">{{ "now"|date("M Y") }}</div>
-                <div class="summary-label">Période actuelle</div>
-            </div>
-        </div>
-    </div>
-
-    {# ===== Filtres et Recherche ===== #}
+    {# ===== Filtres ===== #}
     <div class="card mb-4">
         <div class="card-body">
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <i class="bi bi-funnel"></i>
-                <strong>Filtres et Recherche</strong>
-            </div>
             <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <input type="text" class="form-control" id="searchInput" placeholder="🔍 Recherche rapide (code palette, client, famille...)">
-                </div>
                 {% if clients|length > 0 %}
-                <div class="col-md-2">
+                <div class="col-md-3">
+                    <label class="form-label">Client</label>
                     <select name="client" class="form-select">
                         <option value="">Tous les clients</option>
                         {% for client in clients %}
-                            <option value="{{ client.id }}" {{ filters.client == client.id ? 'selected' : '' }}>{{ client.companyName }}</option>
+                            <option value="{{ client.id }}" {{ filters.client == client.id ? 'selected' }}>{{ client.companyName }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 {% endif %}
-                <div class="col-md-2">
+                <div class="col-md-3">
+                    <label class="form-label">Chambre</label>
                     <select name="cold_room" class="form-select">
                         <option value="">Toutes les chambres</option>
                         {% for room in coldRooms %}
-                            <option value="{{ room.id }}" {{ filters.coldRoom == room.id ? 'selected' : '' }}>{{ room.name }}</option>
+                            <option value="{{ room.id }}" {{ filters.coldRoom == room.id ? 'selected' }}>{{ room.name }}</option>
                         {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select" id="statusFilter">
-                        <option value="">Tous les statuts</option>
-                        <option value="actif">Actif</option>
-                        <option value="epuise">Sortie complète</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -129,76 +45,96 @@
         </div>
     </div>
 
-    {# ===== Tableau détaillé du stock ===== #}
+    {# ===== Tableau Palettes ===== #}
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-table me-2"></i>Stock détaillé ({{ stockItems|length }} palettes)</span>
+        <div class="card-header">
+            <i class="bi bi-table me-2"></i>Stock détaillé ({{ palettes|length }} palettes)
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0" id="stockTable">
+                <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Date d'entrée</th>
-                            <th>Client</th>
-                            <th>Famille</th>
+                            <th>Espèce</th>
                             <th>Qualité</th>
                             <th>Moule</th>
-                            <th>Code palette</th>
+                            <th>Famille</th>
+                            <th class="text-center">Cartons Entrés</th>
+                            <th class="text-center">Cartons Sortis</th>
+                            <th class="text-center">Cartons Restants</th>
+                            <th class="text-end">Entrée (kg)</th>
+                            <th class="text-end">Sortie (kg)</th>
+                            <th class="text-end">Stock Final (kg)</th>
                             <th>Chambre</th>
                             <th>Rayon</th>
-                            <th class="text-center">Cartons entrés</th>
-                            <th class="text-center">Cartons sortis</th>
-                            <th class="text-center">Cartons restants</th>
-                            <th class="text-end">Poids (kg)</th>
                             <th class="text-center">Statut</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in stockItems %}
-                        {% set entry = item.stockEntry %}
-                        {% set cartonsEntres = entry.nombreCartons ?? 0 %}
-                        {% set remaining = item.remainingQuantity %}
-                        {% set exitedTons = (item.quantityTons|number_format(3, '.', '')) - remaining %}
-                        {% set cartonsRatio = cartonsEntres > 0 ? (remaining / (item.quantityTons|number_format(3, '.', ''))) : 1 %}
-                        {% set cartonsSortis = (cartonsEntres - (cartonsEntres * cartonsRatio))|round(0) %}
-                        {% set cartonsRestants = cartonsEntres - cartonsSortis %}
-                        <tr class="stock-row" data-search="{{ item.client.companyName }} {{ entry.famille }} {{ entry.qualite }} {{ entry.codePalette }} {{ item.coldRoom.name }}">
-                            <td>{{ item.entryDate|date('d/m/Y') }}</td>
-                            <td class="fw-semibold">{{ item.client.companyName }}</td>
-                            <td>{{ entry.famille ?? '—' }}</td>
-                            <td>{{ entry.qualite ?? '—' }}</td>
-                            <td>{{ entry.moule ?? '—' }}</td>
-                            <td><code>{{ entry.codePalette ?? 'PAL-' ~ item.id }}</code></td>
-                            <td><span class="badge bg-info bg-opacity-25 text-info">{{ item.coldRoom.name }}</span></td>
-                            <td>{{ entry.rayon ?? '—' }}</td>
-                            <td class="text-center">{{ cartonsEntres }}</td>
-                            <td class="text-center fw-bold text-danger">{{ cartonsSortis > 0 ? cartonsSortis : '—' }}</td>
-                            <td class="text-center fw-bold text-success">{{ cartonsRestants }}</td>
-                            <td class="text-end">{{ (remaining * 1000)|number_format(0, ',', ' ') }} kg</td>
+                        {% set totCartonsE = 0 %}
+                        {% set totCartonsS = 0 %}
+                        {% set totCartonsR = 0 %}
+                        {% set totPoidsE = 0 %}
+                        {% set totPoidsS = 0 %}
+                        {% set totPoidsR = 0 %}
+                        {% for p in palettes %}
+                            {% set cartonsSortis = p.nombreCartons - p.cartonsRestants %}
+                            {% set poidsEntree = p.poidsTotal|number_format(3, '.', '') %}
+                            {% set poidsRestant = p.poidsRestant|number_format(3, '.', '') %}
+                            {% set poidsSortie = poidsEntree - poidsRestant %}
+                            {% set totCartonsE = totCartonsE + p.nombreCartons %}
+                            {% set totCartonsS = totCartonsS + cartonsSortis %}
+                            {% set totCartonsR = totCartonsR + p.cartonsRestants %}
+                            {% set totPoidsE = totPoidsE + poidsEntree %}
+                            {% set totPoidsS = totPoidsS + poidsSortie %}
+                            {% set totPoidsR = totPoidsR + poidsRestant %}
+                        <tr>
+                            <td>{{ p.espece }}</td>
+                            <td>{{ p.qualite ?? '—' }}</td>
+                            <td>{{ p.moule ?? '—' }}</td>
+                            <td>{{ p.famille ?? '—' }}</td>
+                            <td class="text-center">{{ p.nombreCartons }}</td>
+                            <td class="text-center text-danger">{{ cartonsSortis > 0 ? cartonsSortis : '—' }}</td>
+                            <td class="text-center fw-bold text-success">{{ p.cartonsRestants }}</td>
+                            <td class="text-end">{{ (poidsEntree * 1000)|number_format(0, ',', ' ') }}</td>
+                            <td class="text-end text-danger">{{ (poidsSortie * 1000)|number_format(0, ',', ' ') }}</td>
+                            <td class="text-end fw-bold">{{ (poidsRestant * 1000)|number_format(0, ',', ' ') }}</td>
+                            <td><span class="badge bg-info bg-opacity-25 text-info">{{ p.coldRoom ? p.coldRoom.name : '—' }}</span></td>
+                            <td>{{ p.rayon ?? '—' }}</td>
                             <td class="text-center">
-                                {% if remaining <= 0 %}
-                                    <span class="badge bg-secondary">Sortie complète</span>
+                                {% if p.cartonsRestants <= 0 %}
+                                    <span class="badge bg-secondary">Épuisé</span>
                                 {% else %}
                                     <span class="badge bg-success">Actif</span>
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-primary" 
-                                        data-bs-toggle="modal" data-bs-target="#detailModal{{ item.id }}" title="Consulter">
-                                    <i class="bi bi-eye"></i>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailPalette{{ p.id }}">
+                                    <i class="bi bi-eye"></i> Voir
                                 </button>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
                             <td colspan="14" class="text-center py-5 text-muted">
-                                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
-                                <p class="mt-2">Aucun article en stock</p>
+                                <i class="bi bi-inbox" style="font-size:3rem"></i>
+                                <p class="mt-2">Aucune palette en stock</p>
                             </td>
                         </tr>
                         {% endfor %}
+                        {% if palettes|length > 0 %}
+                        <tr style="background:#e2e8f0;font-weight:700">
+                            <td colspan="4">TOTAL</td>
+                            <td class="text-center">{{ totCartonsE }}</td>
+                            <td class="text-center text-danger">{{ totCartonsS }}</td>
+                            <td class="text-center text-success">{{ totCartonsR }}</td>
+                            <td class="text-end">{{ (totPoidsE * 1000)|number_format(0, ',', ' ') }}</td>
+                            <td class="text-end text-danger">{{ (totPoidsS * 1000)|number_format(0, ',', ' ') }}</td>
+                            <td class="text-end">{{ (totPoidsR * 1000)|number_format(0, ',', ' ') }}</td>
+                            <td colspan="4"></td>
+                        </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -206,199 +142,33 @@
     </div>
 </div>
 
-{# ===== Modals Détails Palette ===== #}
-{% for item in stockItems %}
-{% set entry = item.stockEntry %}
-{% set remaining = item.remainingQuantity %}
-{% set cartonsEntres = entry.nombreCartons ?? 0 %}
-{% set cartonsRatio = cartonsEntres > 0 ? (remaining / (item.quantityTons|number_format(3, '.', ''))) : 1 %}
-{% set cartonsSortis = (cartonsEntres - (cartonsEntres * cartonsRatio))|round(0) %}
-{% set cartonsRestants = cartonsEntres - cartonsSortis %}
-<div class="modal fade" id="detailModal{{ item.id }}" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+{# ===== Modals ===== #}
+{% for p in palettes %}
+<div class="modal fade" id="detailPalette{{ p.id }}" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <div>
-                    <h5 class="modal-title">Détails de la Palette</h5>
-                    <small class="text-muted">Informations complètes d'entrée, état du stock et historique des sorties</small>
-                </div>
+                <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Palette {{ p.codePalette }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                {# Infos principales #}
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <div class="detail-block">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="bi bi-qr-code text-primary"></i>
-                                <small class="text-muted">Code Palette</small>
-                            </div>
-                            <strong class="fs-5">{{ entry.codePalette ?? 'PAL-' ~ item.id }}</strong>
-                            <div class="mt-2">
-                                <i class="bi bi-calendar3 text-muted"></i> <small>Date d'Entrée</small><br>
-                                <strong>{{ item.entryDate|date('d F Y') }}</strong>
-                            </div>
-                            <div class="mt-2">
-                                <i class="bi bi-person text-muted"></i> <small>Client</small><br>
-                                <strong>{{ item.client.companyName }}</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="detail-block">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="bi bi-fish text-info"></i>
-                                <small class="text-muted">Produit</small>
-                            </div>
-                            <strong class="fs-5">{{ item.productName }}</strong>
-                            <div class="mt-1">
-                                {% if entry.qualite %}<span class="badge bg-primary bg-opacity-25 text-primary">Qualité {{ entry.qualite }}</span>{% endif %}
-                                {% if entry.moule %}<span class="badge bg-secondary bg-opacity-25">Moule {{ entry.moule }}</span>{% endif %}
-                            </div>
-                            <div class="mt-2">
-                                <i class="bi bi-geo-alt text-muted"></i> <small>Localisation</small><br>
-                                <strong>Chambre {{ item.coldRoom.name }} - Rayon {{ entry.rayon ?? '—' }}</strong>
-                            </div>
-                            <div class="mt-2">
-                                <i class="bi bi-speedometer text-muted"></i> <small>Poids Total</small><br>
-                                <strong>{{ (item.quantityTons * 1000)|number_format(0) }} kg ({{ item.quantityTons|number_format(2) }} T)</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {# État du stock #}
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h6 class="mb-3">État du Stock</h6>
-                        <div class="row text-center g-3">
-                            <div class="col-4">
-                                <div class="p-3 rounded" style="background: rgba(99,102,241,0.1);">
-                                    <i class="bi bi-arrow-down-circle text-primary fs-4"></i>
-                                    <div class="text-muted small">Cartons Entrés</div>
-                                    <div class="fs-4 fw-bold text-primary">{{ cartonsEntres }}</div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-3 rounded" style="background: rgba(239,68,68,0.1);">
-                                    <i class="bi bi-arrow-up-circle text-danger fs-4"></i>
-                                    <div class="text-muted small">Cartons Sortis</div>
-                                    <div class="fs-4 fw-bold text-danger">{{ cartonsSortis }}</div>
-                                    {% if cartonsEntres > 0 %}
-                                    <small class="text-muted">{{ ((cartonsSortis / cartonsEntres) * 100)|number_format(1) }}% sortis</small>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-3 rounded" style="background: rgba(16,185,129,0.1);">
-                                    <i class="bi bi-box-seam text-success fs-4"></i>
-                                    <div class="text-muted small">Cartons Restants</div>
-                                    <div class="fs-4 fw-bold text-success">{{ cartonsRestants }}</div>
-                                    <span class="badge bg-{{ remaining > 0 ? 'success' : 'secondary' }}">{{ remaining > 0 ? 'Actif' : 'Épuisé' }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {# Historique des sorties #}
-                {% if item.stockExits|length > 0 %}
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="mb-3">Historique des Sorties ({{ item.stockExits|length }})</h6>
-                        {% for exit in item.stockExits %}
-                        {% if exit.status.value == 'validated' %}
-                        <div class="d-flex align-items-center gap-3 p-2 rounded mb-2" style="background: rgba(239,68,68,0.05);">
-                            <div class="rounded-circle p-2" style="background: rgba(239,68,68,0.15);">
-                                <i class="bi bi-arrow-up-right text-danger"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <strong>Sortie #{{ exit.id }}</strong><br>
-                                <small class="text-muted">{{ exit.validatedAt|date('d F Y') }}</small>
-                            </div>
-                            <div class="text-end">
-                                <span class="text-danger fw-bold">{{ (exit.quantityTons * 1000)|number_format(0) }} kg</span>
-                            </div>
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <dl class="row mb-0">
+                    <dt class="col-5">Espèce</dt><dd class="col-7">{{ p.espece }}</dd>
+                    <dt class="col-5">Qualité</dt><dd class="col-7">{{ p.qualite ?? '—' }}</dd>
+                    <dt class="col-5">Moule</dt><dd class="col-7">{{ p.moule ?? '—' }}</dd>
+                    <dt class="col-5">Famille</dt><dd class="col-7">{{ p.famille ?? '—' }}</dd>
+                    <dt class="col-5">Chambre</dt><dd class="col-7">{{ p.coldRoom ? p.coldRoom.name : '—' }}</dd>
+                    <dt class="col-5">Rayon</dt><dd class="col-7">{{ p.rayon ?? '—' }}</dd>
+                    <dt class="col-5">Cartons entrés</dt><dd class="col-7">{{ p.nombreCartons }}</dd>
+                    <dt class="col-5">Cartons restants</dt><dd class="col-7">{{ p.cartonsRestants }}</dd>
+                    <dt class="col-5">Poids total</dt><dd class="col-7">{{ (p.poidsTotal * 1000)|number_format(0) }} kg</dd>
+                    <dt class="col-5">Poids restant</dt><dd class="col-7">{{ (p.poidsRestant * 1000)|number_format(0) }} kg</dd>
+                    <dt class="col-5">Client</dt><dd class="col-7">{{ p.operation.client.companyName }}</dd>
+                    <dt class="col-5">Date</dt><dd class="col-7">{{ p.createdAt|date('d/m/Y') }}</dd>
+                </dl>
             </div>
         </div>
     </div>
 </div>
 {% endfor %}
-
-<style>
-.summary-card {
-    background: var(--glass-bg, #fff);
-    border: 1px solid var(--glass-border, #e2e8f0);
-    border-radius: 16px;
-    padding: 1.25rem;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-.summary-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-.summary-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    margin-bottom: 0.75rem;
-}
-.summary-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-}
-.summary-label {
-    font-size: 0.8rem;
-    color: var(--text-muted, #64748b);
-}
-.detail-block {
-    background: var(--glass-bg, #f8fafc);
-    border: 1px solid var(--glass-border, #e2e8f0);
-    border-radius: 12px;
-    padding: 1.25rem;
-    height: 100%;
-}
-.stock-row {
-    transition: background 0.2s ease;
-}
-.stock-row:hover {
-    background: rgba(99,102,241,0.05) !important;
-}
-</style>
-
-{% block javascripts %}
-<script>
-// Recherche rapide côté client
-document.getElementById('searchInput')?.addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    document.querySelectorAll('.stock-row').forEach(row => {
-        row.style.display = row.dataset.search.toLowerCase().includes(q) ? '' : 'none';
-    });
-});
-// Filtre statut
-document.getElementById('statusFilter')?.addEventListener('change', function() {
-    const v = this.value;
-    document.querySelectorAll('.stock-row').forEach(row => {
-        if (!v) { row.style.display = ''; return; }
-        const badge = row.querySelector('.badge.bg-success, .badge.bg-secondary');
-        if (v === 'actif') row.style.display = badge?.classList.contains('bg-success') ? '' : 'none';
-        else row.style.display = badge?.classList.contains('bg-secondary') ? '' : 'none';
-    });
-});
-</script>
-{% endblock %}
 {% endblock %}
