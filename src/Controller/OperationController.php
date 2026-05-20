@@ -89,6 +89,8 @@ class OperationController extends AbstractController
         $operationId = $request->request->get('operation_id');
         if ($operationId) {
             $operation = $this->operationRepo->find($operationId);
+            // Ensure Doctrine persists any controller assignment changes
+            $this->em->persist($operation);
         } else {
             $operation = new Operation();
             $operation->setCode(Operation::generateCode(OperationType::ENTRY));
@@ -150,6 +152,19 @@ class OperationController extends AbstractController
             }
         }
 
+        // Générer automatiquement la fiche pour l'entrée (fiche de décharge)
+        // NB: la relation est OneToOne côté Operation, donc on doit aussi relier la fiche à l'opération.
+        if ($operation->getControleur() && !$operation->getFicheDecharge()) {
+            $fiche = new FicheDecharge();
+            $fiche->setNumero(FicheDecharge::generateNumero());
+            $fiche->setOperation($operation);
+            $fiche->setControleur($operation->getControleur());
+            $fiche->setStatus(FicheStatus::EN_COURS_CONTROLE);
+
+            $operation->setFicheDecharge($fiche);
+            $this->em->persist($fiche);
+        }
+
         $this->em->flush();
 
         $this->addFlash('success', sprintf(
@@ -163,7 +178,7 @@ class OperationController extends AbstractController
 
     // ===== DÉTAILS OPÉRATION =====
 
-    #[Route('/{id}', name: 'app_operation_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_operation_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_CONTROLEUR')]
     public function show(Operation $operation): Response
     {
@@ -270,7 +285,16 @@ class OperationController extends AbstractController
     public function generateFiche(Operation $operation, Request $request, UserRepository $userRepo): Response
     {
         if ($operation->getFicheDecharge()) {
-            return $this->redirectToRoute('app_fiche_show', ['id' => $operation->getFicheDecharge()->getId()]);
+            // Assurer la synchro aussi dans le cas où la fiche existe déjà.
+            // On ré-aligne toujours Operation.controleur avec la fiche.
+            $ficheExistante = $operation->getFicheDecharge();
+            if ($ficheExistante && $ficheExistante->getControleur() && $ficheExistante->getControleur() !== $operation->getControleur()) {
+                $operation->setControleur($ficheExistante->getControleur());
+                $this->em->persist($operation);
+                $this->em->flush();
+            }
+
+            return $this->redirectToRoute('app_fiche_show', ['id' => $ficheExistante->getId()]);
         }
 
         if ($request->isMethod('POST')) {
@@ -283,7 +307,12 @@ class OperationController extends AbstractController
             $fiche->setControleur($controleur);
             $fiche->setStatus(FicheStatus::EN_COURS_CONTROLE);
 
+            // Synchroniser l'opération avec l'assignation du contrôleur sur la fiche.
+            // Sinon, la page "Opérations d'Entrée" (filtrée sur Operation.controleur) ne remonte rien.
+            $operation->setControleur($controleur);
+
             $this->em->persist($fiche);
+            $this->em->persist($operation);
             $this->em->flush();
 
             $this->addFlash('success', 'Fiche de décharge générée et assignée.');
@@ -393,8 +422,9 @@ class OperationController extends AbstractController
             foreach ($selectedIds as $paletteId) {
                 $sourcePalette = $this->paletteRepo->find($paletteId);
                 if ($sourcePalette && $sourcePalette->isStockAvailable()) {
+                    // Créer une nouvelle palette de sortie avec un code unique (sinon UNIQUE constraint sur palettes.code_palette)
                     $exitPalette = new Palette();
-                    $exitPalette->setCodePalette($sourcePalette->getCodePalette());
+                    $exitPalette->setCodePalette(Palette::generateCode($operation->getCode(), (int)$index));
                     $exitPalette->setEspece($sourcePalette->getEspece());
                     $exitPalette->setFamille($sourcePalette->getFamille());
                     $exitPalette->setQualite($sourcePalette->getQualite());
@@ -409,7 +439,7 @@ class OperationController extends AbstractController
                 }
             }
 
-            // Generate fiche de charge automatically
+            // Générer automatiquement la fiche pour la sortie (fiche de charge)
             if ($operation->getControleur()) {
                 $fiche = new FicheDecharge();
                 $fiche->setNumero(FicheDecharge::generateNumero());
@@ -420,6 +450,7 @@ class OperationController extends AbstractController
             }
 
             $this->em->flush();
+
             $this->addFlash('success', 'Opération de sortie créée : ' . $operation->getCode());
             return $this->redirectToRoute('app_operation_show', ['id' => $operation->getId()]);
         }

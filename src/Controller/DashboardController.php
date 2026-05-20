@@ -12,10 +12,16 @@ use App\Repository\InvoiceRepository;
 use App\Repository\StockEntryRepository;
 use App\Repository\StockExitRepository;
 use App\Repository\StockItemRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller as BaseController;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+use App\Service\ColdRoomOccupancyService;
+
+
+
 
 class DashboardController extends AbstractController
 {
@@ -25,8 +31,14 @@ class DashboardController extends AbstractController
         StockExitRepository $exitRepository,
         ColdRoomRepository $coldRoomRepository,
         InvoiceRepository $invoiceRepository,
-        StockItemRepository $stockItemRepository
+        StockItemRepository $stockItemRepository,
+        ColdRoomOccupancyService $occupancyService,
+        \App\Repository\FicheDechargeRepository $ficheDechargeRepository
+
     ): Response {
+
+
+
         /** @var User $user */
         $user = $this->getUser();
 
@@ -44,8 +56,26 @@ class DashboardController extends AbstractController
         }
 
         // Chef de stock / Contrôleur dashboard
-        return $this->operationalDashboard($entryRepository, $exitRepository, $coldRoomRepository);
+        return $this->operationalDashboard($entryRepository, $exitRepository, $coldRoomRepository, $occupancyService, $ficheDechargeRepository);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
+
 
     #[Route('/rapports', name: 'app_reports')]
     #[IsGranted('ROLE_USER')]
@@ -70,10 +100,22 @@ class DashboardController extends AbstractController
         $stockItems = $stockItemRepository->findAll();
         $totalStock = array_reduce($stockItems, fn($sum, $item) => $sum + $item->getRemainingQuantity(), 0);
         
-        // Occupancy rate
-        $totalCapacity = array_reduce($coldRooms, fn($sum, $room) => $sum + (float)$room->getMaxCapacityTons(), 0);
-        $usedCapacity = array_reduce($coldRooms, fn($sum, $room) => $sum + $room->getUsedCapacity(), 0);
+        /** @var ColdRoomOccupancyService $occupancyService */
+        $occupancyService = $this->container->get(ColdRoomOccupancyService::class);
+        $statsByRoomId = $occupancyService->getOccupancyStatsForRooms($coldRooms);
+
+
+
+
+
+
+
+        // Occupancy rate (Palette -> poidsRestant)
+        $totalCapacity = array_reduce($coldRooms, fn($sum, $room) => $sum + (float) $room->getMaxCapacityTons(), 0);
+        $usedCapacity = array_reduce($coldRooms, fn($sum, $room) => $sum + ($statsByRoomId[$room->getId()]['usedCapacity'] ?? 0.0), 0);
         $occupancyRate = $totalCapacity > 0 ? ($usedCapacity / $totalCapacity) * 100 : 0;
+        
+
         
         // Monthly revenue
         $currentMonth = new \DateTime('first day of this month');
@@ -97,12 +139,12 @@ class DashboardController extends AbstractController
         }
         usort($stockByClient, fn($a, $b) => $b['quantity'] <=> $a['quantity']);
         
-        // Room occupancy
+        // Room occupancy (Palette -> poidsRestant)
         $roomOccupancy = array_map(fn($room) => [
             'name' => $room->getName(),
-            'rate' => $room->getOccupancyRate(),
+            'rate' => $statsByRoomId[$room->getId()]['occupancyRate'] ?? 0.0,
         ], $coldRooms);
-        
+
         // Recent movements
         $recentEntries = $entryRepository->findBy(['status' => StockStatus::VALIDATED], ['validatedAt' => 'DESC'], 5);
         $recentExits = $exitRepository->findBy(['status' => StockStatus::VALIDATED], ['validatedAt' => 'DESC'], 5);
@@ -143,24 +185,43 @@ class DashboardController extends AbstractController
     private function operationalDashboard(
         StockEntryRepository $entryRepository,
         StockExitRepository $exitRepository,
-        ColdRoomRepository $coldRoomRepository
+        ColdRoomRepository $coldRoomRepository,
+        ColdRoomOccupancyService $occupancyService,
+        \App\Repository\FicheDechargeRepository $ficheDechargeRepository
     ): Response {
-        $pendingEntries = $entryRepository->findBy(['status' => StockStatus::PENDING], ['createdAt' => 'DESC'], 10);
-        $pendingExits = $exitRepository->findBy(['status' => StockStatus::PENDING], ['createdAt' => 'DESC'], 10);
+
+
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $pendingEntries = $entryRepository->findPendingByCreatedBy($user, 10);
+        // Les “sorties en attente” sont celles assignées au contrôleur dont la fiche est en cours de contrôle
+        $pendingExits = $ficheDechargeRepository->findByControleur(
+            $user,
+            \App\Enum\FicheStatus::EN_COURS_CONTROLE
+        );
+
         $coldRooms = $coldRoomRepository->findBy(['isActive' => true]);
+
+
         
-        // Find rooms with high occupancy
-        $alertRooms = array_filter($coldRooms, fn($room) => $room->getOccupancyRate() > 90);
+        // Find rooms with high occupancy (Palette -> poidsRestant)
+        $statsByRoomId = $occupancyService->getOccupancyStatsForRooms($coldRooms);
+        $alertRooms = array_filter($coldRooms, fn($room) => ($statsByRoomId[$room->getId()]['occupancyRate'] ?? 0) > 90);
+
+
 
         return $this->render('dashboard/operational.html.twig', [
             'pendingEntries' => $pendingEntries,
             'pendingExits' => $pendingExits,
             'coldRooms' => $coldRooms,
             'alertRooms' => $alertRooms,
-            'pendingEntriesCount' => $entryRepository->count(['status' => StockStatus::PENDING]),
-            'pendingExitsCount' => $exitRepository->count(['status' => StockStatus::PENDING]),
+            'pendingEntriesCount' => $entryRepository->countPendingByCreatedBy($user),
+            'pendingExitsCount' => $exitRepository->countPendingByCreatedBy($user),
         ]);
     }
+
 
     private function directeurDashboard(InvoiceRepository $invoiceRepository): Response
     {

@@ -1,53 +1,70 @@
 {% extends 'base.html.twig' %}
 {% block title %}Modifier {{ client.companyName }}{% endblock %}
 {% block body %}
-<div class="container-fluid">
-    <div class="page-header">
-        <div class="header-content">
-            <h1><i class="bi bi-pencil"></i> Modifier le client</h1>
-            <a href="{{ path('app_client_index') }}" class="btn btn-outline-light"><i class="bi bi-arrow-left"></i> Retour</a>
+<div class="d-flex justify-content-center py-4">
+    <div style="width:100%;max-width:600px">
+        <div class="text-center mb-4">
+            <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem">
+                <i class="bi bi-pencil-square text-white fs-3"></i>
+            </div>
+            <h2 style="color:var(--text)">Modifier le client</h2>
+            <p class="text-muted">Mettre à jour les informations du client</p>
         </div>
-    </div>
-    <div class="form-container">
-        {{ form_start(form, {'attr': {'class': 'client-form'}}) }}
-        <div class="form-section">
-            <div class="section-header"><i class="bi bi-building"></i><h3>Informations société</h3></div>
-            <div class="form-grid">
-                <div class="form-group">{{ form_label(form.companyName) }}{{ form_widget(form.companyName) }}{{ form_errors(form.companyName) }}</div>
-                <div class="form-group">{{ form_label(form.code) }}{{ form_widget(form.code) }}{{ form_errors(form.code) }}</div>
+
+        <div class="card" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius)">
+            <div class="card-body p-4">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                <div class="mb-3">
+                    <label class="form-label"><i class="bi bi-building me-1 text-primary"></i> Raison sociale</label>
+                    {{ form_widget(form.companyName, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.companyName) }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><i class="bi bi-upc me-1 text-primary"></i> Code client</label>
+                    {{ form_widget(form.code, {'attr': {'class': 'form-control', 'readonly': true}}) }}
+                    {{ form_errors(form.code) }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><i class="bi bi-file-earmark-text me-1 text-primary"></i> N° d'agrément</label>
+                    {{ form_widget(form.numeroAgrement, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.numeroAgrement) }}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-envelope me-1 text-primary"></i> Email</label>
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.email) }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-telephone me-1 text-primary"></i> Téléphone</label>
+                        {{ form_widget(form.phone, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.phone) }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label"><i class="bi bi-geo-alt me-1 text-primary"></i> Adresse</label>
+                    {{ form_widget(form.address, {'attr': {'class': 'form-control', 'rows': 2}}) }}
+                    {{ form_errors(form.address) }}
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bi bi-check-lg me-1"></i> Enregistrer
+                    </button>
+                    <a href="{{ path('app_client_index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg"></i> Annuler
+                    </a>
+                </div>
+
+                {{ form_end(form) }}
             </div>
         </div>
-        <div class="form-section">
-            <div class="section-header"><i class="bi bi-envelope"></i><h3>Contact</h3></div>
-            <div class="form-grid form-grid-3">
-                <div class="form-group">{{ form_label(form.email) }}{{ form_widget(form.email) }}{{ form_errors(form.email) }}</div>
-                <div class="form-group">{{ form_label(form.phone) }}{{ form_widget(form.phone) }}{{ form_errors(form.phone) }}</div>
-                <div class="form-group">{{ form_label(form.contactName) }}{{ form_widget(form.contactName) }}{{ form_errors(form.contactName) }}</div>
-            </div>
-        </div>
-        <div class="form-section">
-            <div class="section-header"><i class="bi bi-geo-alt"></i><h3>Adresse</h3></div>
-            <div class="form-group">{{ form_label(form.address) }}{{ form_widget(form.address) }}{{ form_errors(form.address) }}</div>
-        </div>
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-lg"></i> Enregistrer</button>
-            <a href="{{ path('app_client_index') }}" class="btn btn-secondary btn-lg"><i class="bi bi-x-lg"></i> Annuler</a>
-        </div>
-        {{ form_end(form) }}
     </div>
 </div>
-<style>
-.page-header { margin-bottom: 2rem; }
-.header-content { display: flex; justify-content: space-between; align-items: center; }
-.form-container { max-width: 800px; }
-.form-section { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
-.section-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border); }
-.section-header i { font-size: 1.5rem; color: var(--primary-light); }
-.section-header h3 { margin: 0; font-size: 1.1rem; }
-.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-.form-grid-3 { grid-template-columns: repeat(3, 1fr); }
-.form-group { display: flex; flex-direction: column; }
-.form-group label { color: var(--text); font-weight: 500; margin-bottom: 0.5rem; }
-.form-actions { display: flex; gap: 1rem; }
-</style>
 {% endblock %}
+

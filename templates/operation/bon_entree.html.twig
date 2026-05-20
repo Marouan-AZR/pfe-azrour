@@ -22,6 +22,9 @@
 <div class="container-fluid">
     <div class="no-print d-flex justify-content-between align-items-center mb-3">
         <a href="{{ path('app_operation_show', {id: operation.id}) }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+        <a href="{{ path('app_operation_bon_entree', {id: operation.id}) }}" class="btn btn-outline-success ms-2" target="_blank">
+            <i class="bi bi-file-earmark-text"></i> Bon d'Entrée
+        </a>
         <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Imprimer</button>
     </div>
 
@@ -45,13 +48,14 @@
                 </div>
             </div>
 
-            {# Regroupement par espèce #}
+            {# Regroupement par : Espèce + Qualité + Moule/Taille + Type de conditionnement (ici: famille) #}
             <table class="table table-bordered bon-table">
                 <thead>
                     <tr>
                         <th>Espèce / Désignation</th>
                         <th>Qualité</th>
                         <th>Moule</th>
+                        <th>Conditionnement</th>
                         <th class="text-center">Cartons Entrés</th>
                         <th class="text-end">Poids (kg)</th>
                         <th>Chambre</th>
@@ -59,25 +63,63 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% set grouped = {} %}
                     {% set totalCartons = 0 %}
                     {% set totalPoids = 0 %}
+
                     {% for palette in operation.palettes %}
+                        {% set esp = palette.espece|default('') %}
+                        {% set qual = palette.qualite ?? '—' %}
+                        {% set moule = palette.moule ?? '—' %}
+                        {% set cond = palette.famille ?? '—' %}
+
+                        {% set key = esp ~ '||' ~ qual ~ '||' ~ moule ~ '||' ~ cond %}
+
+                        {% set totalCartons = totalCartons + palette.nombreCartons %}
+                        {% set totalPoids = totalPoids + palette.poidsTotal %}
+
+                        {% if grouped[key] is not defined %}
+                            {% set grouped = grouped|merge({ (key): {
+                                'esp': esp,
+                                'qual': qual,
+                                'moule': moule,
+                                'cond': cond,
+                                'cartons': palette.nombreCartons,
+                                'poids': palette.poidsTotal,
+                                'chambre': palette.coldRoom ? palette.coldRoom.name : '—',
+                                'rayon': palette.rayon ?? '—'
+                            } }) %}
+                        {% else %}
+                            {% set prev = grouped[key] %}
+                            {% set grouped = grouped|merge({ (key): {
+                                'esp': prev.esp,
+                                'qual': prev.qual,
+                                'moule': prev.moule,
+                                'cond': prev.cond,
+                                'cartons': prev.cartons + palette.nombreCartons,
+                                'poids': prev.poids + palette.poidsTotal,
+                                'chambre': prev.chambre,
+                                'rayon': prev.rayon
+                            } }) %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% for item in grouped %}
                     <tr>
-                        <td class="fw-semibold">{{ palette.espece }}</td>
-                        <td>{{ palette.qualite ?? '—' }}</td>
-                        <td>{{ palette.moule ?? '—' }}</td>
-                        <td class="text-center">{{ palette.nombreCartons }}</td>
-                        <td class="text-end">{{ palette.poidsTotal|number_format(0, ',', ' ') }}</td>
-                        <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
-                        <td>{{ palette.rayon ?? '—' }}</td>
+                        <td class="fw-semibold">{{ item.esp }}</td>
+                        <td>{{ item.qual }}</td>
+                        <td>{{ item.moule }}</td>
+                        <td>{{ item.cond }}</td>
+                        <td class="text-center">{{ item.cartons }}</td>
+                        <td class="text-end">{{ item.poids|number_format(0, ',', ' ') }}</td>
+                        <td>{{ item.chambre }}</td>
+                        <td>{{ item.rayon }}</td>
                     </tr>
-                    {% set totalCartons = totalCartons + palette.nombreCartons %}
-                    {% set totalPoids = totalPoids + palette.poidsTotal %}
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr class="bon-total">
-                        <td colspan="3"><strong>TOTAL</strong></td>
+                        <td colspan="4"><strong>TOTAL</strong></td>
                         <td class="text-center"><strong>{{ totalCartons }}</strong></td>
                         <td class="text-end"><strong>{{ totalPoids|number_format(0, ',', ' ') }} kg</strong></td>
                         <td colspan="2"></td>

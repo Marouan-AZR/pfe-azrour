@@ -21,6 +21,10 @@ class Client
     #[ORM\Column(length: 20, unique: true)]
     private string $code;
 
+    #[ORM\Column(length: 50)]
+    private ?string $numeroAgrement = null;
+
+
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private string $companyName;
@@ -76,6 +80,18 @@ class Client
         $this->code = $code;
         return $this;
     }
+
+    public function getNumeroAgrement(): ?string
+    {
+        return $this->numeroAgrement;
+    }
+
+    public function setNumeroAgrement(?string $numeroAgrement): static
+    {
+        $this->numeroAgrement = $numeroAgrement;
+        return $this;
+    }
+
 
     public function getCompanyName(): string
     {

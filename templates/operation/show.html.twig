@@ -3,16 +3,43 @@
 {% block title %}Opération {{ operation.code }}{% endblock %}
 
 {% block body %}
+
+{% block stylesheets %}
+<style>
+    .ticket-wrapper{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    .qr-canvas{border:1px solid rgba(0,0,0,.08); background:#fff; border-radius:8px;}
+    @media print{
+        .modal{position:relative !important; display:block !important;}
+        .modal-dialog{max-width:100% !important; margin:0 !important;}
+        .modal-content{border:0 !important;}
+    }
+</style>
+{% endblock %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-clipboard-data me-2"></i>Détails de l'opération</h1>
+        <div>
+            <h1 class="mb-1"><i class="bi bi-clipboard-data me-2"></i>Détails de l'opération</h1>
+            {% if operation.status.value == 'rejected' and operation.rejectionReason %}
+                <div class="alert alert-danger mb-0 p-3" style="font-weight:600;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>Motif rejet :</span>
+                    <span class="text-body-emphasis">{{ operation.rejectionReason }}</span>
+                </div>
+            {% endif %}
+        </div>
         <div class="d-flex gap-2">
             {% if operation.type.value == 'entry' %}
             <a href="{{ path('app_operation_entry_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
             {% endif %}
-            {% if operation.isValidated %}
+            {% if operation.isValidated and operation.type.value == 'entry' %}
             <a href="{{ path('app_operation_bon_entree', {id: operation.id}) }}" class="btn btn-outline-success" target="_blank">
                 <i class="bi bi-file-earmark-text"></i> 📄 Bon d'Entrée
+            </a>
+            {% endif %}
+
+            {% if operation.isValidated and operation.type.value == 'exit' %}
+            <a href="{{ path('app_operation_bon_sortie', {id: operation.id}) }}" class="btn btn-outline-success" target="_blank">
+                <i class="bi bi-file-earmark-text"></i> 📦 Bon de Sortie
             </a>
             {% endif %}
             {% if not operation.ficheDecharge and is_granted('ROLE_CONTROLEUR') %}
@@ -72,7 +99,7 @@
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span><i class="bi bi-grid-3x3 me-2"></i>Palettes associées ({{ operation.nombrePalettes }})</span>
-            {% if operation.isPending and is_granted('ROLE_CONTROLEUR') %}
+            {% if operation.isPending and (is_granted('ROLE_CONTROLEUR') or is_granted('ROLE_CHEF_STOCK')) %}
             <a href="{{ path('app_operation_entry_new', {operation: operation.id}) }}" class="btn btn-sm btn-primary">
                 <i class="bi bi-plus-circle"></i> Ajouter Nouvelle Entrée
             </a>
@@ -119,6 +146,9 @@
                                     {% if (is_granted('ROLE_CHEF_STOCK')) or (is_granted('ROLE_CONTROLEUR') and operation.isPending) %}
                                     <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ palette.id }}" title="Modifier">
                                         <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#ticketModal{{ palette.id }}" title="Générer ticket">
+                                        <i class="bi bi-ticket-perforated"></i>
                                     </button>
                                     {% endif %}
                                 </div>
@@ -205,6 +235,69 @@
                                 </div>
                             </div>
                         </div>
+
+                        {# Ticket Modal (QR placeholder) #}
+                        <div class="modal fade" id="ticketModal{{ palette.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">🎫 Ticket Palette {{ palette.codePalette }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="ticket-wrapper p-3">
+                                            <div class="ticket-header p-3 mb-3 rounded" style="background: linear-gradient(135deg,#1e40af,#0ea5e9); color:#fff;">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <div class="fw-bold">GOLDEN LOGISTIQUE</div>
+                                                        <div style="opacity:.9;">Opération: <code>{{ operation.code }}</code></div>
+                                                        <div style="opacity:.9;">Client: <strong>{{ operation.client.companyName }}</strong></div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <div class="fw-bold">Palette</div>
+                                                        <div class="fs-4 fw-bold"><code>{{ palette.codePalette }}</code></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3">
+                                                <div class="col-md-5">
+                                                    <div class="bg-light border rounded p-3 h-100">
+                                                        <div class="d-flex align-items-center justify-content-between">
+                                                            <div class="fw-bold">QR Code</div>
+                                                            <span class="badge bg-secondary">info</span>
+                                                        </div>
+                                                        <div class="mt-2 text-center">
+                                                            <canvas width="220" height="220" class="qr-canvas" data-qr-text="{{ palette.codePalette }}|{{ operation.code }}|{{ operation.client.companyName }}"></canvas>
+                                                            <div class="small text-muted mt-2">(placeholder si QR non configuré)</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-7">
+                                                    <div class="bg-white border rounded p-3 h-100">
+                                                        <div class="row g-2">
+                                                            <div class="col-sm-6"><div class="text-muted">Espèce</div><div class="fw-semibold">{{ palette.espece }}</div></div>
+                                                            <div class="col-sm-6"><div class="text-muted">Famille</div><div class="fw-semibold">{{ palette.famille ?? '—' }}</div></div>
+                                                            <div class="col-sm-6"><div class="text-muted">Qualité</div><div class="fw-semibold">{{ palette.qualite ?? '—' }}</div></div>
+                                                            <div class="col-sm-6"><div class="text-muted">Moule</div><div class="fw-semibold">{{ palette.moule ?? '—' }}</div></div>
+                                                            <div class="col-sm-6"><div class="text-muted">Cartons</div><div class="fw-semibold">{{ palette.nombreCartons }}</div></div>
+                                                            <div class="col-sm-6"><div class="text-muted">Poids total</div><div class="fw-semibold">{{ palette.poidsTotal|number_format(0, ',', ' ') }} kg</div></div>
+                                                            <div class="col-sm-6"><div class="text-muted">Chambre</div><div class="fw-semibold">{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</div></div>
+                                                            <div class="col-sm-6"><div class="text-muted">Rayon</div><div class="fw-semibold">{{ palette.rayon ?? '—' }}</div></div>
+                                                            <div class="col-12"><div class="text-muted">Observation</div><div class="fw-semibold">{{ palette.observation ?? '—' }}</div></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                                        <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Imprimer</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         {% else %}
                         <tr><td colspan="11" class="text-center py-4 text-muted">Aucune palette</td></tr>
                         {% endfor %}
@@ -248,4 +341,5 @@
     </div>
     {% endif %}
 </div>
+{% include 'operation/ticket_script_snippet.html.twig' %}
 {% endblock %}

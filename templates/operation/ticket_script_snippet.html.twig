@@ -1,0 +1,13 @@
+<script type="module">
+import { renderPlaceholder } from '{{ asset("assets/qrcode.js") }}';
+
+function initTicketQrs(){
+  document.querySelectorAll('canvas.qr-canvas[data-qr-text]').forEach(c=>{
+    const txt = c.getAttribute('data-qr-text') || '';
+    renderPlaceholder(c, txt);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initTicketQrs);
+</script>
+

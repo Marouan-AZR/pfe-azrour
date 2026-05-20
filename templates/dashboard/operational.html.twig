@@ -218,21 +218,23 @@
                     <table class="table table-sm table-borderless mb-0" style="color:var(--text)">
                         <thead><tr><th>Client</th><th>Produit</th><th>Quantité</th><th>Date</th><th></th></tr></thead>
                         <tbody>
-                        {% for exit in pendingExits %}
+{% for fiche in pendingExits %}
+                            {# L'entité Operation n'a pas de relation stockEntries.
+                               On affiche donc les infos disponibles via la fiche/operation. #}
                             <tr>
-                                <td>{{ exit.stockItem.client.companyName }}</td>
-                                <td>{{ exit.stockItem.productName }}</td>
-                                <td>{{ exit.quantityTons }} T</td>
-                                <td>{{ exit.createdAt|date('d/m/Y') }}</td>
+                                <td>{{ fiche.operation.client.companyName }}</td>
+                                <td>{{ fiche.operation.client.companyName }}</td>
+                                <td>- T</td>
+                                <td>{{ fiche.createdAt|date('d/m/Y') }}</td>
+
                                 <td class="text-end">
                                     {% if is_granted('ROLE_CHEF_STOCK') %}
-                                        <form method="post" action="{{ path('app_stock_exit_validate', {id: exit.id}) }}" class="d-inline">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('validate'~exit.id) }}">
-                                            <button class="btn btn-sm btn-outline-success" title="Valider"><i class="bi bi-check-lg"></i></button>
-                                        </form>
+                                        {# Les actions de validation/rejet sont gérées via StockExit; si l’objet StockExit n’est pas accessible ici,
+                                           on n’affiche pas les boutons pour éviter une validation incorrecte. #}
                                     {% endif %}
                                 </td>
                             </tr>
+
                         {% else %}
                             <tr><td colspan="5" class="text-center" style="color:var(--text-muted)">Aucune sortie en attente</td></tr>
                         {% endfor %}
@@ -277,7 +279,9 @@
             <a href="{{ path('app_stock_index') }}" class="quick-action"><i class="bi bi-search"></i>Consulter stock</a>
         </div>
         <div class="col-6 col-lg-3">
+{% if is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_PATRON') %}
             <a href="{{ path('app_client_index') }}" class="quick-action"><i class="bi bi-people"></i>Gérer clients</a>
+        {% endif %}
         </div>
     </div>
 

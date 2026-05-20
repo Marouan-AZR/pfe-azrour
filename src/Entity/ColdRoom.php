@@ -104,11 +104,17 @@ class ColdRoom
 
     public function getUsedCapacity(): float
     {
-        return $this->stockItems->reduce(
-            fn(float $total, StockItem $item) => $total + (float)$item->getQuantityTons(),
+        // Utilisation de la quantité restante de chaque StockItem.
+        // (getRemainingQuantity() retourne déjà un float.)
+        return array_reduce(
+            $this->stockItems->toArray(),
+            function (float $carry, StockItem $item): float {
+                return $carry + $item->getRemainingQuantity();
+            },
             0.0
         );
     }
+
 
     public function getAvailableCapacity(): float
     {

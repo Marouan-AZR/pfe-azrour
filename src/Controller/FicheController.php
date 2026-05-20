@@ -50,7 +50,14 @@ class FicheController extends AbstractController
         }
 
         $fiche->setStatus(FicheStatus::EN_ATTENTE_VALIDATION);
-        $fiche->setObservation($request->request->get('observation'));
+        // Le formulaire peut envoyer le champ sous différents noms (observations/commentaire).
+        // On prend en priorité 'commentaire' puis 'observation'.
+        $commentaire = $request->request->get('commentaire');
+        if ($commentaire === null || $commentaire === '') {
+            $commentaire = $request->request->get('observation');
+        }
+        $fiche->setObservation($commentaire);
+
         $this->em->flush();
 
         $this->addFlash('success', 'Fiche envoyée pour validation.');

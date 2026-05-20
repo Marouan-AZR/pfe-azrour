@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Service;
+
+use App\Entity\ColdRoom;
+use App\Enum\PaletteStatus;
+use App\Repository\PaletteRepository;
+
+class ColdRoomOccupancyService
+{
+    public function __construct(
+        private PaletteRepository $paletteRepository
+    ) {}
+
+    /**
+     * Occupation basée sur les palettes encore en chambre.
+     * Source: Palette::poidsRestant (tonnes restantes) et Palette::cartonsRestants.
+     */
+    public function getUsedCapacity(ColdRoom $coldRoom): float
+    {
+
+        $excluded = [
+            PaletteStatus::SORTIE_COMPLETE->value,
+            PaletteStatus::REJETEE->value,
+        ];
+
+        $qb = $this->paletteRepository
+            ->createQueryBuilder('p')
+            ->select('SUM(p.poidsRestant)')
+
+            ->where('p.coldRoom = :coldRoom')
+            ->setParameter('coldRoom', $coldRoom)
+            ->andWhere('p.cartonsRestants > 0')
+            ->andWhere('p.status NOT IN (:excludedStatuses)')
+            ->setParameter('excludedStatuses', $excluded);
+
+        $result = $qb->getQuery()->getSingleScalarResult();
+
+        return (float) ($result ?? 0.0);
+    }
+
+    public function getAvailableCapacity(ColdRoom $coldRoom): float
+    {
+        return (float) $coldRoom->getMaxCapacityTons() - $this->getUsedCapacity($coldRoom);
+    }
+
+    public function getOccupancyRate(ColdRoom $coldRoom): float
+    {
+        $max = (float) $coldRoom->getMaxCapacityTons();
+        if ($max <= 0.0) {
+            return 0.0;
+        }
+
+        return ($this->getUsedCapacity($coldRoom) / $max) * 100.0;
+    }
+
+    /**
+     * Utilisé pour le dashboard: retourne un tableau par chambre avec used/available/rate.
+     *
+     * @param ColdRoom[] $coldRooms
+     * @return array<int, array{usedCapacity: float, availableCapacity: float, occupancyRate: float}>
+     */
+    public function getOccupancyStatsForRooms(array $coldRooms): array
+    {
+        $stats = [];
+        foreach ($coldRooms as $room) {
+            if (!$room instanceof ColdRoom) {
+                continue;
+            }
+
+            $used = $this->getUsedCapacity($room);
+            $max = (float) $room->getMaxCapacityTons();
+            $available = $max - $used;
+            $rate = $max > 0.0 ? ($used / $max) * 100.0 : 0.0;
+
+            $stats[$room->getId()] = [
+                'usedCapacity' => $used,
+                'availableCapacity' => $available,
+                'occupancyRate' => $rate,
+            ];
+        }
+
+        return $stats;
+    }
+}
+
+

@@ -54,4 +54,30 @@ class StockExitRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findPendingByCreatedBy(\App\Entity\User $user, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('e')
+            ->where('e.status = :status')
+            ->andWhere('e.createdBy = :user')
+            ->setParameter('status', StockStatus::PENDING)
+            ->setParameter('user', $user)
+            ->orderBy('e.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countPendingByCreatedBy(\App\Entity\User $user): int
+    {
+        return (int) $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.status = :status')
+            ->andWhere('e.createdBy = :user')
+            ->setParameter('status', StockStatus::PENDING)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 }
+

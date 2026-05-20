@@ -72,68 +72,109 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% set totCartonsE = 0 %}
-                        {% set totCartonsS = 0 %}
-                        {% set totCartonsR = 0 %}
-                        {% set totPoidsE = 0 %}
-                        {% set totPoidsS = 0 %}
-                        {% set totPoidsR = 0 %}
-                        {% for p in palettes %}
-                            {% set cartonsSortis = p.nombreCartons - p.cartonsRestants %}
-                            {% set poidsEntree = p.poidsTotal|number_format(3, '.', '') %}
-                            {% set poidsRestant = p.poidsRestant|number_format(3, '.', '') %}
-                            {% set poidsSortie = poidsEntree - poidsRestant %}
-                            {% set totCartonsE = totCartonsE + p.nombreCartons %}
-                            {% set totCartonsS = totCartonsS + cartonsSortis %}
-                            {% set totCartonsR = totCartonsR + p.cartonsRestants %}
-                            {% set totPoidsE = totPoidsE + poidsEntree %}
-                            {% set totPoidsS = totPoidsS + poidsSortie %}
-                            {% set totPoidsR = totPoidsR + poidsRestant %}
-                        <tr>
-                            <td>{{ p.espece }}</td>
-                            <td>{{ p.qualite ?? '—' }}</td>
-                            <td>{{ p.moule ?? '—' }}</td>
-                            <td>{{ p.famille ?? '—' }}</td>
-                            <td class="text-center">{{ p.nombreCartons }}</td>
-                            <td class="text-center text-danger">{{ cartonsSortis > 0 ? cartonsSortis : '—' }}</td>
-                            <td class="text-center fw-bold text-success">{{ p.cartonsRestants }}</td>
-                            <td class="text-end">{{ (poidsEntree * 1000)|number_format(0, ',', ' ') }}</td>
-                            <td class="text-end text-danger">{{ (poidsSortie * 1000)|number_format(0, ',', ' ') }}</td>
-                            <td class="text-end fw-bold">{{ (poidsRestant * 1000)|number_format(0, ',', ' ') }}</td>
-                            <td><span class="badge bg-info bg-opacity-25 text-info">{{ p.coldRoom ? p.coldRoom.name : '—' }}</span></td>
-                            <td>{{ p.rayon ?? '—' }}</td>
-                            <td class="text-center">
-                                {% if p.cartonsRestants <= 0 %}
-                                    <span class="badge bg-secondary">Épuisé</span>
-                                {% else %}
-                                    <span class="badge bg-success">Actif</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailPalette{{ p.id }}">
-                                    <i class="bi bi-eye"></i> Voir
-                                </button>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="14" class="text-center py-5 text-muted">
-                                <i class="bi bi-inbox" style="font-size:3rem"></i>
-                                <p class="mt-2">Aucune palette en stock</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
+                        {# =========================
+                           Regroupement État du Stock
+                           Clé : Espèce + Qualité + Moule/Taille + Type de conditionnement (famille)
+                           Totaux : cartons (entrés) + poids total (entrés)
+                           ========================= #}
+
                         {% if palettes|length > 0 %}
-                        <tr style="background:#e2e8f0;font-weight:700">
-                            <td colspan="4">TOTAL</td>
-                            <td class="text-center">{{ totCartonsE }}</td>
-                            <td class="text-center text-danger">{{ totCartonsS }}</td>
-                            <td class="text-center text-success">{{ totCartonsR }}</td>
-                            <td class="text-end">{{ (totPoidsE * 1000)|number_format(0, ',', ' ') }}</td>
-                            <td class="text-end text-danger">{{ (totPoidsS * 1000)|number_format(0, ',', ' ') }}</td>
-                            <td class="text-end">{{ (totPoidsR * 1000)|number_format(0, ',', ' ') }}</td>
-                            <td colspan="4"></td>
-                        </tr>
+                            {% set grouped = {} %}
+                            {% set totCartonsE = 0 %}
+                            {% set totPoidsE = 0 %}
+
+                            {% for p in palettes %}
+                                {% set esp = p.espece|default('') %}
+                                {% set qual = p.qualite ?? '—' %}
+                                {% set moule = p.moule ?? '—' %}
+                                {% set cond = p.famille ?? '—' %}
+
+                                {% set key = esp ~ '||' ~ qual ~ '||' ~ moule ~ '||' ~ cond %}
+
+                                {% set totCartonsE = totCartonsE + p.nombreCartons %}
+                                {% set poidsEntree = (p.poidsTotal ?? 0) %}
+                                {% set totPoidsE = totPoidsE + poidsEntree %}
+
+                                {% if grouped[key] is not defined %}
+                                    {% set grouped = grouped|merge({ (key): {
+                                        'idGroup': key,
+                                        'esp': esp,
+                                        'qual': qual,
+                                        'moule': moule,
+                                        'cond': cond,
+                                        'cartonsEntrés': p.nombreCartons,
+                                        'poidsEntree': poidsEntree,
+                                        'cartonsRestants': p.cartonsRestants ?? 0,
+                                        'coldRoom': p.coldRoom ? p.coldRoom.name : '—',
+                                        'rayon': p.rayon ?? '—',
+                                    } }) %}
+                                {% else %}
+                                    {% set prev = grouped[key] %}
+                                    {% set grouped = grouped|merge({ (key): {
+                                        'idGroup': prev.idGroup,
+                                        'esp': prev.esp,
+                                        'qual': prev.qual,
+                                        'moule': prev.moule,
+                                        'cond': prev.cond,
+                                        'cartonsEntrés': prev.cartonsEntrés + p.nombreCartons,
+                                        'poidsEntree': prev.poidsEntree + poidsEntree,
+                                        'cartonsRestants': prev.cartonsRestants + (p.cartonsRestants ?? 0),
+                                        'coldRoom': prev.coldRoom,
+                                        'rayon': prev.rayon
+                                    } }) %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {% for item in grouped %}
+                                {% set cartonsSortis = item.cartonsEntrés - item.cartonsRestants %}
+                                {% set poidsRestant = 0 %}
+                                {% set poidsEntree = item.poidsEntree %}
+                                {% set poidsSortie = poidsEntree - poidsRestant %}
+
+                                <tr>
+                                    <td>{{ item.esp }}</td>
+                                    <td>{{ item.qual }}</td>
+                                    <td>{{ item.moule }}</td>
+                                    <td>{{ item.cond }}</td>
+                                    <td class="text-center">{{ item.cartonsEntrés }}</td>
+                                    <td class="text-center text-danger">{{ cartonsSortis > 0 ? cartonsSortis : '—' }}</td>
+                                    <td class="text-center fw-bold text-success">{{ item.cartonsRestants }}</td>
+                                    <td class="text-end">{{ (poidsEntree * 1000)|number_format(0, ',', ' ') }}</td>
+                                    <td class="text-end text-danger">{{ (poidsSortie * 1000)|number_format(0, ',', ' ') }}</td>
+                                    <td class="text-end fw-bold">{{ (poidsRestant * 1000)|number_format(0, ',', ' ') }}</td>
+                                    <td><span class="badge bg-info bg-opacity-25 text-info">{{ item.coldRoom }}</span></td>
+                                    <td>{{ item.rayon }}</td>
+                                    <td class="text-center">
+                                        {% if item.cartonsRestants <= 0 %}
+                                            <span class="badge bg-secondary">Épuisé</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {# Détail = liste des palettes du regroupement (via modal simple ici)
+                                           (si tu as une page dédiée, on pourra ensuite rediriger vers cette page) #}
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailGroup{{ item.idGroup }}">
+                                            <i class="bi bi-eye"></i> Détail
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+
+                            <tr style="background:#e2e8f0;font-weight:700">
+                                <td colspan="4">TOTAL</td>
+                                <td class="text-center">{{ totCartonsE }}</td>
+                                <td colspan="2"></td>
+                                <td class="text-end">{{ (totPoidsE * 1000)|number_format(0, ',', ' ') }}</td>
+                                <td colspan="6"></td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="14" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox" style="font-size:3rem"></i>
+                                    <p class="mt-2">Aucune palette en stock</p>
+                                </td>
+                            </tr>
                         {% endif %}
                     </tbody>
                 </table>

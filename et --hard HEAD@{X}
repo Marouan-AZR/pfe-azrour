@@ -1,0 +1,23 @@
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{0}: reset: moving to HEAD
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{1}: checkout: moving from nada to tests_Nada
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{2}: checkout: moving from tests_Nada to nada
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{3}: reset: moving to HEAD
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{4}: checkout: moving from NADA-AZ to tests_Nada
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{5}: checkout: moving from nada to NADA-AZ
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{6}: checkout: moving from NADA-AZ to nada
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{7}: reset: moving to origin/main
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{8}: checkout: moving from NADA-AZ to NADA-AZ
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{9}: pull origin main: Fast-forward
+[33m40f8fe9[m[33m ([m[1;31morigin/NADA-AZ[m[33m)[m HEAD@{10}: checkout: moving from NADA-AZ to NADA-AZ
+[33m40f8fe9[m[33m ([m[1;31morigin/NADA-AZ[m[33m)[m HEAD@{11}: checkout: moving from NADA-AZ to NADA-AZ
+[33m40f8fe9[m[33m ([m[1;31morigin/NADA-AZ[m[33m)[m HEAD@{12}: checkout: moving from 40f8fe9e4379276e70f483a90deb099793842131 to NADA-AZ
+[33m40f8fe9[m[33m ([m[1;31morigin/NADA-AZ[m[33m)[m HEAD@{13}: checkout: moving from NADA-AZ to 40f8fe9
+[33me34bb6b[m HEAD@{14}: reset: moving to HEAD~3
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{15}: checkout: moving from 0d0bd6f1a1287640ee24d6790fa9623dc0f6b058 to NADA-AZ
+[33m0d0bd6f[m HEAD@{16}: checkout: moving from NADA-AZ to HEAD~1
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{17}: checkout: moving from d231a6638dc42e1fd3a705b3f545821833e3b6d1 to NADA-AZ
+[33md231a66[m HEAD@{18}: checkout: moving from NADA-AZ to HEAD~5
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{19}: reset: moving to HEAD
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{20}: checkout: moving from nada to NADA-AZ
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{21}: reset: moving to origin/main
+[33mb9a3e7f[m[33m ([m[1;36mHEAD -> [m[1;32mtests_Nada[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mnada[m[33m, [m[1;32mNADA-AZ[m[33m)[m HEAD@{22}: initial pull

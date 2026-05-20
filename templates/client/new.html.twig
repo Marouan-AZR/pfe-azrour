@@ -23,9 +23,15 @@
 
                 <div class="mb-3">
                     <label class="form-label"><i class="bi bi-upc me-1 text-primary"></i> Code client</label>
-                    {{ form_widget(form.code, {'attr': {'class': 'form-control', 'placeholder': 'CLI-XXXXXXXX (auto-généré)'}}) }}
+                    {{ form_widget(form.code, {'attr': {'class': 'form-control', 'placeholder': 'CLI-XXXXXXXX (auto-généré)', 'readonly': true}}) }}
                     {{ form_errors(form.code) }}
-                    <small class="text-muted">Code unique d'identification</small>
+                    <small class="text-muted">Code unique d'identification (auto-généré)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><i class="bi bi-file-earmark-text me-1 text-primary"></i> N° d'agrément</label>
+                    {{ form_widget(form.numeroAgrement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: 12345'}}) }}
+                    {{ form_errors(form.numeroAgrement) }}
                 </div>
 
                 <div class="row g-3 mb-3">
