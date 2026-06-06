@@ -13,13 +13,27 @@
         {% endif %}
     </div>
 
+    {# Filtres #}
     <div class="card mb-3">
         <div class="card-body py-2">
-            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="🔍 Rechercher..." style="max-width:300px;">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="🔍 Rechercher BL, client..." style="max-width:250px;">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-primary btn-sm active" data-filter="">Tous</button>
+                    <button class="btn btn-outline-info btn-sm" data-filter="pending" title="En attente de contrôle">🔵 En attente contrôle</button>
+                    <button class="btn btn-outline-warning btn-sm" data-filter="pending">🟡 En attente validation</button>
+                    <button class="btn btn-outline-success btn-sm" data-filter="validated">🟢 Validé</button>
+                    <button class="btn btn-outline-danger btn-sm" data-filter="rejected">🔴 Rejeté</button>
+                </div>
+            </div>
         </div>
     </div>
 
+    {# Tableau regroupé par BL #}
     <div class="card">
+        <div class="card-header">
+            <i class="bi bi-table me-2"></i>Sorties regroupées par BL ({{ operations|length }} opérations)
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
@@ -29,39 +43,60 @@
                             <th>Date</th>
                             <th>Client</th>
                             <th>Espèces sorties</th>
+                            <th class="text-center">Quantité (kg)</th>
                             <th class="text-center">Cartons</th>
-                            <th class="text-end">Poids (kg)</th>
                             <th class="text-center">Statut</th>
+                            <th>Chef de stock</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for op in operations %}
-                        <tr class="op-row" data-search="{{ op.code }} {{ op.client.companyName }}">
+                        <tr class="op-row" data-search="{{ op.code }} {{ op.client.companyName }}" data-status="{{ op.status.value }}">
                             <td><code class="fw-bold">{{ op.code }}</code></td>
-                            <td>{{ op.createdAt|date('d/m/Y H:i') }}</td>
+                            <td>
+                                {{ op.createdAt|date('d/m/Y') }}
+                                <br><small class="text-muted">{{ op.createdAt|date('H:i') }}</small>
+                            </td>
                             <td class="fw-semibold">{{ op.client.companyName }}</td>
                             <td>{{ op.especes|join(', ') }}</td>
+                            <td class="text-center">{{ op.poidsTotal|number_format(0, ',', ' ') }}</td>
                             <td class="text-center">{{ op.totalCartons }}</td>
-                            <td class="text-end">{{ op.poidsTotal|number_format(0, ',', ' ') }}</td>
-                            <td class="text-center"><span class="badge bg-{{ op.status.cssClass }}">{{ op.status.label }}</span></td>
+                            <td class="text-center">
+                                {% if op.ficheDecharge %}
+                                    {% if op.ficheDecharge.isEnCoursControle %}
+                                        <span class="badge bg-info">En cours de contrôle</span>
+                                    {% elseif op.ficheDecharge.isEnAttenteValidation %}
+                                        <span class="badge bg-warning">En attente de validation</span>
+                                    {% elseif op.ficheDecharge.isValidee %}
+                                        <span class="badge bg-success">Validée</span>
+                                    {% elseif op.ficheDecharge.isRejetee %}
+                                        <span class="badge bg-danger">Rejetée</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-{{ op.status.cssClass }}">{{ op.status.label }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ op.createdBy.fullName }}</small>
+                            </td>
                             <td class="text-center">
                                 <div class="d-flex gap-1 justify-content-center">
-                                    <a href="{{ path('app_operation_show', {id: op.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Détails</a>
+                                    <a href="{{ path('app_operation_show', {id: op.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
                                     {% if op.isValidated %}
-                                    <a href="{{ path('app_operation_bon_sortie', {id: op.id}) }}" class="btn btn-sm btn-outline-success" target="_blank"><i class="bi bi-file-earmark"></i> BS</a>
+                                    <a href="{{ path('app_operation_bon_sortie', {id: op.id}) }}" class="btn btn-sm btn-outline-success" target="_blank" title="Bon de sortie"><i class="bi bi-file-earmark"></i></a>
                                     {% endif %}
                                     {% if op.isPending and is_granted('ROLE_CHEF_STOCK') %}
                                     <form action="{{ path('app_operation_validate', {id: op.id}) }}" method="post" class="d-inline">
                                         <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ op.id) }}">
-                                        <button class="btn btn-sm btn-outline-success"><i class="bi bi-check"></i></button>
+                                        <button class="btn btn-sm btn-outline-success" title="Valider"><i class="bi bi-check"></i></button>
                                     </form>
                                     {% endif %}
                                 </div>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="8" class="text-center py-4 text-muted">Aucune opération de sortie</td></tr>
+                        <tr><td colspan="9" class="text-center py-4 text-muted"><i class="bi bi-inbox" style="font-size:2rem"></i><p>Aucune opération de sortie</p></td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -73,10 +108,22 @@
 
 {% block javascripts %}
 <script>
-document.getElementById('searchInput')?.addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    document.querySelectorAll('.op-row').forEach(r => {
-        r.style.display = r.dataset.search.toLowerCase().includes(q) ? '' : 'none';
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('searchInput')?.addEventListener('input', function() {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('.op-row').forEach(r => {
+            r.style.display = r.dataset.search.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active', 'btn-primary'));
+            this.classList.add('active', 'btn-primary');
+            const f = this.dataset.filter;
+            document.querySelectorAll('.op-row').forEach(r => {
+                r.style.display = (!f || r.dataset.status === f) ? '' : 'none';
+            });
+        });
     });
 });
 </script>

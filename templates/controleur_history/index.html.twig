@@ -4,106 +4,122 @@
 
 {% block body %}
 <div class="container-fluid py-4">
-    <h1 class="mb-4"><i class="bi bi-clock-history me-2"></i>Mon Historique</h1>
+    <h2 class="mb-4"><i class="bi bi-journal-text me-2"></i>Mon Historique d'opérations</h2>
 
-    <!-- KPI Cards -->
+    {# KPIs #}
     <div class="row g-3 mb-4">
         <div class="col-md-2">
             <div class="card text-center p-3">
-                <div class="fs-3 text-success">{{ kpis.entries }}</div>
-                <small class="text-muted">Entrées</small>
+                <div class="fs-3 fw-bold text-success">{{ kpis.entries }}</div>
+                <small class="text-muted">📦 Entrées</small>
             </div>
         </div>
         <div class="col-md-2">
             <div class="card text-center p-3">
-                <div class="fs-3 text-warning">{{ kpis.exits }}</div>
-                <small class="text-muted">Sorties</small>
+                <div class="fs-3 fw-bold text-danger">{{ kpis.exits }}</div>
+                <small class="text-muted">🚚 Sorties</small>
             </div>
         </div>
         <div class="col-md-2">
             <div class="card text-center p-3">
-                <div class="fs-3 text-info">{{ kpis.transfers }}</div>
-                <small class="text-muted">Transferts</small>
+                <div class="fs-3 fw-bold text-info">{{ kpis.transfers }}</div>
+                <small class="text-muted">🔄 Transferts</small>
             </div>
         </div>
         <div class="col-md-2">
             <div class="card text-center p-3">
-                <div class="fs-3 text-primary">{{ kpis.palettes }}</div>
-                <small class="text-muted">Palettes</small>
+                <div class="fs-3 fw-bold">{{ kpis.palettes }}</div>
+                <small class="text-muted">🗂 Palettes</small>
             </div>
         </div>
         <div class="col-md-2">
             <div class="card text-center p-3">
-                <div class="fs-3">{{ kpis.cartons }}</div>
-                <small class="text-muted">Cartons</small>
+                <div class="fs-3 fw-bold">{{ kpis.cartons|number_format(0, ',', ' ') }}</div>
+                <small class="text-muted">📊 Cartons</small>
             </div>
         </div>
         <div class="col-md-2">
             <div class="card text-center p-3">
-                <div class="fs-3 text-danger">{{ kpis.weight }} T</div>
-                <small class="text-muted">Poids total</small>
+                <div class="fs-3 fw-bold">{{ kpis.weight }} T</div>
+                <small class="text-muted">⚖️ Poids total</small>
             </div>
         </div>
     </div>
 
-    <!-- Date filter -->
-    <form method="get" class="row g-3 mb-4">
-        <div class="col-auto">
-            <input type="date" name="from" class="form-control" value="{{ from }}" placeholder="Du">
+    {# Filtres #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Recherche</label>
+                    <input type="text" name="q" class="form-control" placeholder="Code, client, espèce..." value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date début</label>
+                    <input type="date" name="from" class="form-control" value="{{ from }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date fin</label>
+                    <input type="date" name="to" class="form-control" value="{{ to }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrer</button>
+                </div>
+                <div class="col-md-1">
+                    <a href="{{ path('app_controleur_history') }}" class="btn btn-outline-secondary w-100"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </form>
         </div>
-        <div class="col-auto">
-            <input type="date" name="to" class="form-control" value="{{ to }}" placeholder="Au">
-        </div>
-        <div class="col-auto">
-            <button class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Filtrer</button>
-        </div>
-        {% if from or to %}
-        <div class="col-auto">
-            <a href="{{ path('app_controleur_history') }}" class="btn btn-outline-secondary">Réinitialiser</a>
-        </div>
-        {% endif %}
-    </form>
+    </div>
 
-    <!-- Operations table -->
+    {# Tableau des opérations #}
     <div class="card">
-        <div class="card-header"><i class="bi bi-list-ul me-2"></i>Opérations</div>
+        <div class="card-header"><i class="bi bi-list-ul me-2"></i>Opérations ({{ operations|length }})</div>
         <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Code</th>
-                        <th>Type</th>
-                        <th>Client</th>
-                        <th class="text-center">Palettes</th>
-                        <th class="text-center">Cartons</th>
-                        <th class="text-end">Poids</th>
-                        <th>Statut</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for op in operations %}
-                    <tr>
-                        <td>{{ op.createdAt|date('d/m/Y') }}</td>
-                        <td><code>{{ op.code }}</code></td>
-                        <td>
-                            {% if op.type.value == 'entry' %}
-                                <span class="badge bg-success">Entrée</span>
-                            {% else %}
-                                <span class="badge bg-warning">Sortie</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ op.client.companyName }}</td>
-                        <td class="text-center">{{ op.nombrePalettes }}</td>
-                        <td class="text-center">{{ op.totalCartons }}</td>
-                        <td class="text-end">{{ (op.poidsTotal / 1000)|number_format(3) }} T</td>
-                        <td><span class="badge bg-{{ op.status.value == 'validated' ? 'success' : (op.status.value == 'pending' ? 'warning' : 'danger') }}">{{ op.status.value }}</span></td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="8" class="text-center text-muted py-3">Aucune opération</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Client</th>
+                            <th>Espèces</th>
+                            <th class="text-center">Palettes</th>
+                            <th class="text-center">Total Cartons</th>
+                            <th class="text-end">Poids (kg)</th>
+                            <th class="text-end">Poids (T)</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for op in operations %}
+                        <tr>
+                            <td>{{ op.createdAt|date('d/m/Y') }}</td>
+                            <td>
+                                {% if op.type.value == 'entry' %}
+                                    <span class="badge bg-success">Entrée</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Sortie</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ op.client.companyName }}</td>
+                            <td>{{ op.especes|join(', ') }}</td>
+                            <td class="text-center">{{ op.nombrePalettes }}</td>
+                            <td class="text-center">{{ op.totalCartons }}</td>
+                            <td class="text-end">{{ op.poidsTotal|number_format(0, ',', ' ') }}</td>
+                            <td class="text-end">{{ op.poidsTotalTonnes|number_format(2) }} T</td>
+                            <td class="text-center">
+                                <a href="{{ path('app_controleur_history_detail', {id: op.id}) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Voir détails
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="9" class="text-center py-5 text-muted">Aucune opération pour cette période</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

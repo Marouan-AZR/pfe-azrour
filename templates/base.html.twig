@@ -19,7 +19,8 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="{{ path('app_dashboard') }}" class="sidebar-brand">
-                    <i class="bi bi-snow"></i>
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="sidebar-logo" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#fff;padding:2px;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+                    <i class="bi bi-snow" style="display:none"></i>
                     <span class="sidebar-brand-text">Golden Logistics</span>
                 </a>
                 <button class="sidebar-toggle" id="sidebarToggle">
@@ -67,13 +68,13 @@
                     {% if is_granted('ROLE_CONTROLEUR') and not is_granted('ROLE_CHEF_STOCK') %}
                     <li class="sidebar-heading">Contrôle</li>
                     <li class="sidebar-item">
-                        <a class="sidebar-link {{ 'transfer' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_dashboard') }}">
+                        <a class="sidebar-link {{ 'transfer' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_transfer_index') }}">
                             <i class="bi bi-arrow-left-right"></i>
                             <span>Transferts</span>
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <a class="sidebar-link" href="{{ path('app_dashboard') }}">
+                        <a class="sidebar-link {{ 'controleur_history' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_controleur_history') }}">
                             <i class="bi bi-journal-text"></i>
                             <span>Mon historique</span>
                         </a>
@@ -133,8 +134,23 @@
                     </li>
                     {% endif %}
 
+                    {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') %}
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'controleur_dashboard' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_controleur_dashboard') }}">
+                            <i class="bi bi-bar-chart-line"></i>
+                            <span>Performances</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
                     {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
                     <li class="sidebar-heading">Système</li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'alerts' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_alerts') }}">
+                            <i class="bi bi-bell"></i>
+                            <span>Alertes</span>
+                        </a>
+                    </li>
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ 'history' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_history_index') }}">
                             <i class="bi bi-clock-history"></i>

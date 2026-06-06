@@ -36,17 +36,25 @@ class OperationController extends AbstractController
 
     #[Route('/entrees', name: 'app_operation_entry_index')]
     #[IsGranted('ROLE_CONTROLEUR')]
-    public function entryIndex(): Response
+    public function entryIndex(Request $request, ClientRepository $clientRepo): Response
     {
         $user = $this->getUser();
+        $filters = [
+            'client' => $request->query->get('client'),
+            'date' => $request->query->get('date'),
+            'code' => $request->query->get('code'),
+        ];
+
         if ($this->isGranted('ROLE_CHEF_STOCK')) {
-            $operations = $this->operationRepo->findByType(OperationType::ENTRY);
+            $operations = $this->operationRepo->findByTypeWithFilters(OperationType::ENTRY, $filters);
         } else {
-            $operations = $this->operationRepo->findByControleur($user, OperationType::ENTRY);
+            $operations = $this->operationRepo->findByControleurWithFilters($user, OperationType::ENTRY, $filters);
         }
 
         return $this->render('operation/entry_index.html.twig', [
             'operations' => $operations,
+            'clients' => $clientRepo->findBy(['isActive' => true], ['companyName' => 'ASC']),
+            'filters' => $filters,
         ]);
     }
 
@@ -357,13 +365,21 @@ class OperationController extends AbstractController
 
     #[Route('/sorties', name: 'app_operation_exit_index')]
     #[IsGranted('ROLE_CONTROLEUR')]
-    public function exitIndex(): Response
+    public function exitIndex(Request $request, ClientRepository $clientRepo): Response
     {
         $user = $this->getUser();
+        $filters = [
+            'client' => $request->query->get('client'),
+            'date' => $request->query->get('date'),
+            'code' => $request->query->get('code'),
+        ];
+
         if ($this->isGranted('ROLE_CHEF_STOCK')) {
-            $operations = $this->operationRepo->findByType(OperationType::EXIT);
+            // Chef de stock sees all exit operations
+            $operations = $this->operationRepo->findByTypeWithFilters(OperationType::EXIT, $filters);
         } else {
-            $operations = $this->operationRepo->findByControleur($user, OperationType::EXIT);
+            // Controleur sees only his assigned operations
+            $operations = $this->operationRepo->findByControleurWithFilters($user, OperationType::EXIT, $filters);
         }
 
         return $this->render('operation/exit_index.html.twig', [

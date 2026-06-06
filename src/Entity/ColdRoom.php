@@ -38,9 +38,13 @@ class ColdRoom
     #[ORM\OneToMany(mappedBy: 'coldRoom', targetEntity: StockItem::class)]
     private Collection $stockItems;
 
+    #[ORM\OneToMany(mappedBy: 'coldRoom', targetEntity: \App\Entity\Palette::class)]
+    private Collection $palettes;
+
     public function __construct()
     {
         $this->stockItems = new ArrayCollection();
+        $this->palettes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -102,17 +106,21 @@ class ColdRoom
         return $this->stockItems;
     }
 
+    public function getPalettes(): Collection
+    {
+        return $this->palettes;
+    }
+
     public function getUsedCapacity(): float
     {
-        // Utilisation de la quantité restante de chaque StockItem.
-        // (getRemainingQuantity() retourne déjà un float.)
-        return array_reduce(
-            $this->stockItems->toArray(),
-            function (float $carry, StockItem $item): float {
-                return $carry + $item->getRemainingQuantity();
-            },
-            0.0
-        );
+        // Calculate from actual palettes with remaining stock (in tons)
+        $total = 0.0;
+        foreach ($this->palettes as $palette) {
+            if ($palette->getCartonsRestants() > 0) {
+                $total += (float)$palette->getPoidsRestant();
+            }
+        }
+        return $total;
     }
 
 
@@ -139,7 +147,7 @@ class ColdRoom
 
     public function canBeDeactivated(): bool
     {
-        return $this->stockItems->isEmpty();
+        return $this->getUsedCapacity() <= 0;
     }
 
     #[ORM\PrePersist]

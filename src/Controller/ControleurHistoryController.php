@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Operation;
 use App\Enum\OperationType;
 use App\Repository\OperationRepository;
 use App\Repository\PaletteTransferRepository;
@@ -20,9 +21,20 @@ class ControleurHistoryController extends AbstractController
         $user = $this->getUser();
         $from = $request->query->get('from') ? new \DateTime($request->query->get('from')) : null;
         $to = $request->query->get('to') ? new \DateTime($request->query->get('to') . ' 23:59:59') : null;
+        $search = $request->query->get('q');
 
         $operations = $operationRepo->findByControleurAndDates($user, $from, $to);
         $transfers = $transferRepo->findByControleur($user);
+
+        // Filter by search
+        if ($search) {
+            $operations = array_filter($operations, function ($o) use ($search) {
+                $s = strtolower($search);
+                return str_contains(strtolower($o->getCode()), $s)
+                    || str_contains(strtolower($o->getClient()->getCompanyName()), $s)
+                    || str_contains(strtolower(implode(' ', $o->getEspeces())), $s);
+            });
+        }
 
         // KPIs
         $entries = array_filter($operations, fn($o) => $o->getType() === OperationType::ENTRY);
@@ -43,6 +55,21 @@ class ControleurHistoryController extends AbstractController
             ],
             'from' => $request->query->get('from'),
             'to' => $request->query->get('to'),
+            'search' => $search,
+        ]);
+    }
+
+    #[Route('/controleur/historique/{id}', name: 'app_controleur_history_detail')]
+    #[IsGranted('ROLE_CONTROLEUR')]
+    public function detail(Operation $operation): Response
+    {
+        // Security check - only own operations
+        if ($operation->getControleur() !== $this->getUser()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $this->render('controleur_history/detail.html.twig', [
+            'operation' => $operation,
         ]);
     }
 }

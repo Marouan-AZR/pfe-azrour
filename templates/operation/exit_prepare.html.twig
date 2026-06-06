@@ -42,23 +42,32 @@
             {# Inline filters #}
             <div class="card-body border-bottom py-2">
                 <div class="row g-2">
-                    <div class="col-md-2">
+                    <div class="col">
                         <input type="text" class="form-control form-control-sm" id="filterEspece" placeholder="Espèce">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col">
                         <input type="text" class="form-control form-control-sm" id="filterQualite" placeholder="Qualité">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col">
                         <input type="text" class="form-control form-control-sm" id="filterMoule" placeholder="Moule">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col">
+                        <input type="text" class="form-control form-control-sm" id="filterFamille" placeholder="Famille">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control form-control-sm" id="filterLot" placeholder="Code lot">
+                    </div>
+                    <div class="col">
+                        <input type="date" class="form-control form-control-sm" id="filterDate" placeholder="Date">
+                    </div>
+                    <div class="col">
                         <input type="text" class="form-control form-control-sm" id="filterChambre" placeholder="Chambre">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col">
                         <input type="text" class="form-control form-control-sm" id="filterRayon" placeholder="Rayon">
                     </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="clearFilters()">Effacer</button>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFilters()"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>
             </div>
@@ -84,7 +93,7 @@
                         </thead>
                         <tbody>
                             {% for palette in palettes %}
-                            <tr class="palette-row" data-espece="{{ palette.espece }}" data-qualite="{{ palette.qualite }}" data-moule="{{ palette.moule }}" data-chambre="{{ palette.coldRoom ? palette.coldRoom.name : '' }}" data-rayon="{{ palette.rayon }}">
+                            <tr class="palette-row" data-espece="{{ palette.espece }}" data-qualite="{{ palette.qualite }}" data-moule="{{ palette.moule }}" data-famille="{{ palette.famille }}" data-lot="{{ palette.operation.cdLotClient }}" data-date="{{ palette.operation.dateReception|date('Y-m-d') }}" data-chambre="{{ palette.coldRoom ? palette.coldRoom.name : '' }}" data-rayon="{{ palette.rayon }}">
                                 <td><input type="checkbox" name="selected_palettes[]" value="{{ palette.id }}"></td>
                                 <td><code>{{ palette.codePalette }}</code></td>
                                 <td>{{ palette.espece }}</td>
@@ -156,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Inline filters
-    const filterFields = ['filterEspece', 'filterQualite', 'filterMoule', 'filterChambre', 'filterRayon'];
+    const filterFields = ['filterEspece', 'filterQualite', 'filterMoule', 'filterFamille', 'filterLot', 'filterDate', 'filterChambre', 'filterRayon'];
     filterFields.forEach(id => {
         document.getElementById(id)?.addEventListener('input', applyFilters);
     });
@@ -165,6 +174,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const espece = document.getElementById('filterEspece').value.toLowerCase();
         const qualite = document.getElementById('filterQualite').value.toLowerCase();
         const moule = document.getElementById('filterMoule').value.toLowerCase();
+        const famille = document.getElementById('filterFamille').value.toLowerCase();
+        const lot = document.getElementById('filterLot').value.toLowerCase();
+        const date = document.getElementById('filterDate').value;
         const chambre = document.getElementById('filterChambre').value.toLowerCase();
         const rayon = document.getElementById('filterRayon').value.toLowerCase();
 
@@ -172,6 +184,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const show = (!espece || row.dataset.espece.toLowerCase().includes(espece))
                 && (!qualite || (row.dataset.qualite || '').toLowerCase().includes(qualite))
                 && (!moule || (row.dataset.moule || '').toLowerCase().includes(moule))
+                && (!famille || (row.dataset.famille || '').toLowerCase().includes(famille))
+                && (!lot || (row.dataset.lot || '').toLowerCase().includes(lot))
+                && (!date || row.dataset.date === date)
                 && (!chambre || (row.dataset.chambre || '').toLowerCase().includes(chambre))
                 && (!rayon || (row.dataset.rayon || '').toLowerCase().includes(rayon));
             row.style.display = show ? '' : 'none';

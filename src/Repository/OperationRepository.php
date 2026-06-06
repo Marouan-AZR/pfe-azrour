@@ -33,6 +33,47 @@ class OperationRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    public function findByTypeWithFilters(OperationType $type, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->where('o.type = :type')
+            ->setParameter('type', $type)
+            ->orderBy('o.createdAt', 'DESC');
+
+        $this->applyFilters($qb, $filters);
+        return $qb->getQuery()->getResult();
+    }
+
+    public function findByControleurWithFilters(User $controleur, OperationType $type, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->where('o.controleur = :controleur')
+            ->andWhere('o.type = :type')
+            ->setParameter('controleur', $controleur)
+            ->setParameter('type', $type)
+            ->orderBy('o.createdAt', 'DESC');
+
+        $this->applyFilters($qb, $filters);
+        return $qb->getQuery()->getResult();
+    }
+
+    private function applyFilters($qb, array $filters): void
+    {
+        if (!empty($filters['client'])) {
+            $qb->andWhere('o.client = :client')->setParameter('client', $filters['client']);
+        }
+        if (!empty($filters['date'])) {
+            $date = new \DateTime($filters['date']);
+            $qb->andWhere('o.createdAt >= :dateStart')
+               ->andWhere('o.createdAt <= :dateEnd')
+               ->setParameter('dateStart', $date->format('Y-m-d 00:00:00'))
+               ->setParameter('dateEnd', $date->format('Y-m-d 23:59:59'));
+        }
+        if (!empty($filters['code'])) {
+            $qb->andWhere('o.code LIKE :code')->setParameter('code', '%' . $filters['code'] . '%');
+        }
+    }
+
     public function findByControleur(User $controleur, ?OperationType $type = null): array
     {
         $qb = $this->createQueryBuilder('o')

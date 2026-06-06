@@ -102,6 +102,18 @@ class PaletteRepository extends ServiceEntityRepository
             ->getQuery()->getResult();
     }
 
+    public function getDistinctFilterValues(): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        return [
+            'especes' => array_column($conn->fetchAllAssociative('SELECT DISTINCT espece FROM palettes WHERE espece IS NOT NULL ORDER BY espece'), 'espece'),
+            'qualites' => array_column($conn->fetchAllAssociative('SELECT DISTINCT qualite FROM palettes WHERE qualite IS NOT NULL ORDER BY qualite'), 'qualite'),
+            'moules' => array_column($conn->fetchAllAssociative('SELECT DISTINCT moule FROM palettes WHERE moule IS NOT NULL ORDER BY moule'), 'moule'),
+            'familles' => array_column($conn->fetchAllAssociative('SELECT DISTINCT famille FROM palettes WHERE famille IS NOT NULL ORDER BY famille'), 'famille'),
+            'rayons' => array_column($conn->fetchAllAssociative('SELECT DISTINCT rayon FROM palettes WHERE rayon IS NOT NULL ORDER BY rayon'), 'rayon'),
+        ];
+    }
+
     public function getTotalStockByClient(Client $client): float
     {
         $result = $this->createQueryBuilder('p')

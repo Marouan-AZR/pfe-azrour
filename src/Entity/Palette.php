@@ -46,7 +46,7 @@ class Palette
     #[ORM\Column(type: 'decimal', precision: 10, scale: 3)]
     private string $poidsTotal = '0';
 
-    #[ORM\ManyToOne(targetEntity: ColdRoom::class)]
+    #[ORM\ManyToOne(targetEntity: ColdRoom::class, inversedBy: 'palettes')]
     #[ORM\JoinColumn(nullable: true)]
     private ?ColdRoom $coldRoom = null;
 
