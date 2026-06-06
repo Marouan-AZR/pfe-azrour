@@ -14,12 +14,12 @@
         </a>
     </div>
 
-    {# ===== Filtres ===== #}
+    {# ===== Filtres avancés ===== #}
     <div class="card mb-4">
         <div class="card-body">
             <form method="get" class="row g-3 align-items-end">
                 {% if clients|length > 0 %}
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">Client</label>
                     <select name="client" class="form-select">
                         <option value="">Tous les clients</option>
@@ -29,17 +29,65 @@
                     </select>
                 </div>
                 {% endif %}
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label class="form-label">Espèce</label>
+                    <select name="espece" class="form-select">
+                        <option value="">Toutes</option>
+                        {% for e in distinctValues.especes %}
+                            <option value="{{ e }}" {{ filters.espece == e ? 'selected' }}>{{ e }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Qualité</label>
+                    <select name="qualite" class="form-select">
+                        <option value="">Toutes</option>
+                        {% for q in distinctValues.qualites %}
+                            <option value="{{ q }}" {{ filters.qualite == q ? 'selected' }}>{{ q }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Moule</label>
+                    <select name="moule" class="form-select">
+                        <option value="">Tous</option>
+                        {% for m in distinctValues.moules %}
+                            <option value="{{ m }}" {{ filters.moule == m ? 'selected' }}>{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Famille</label>
+                    <select name="famille" class="form-select">
+                        <option value="">Toutes</option>
+                        {% for f in distinctValues.familles %}
+                            <option value="{{ f }}" {{ filters.famille == f ? 'selected' }}>{{ f }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label">Chambre</label>
                     <select name="cold_room" class="form-select">
-                        <option value="">Toutes les chambres</option>
+                        <option value="">Toutes</option>
                         {% for room in coldRooms %}
                             <option value="{{ room.id }}" {{ filters.coldRoom == room.id ? 'selected' }}>{{ room.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label">Rayon</label>
+                    <select name="rayon" class="form-select">
+                        <option value="">Tous</option>
+                        {% for r in distinctValues.rayons %}
+                            <option value="{{ r }}" {{ filters.rayon == r ? 'selected' }}>{{ r }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrer</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ path('app_stock_index') }}" class="btn btn-outline-secondary w-100"><i class="bi bi-x-lg"></i> Réinitialiser</a>
                 </div>
             </form>
         </div>
@@ -47,14 +95,15 @@
 
     {# ===== Tableau Palettes ===== #}
     <div class="card">
-        <div class="card-header">
-            <i class="bi bi-table me-2"></i>Stock détaillé ({{ palettes|length }} palettes)
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-table me-2"></i>Stock détaillé ({{ palettes|length }} palettes)</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
+                            <th>Client</th>
                             <th>Espèce</th>
                             <th>Qualité</th>
                             <th>Moule</th>
@@ -80,8 +129,8 @@
                         {% set totPoidsR = 0 %}
                         {% for p in palettes %}
                             {% set cartonsSortis = p.nombreCartons - p.cartonsRestants %}
-                            {% set poidsEntree = p.poidsTotal|number_format(3, '.', '') %}
-                            {% set poidsRestant = p.poidsRestant|number_format(3, '.', '') %}
+                            {% set poidsEntree = p.poidsTotal %}
+                            {% set poidsRestant = p.poidsRestant %}
                             {% set poidsSortie = poidsEntree - poidsRestant %}
                             {% set totCartonsE = totCartonsE + p.nombreCartons %}
                             {% set totCartonsS = totCartonsS + cartonsSortis %}
@@ -90,6 +139,7 @@
                             {% set totPoidsS = totPoidsS + poidsSortie %}
                             {% set totPoidsR = totPoidsR + poidsRestant %}
                         <tr>
+                            <td>{{ p.operation.client.companyName }}</td>
                             <td>{{ p.espece }}</td>
                             <td>{{ p.qualite ?? '—' }}</td>
                             <td>{{ p.moule ?? '—' }}</td>
@@ -104,20 +154,20 @@
                             <td>{{ p.rayon ?? '—' }}</td>
                             <td class="text-center">
                                 {% if p.cartonsRestants <= 0 %}
-                                    <span class="badge bg-secondary">Épuisé</span>
+                                    <span class="badge bg-danger">🔴 Épuisé</span>
                                 {% else %}
-                                    <span class="badge bg-success">Actif</span>
+                                    <span class="badge bg-success">🟢 Actif</span>
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailPalette{{ p.id }}">
-                                    <i class="bi bi-eye"></i> Voir
-                                </button>
+                                <a href="{{ path('app_stock_palette_details', {id: p.id}) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Voir Détails
+                                </a>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="14" class="text-center py-5 text-muted">
+                            <td colspan="15" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox" style="font-size:3rem"></i>
                                 <p class="mt-2">Aucune palette en stock</p>
                             </td>
@@ -125,7 +175,8 @@
                         {% endfor %}
                         {% if palettes|length > 0 %}
                         <tr style="background:#e2e8f0;font-weight:700">
-                            <td colspan="4">TOTAL</td>
+                            <td>TOTAL</td>
+                            <td colspan="4"></td>
                             <td class="text-center">{{ totCartonsE }}</td>
                             <td class="text-center text-danger">{{ totCartonsS }}</td>
                             <td class="text-center text-success">{{ totCartonsR }}</td>
@@ -141,34 +192,4 @@
         </div>
     </div>
 </div>
-
-{# ===== Modals ===== #}
-{% for p in palettes %}
-<div class="modal fade" id="detailPalette{{ p.id }}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Palette {{ p.codePalette }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <dl class="row mb-0">
-                    <dt class="col-5">Espèce</dt><dd class="col-7">{{ p.espece }}</dd>
-                    <dt class="col-5">Qualité</dt><dd class="col-7">{{ p.qualite ?? '—' }}</dd>
-                    <dt class="col-5">Moule</dt><dd class="col-7">{{ p.moule ?? '—' }}</dd>
-                    <dt class="col-5">Famille</dt><dd class="col-7">{{ p.famille ?? '—' }}</dd>
-                    <dt class="col-5">Chambre</dt><dd class="col-7">{{ p.coldRoom ? p.coldRoom.name : '—' }}</dd>
-                    <dt class="col-5">Rayon</dt><dd class="col-7">{{ p.rayon ?? '—' }}</dd>
-                    <dt class="col-5">Cartons entrés</dt><dd class="col-7">{{ p.nombreCartons }}</dd>
-                    <dt class="col-5">Cartons restants</dt><dd class="col-7">{{ p.cartonsRestants }}</dd>
-                    <dt class="col-5">Poids total</dt><dd class="col-7">{{ (p.poidsTotal * 1000)|number_format(0) }} kg</dd>
-                    <dt class="col-5">Poids restant</dt><dd class="col-7">{{ (p.poidsRestant * 1000)|number_format(0) }} kg</dd>
-                    <dt class="col-5">Client</dt><dd class="col-7">{{ p.operation.client.companyName }}</dd>
-                    <dt class="col-5">Date</dt><dd class="col-7">{{ p.createdAt|date('d/m/Y') }}</dd>
-                </dl>
-            </div>
-        </div>
-    </div>
-</div>
-{% endfor %}
 {% endblock %}

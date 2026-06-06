@@ -13,19 +13,23 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ControleurDashboardController extends AbstractController
 {
     #[Route('/controleurs/performances', name: 'app_controleur_dashboard')]
-    #[IsGranted('ROLE_CHEF_STOCK')]
+    #[IsGranted('ROLE_CONTROLEUR')]
     public function index(Request $request, OperationRepository $operationRepo, UserRepository $userRepo): Response
     {
+        // Only Chef de stock and Directeur
+        if (!$this->isGranted('ROLE_CHEF_STOCK') && !$this->isGranted('ROLE_DIRECTEUR')) {
+            throw $this->createAccessDeniedException();
+        }
+
         $month = (int)$request->query->get('month', date('m'));
         $year = (int)$request->query->get('year', date('Y'));
 
         $controleurs = $userRepo->findByRole('ROLE_CONTROLEUR');
         $rawStats = $operationRepo->getControleurStatsForMonth($month, $year);
 
-        // Build stats per controleur
         $stats = [];
         foreach ($controleurs as $ctrl) {
-            $stats[$ctrl->getId()] = ['user' => $ctrl, 'entries' => 0, 'exits' => 0, 'total' => 0, 'tonnage' => 0];
+            $stats[$ctrl->getId()] = ['user' => $ctrl, 'entries' => 0, 'exits' => 0, 'total' => 0, 'tonnage' => 0, 'cartons' => 0];
         }
         foreach ($rawStats as $row) {
             $id = $row['controleur_id'];
@@ -38,23 +42,23 @@ class ControleurDashboardController extends AbstractController
             $stats[$id]['total'] += (int)$row['total'];
         }
 
-        // Calculate tonnage per controleur
+        // Calculate tonnage and cartons per controleur
         foreach ($controleurs as $ctrl) {
-            $ops = $operationRepo->countByMonthAndControleur($ctrl, $month, $year);
-            // Get actual operations for tonnage
             $allOps = $operationRepo->findByControleurAndDates(
                 $ctrl,
                 new \DateTime("$year-$month-01"),
                 (new \DateTime("$year-$month-01"))->modify('last day of this month')->setTime(23, 59, 59)
             );
             $tonnage = 0;
+            $cartons = 0;
             foreach ($allOps as $op) {
                 $tonnage += $op->getPoidsTotalTonnes();
+                $cartons += $op->getTotalCartons();
             }
             $stats[$ctrl->getId()]['tonnage'] = round($tonnage, 2);
+            $stats[$ctrl->getId()]['cartons'] = $cartons;
         }
 
-        // Sort by total desc for top 5
         usort($stats, fn($a, $b) => $b['total'] - $a['total']);
         $top5 = array_slice($stats, 0, 5);
 

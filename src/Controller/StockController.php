@@ -36,6 +36,11 @@ class StockController extends AbstractController
         $filters = [
             'client' => $request->query->get('client'),
             'coldRoom' => $request->query->get('cold_room'),
+            'espece' => $request->query->get('espece'),
+            'moule' => $request->query->get('moule'),
+            'qualite' => $request->query->get('qualite'),
+            'famille' => $request->query->get('famille'),
+            'rayon' => $request->query->get('rayon'),
         ];
 
         $client = null;
@@ -51,12 +56,28 @@ class StockController extends AbstractController
             ? $this->stockService->getStockByClient($user->getClient())
             : $this->stockItemRepository->findWithFilters($filters);
 
+        // Get distinct values for filter dropdowns
+        $distinctValues = $this->paletteRepository->getDistinctFilterValues();
+
         return $this->render('stock/index.html.twig', [
             'stockItems' => $stockItems,
             'palettes' => $palettes,
             'clients' => $user->hasRole(UserRole::CLIENT->value) ? [] : $clientRepository->findBy(['isActive' => true]),
             'coldRooms' => $coldRoomRepository->findBy(['isActive' => true]),
             'filters' => $filters,
+            'distinctValues' => $distinctValues,
+        ]);
+    }
+
+    #[Route('/palette/{id}/details', name: 'app_stock_palette_details', methods: ['GET'])]
+    public function paletteDetails(int $id): Response
+    {
+        $palette = $this->paletteRepository->find($id);
+        if (!$palette) {
+            throw $this->createNotFoundException();
+        }
+        return $this->render('stock/palette_details.html.twig', [
+            'palette' => $palette,
         ]);
     }
 

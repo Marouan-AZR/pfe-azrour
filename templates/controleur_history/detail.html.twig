@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails Opération {{ operation.code }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-file-earmark-text me-2"></i>{{ operation.code }}</h2>
+            <small class="text-muted">Détails de l'opération</small>
+        </div>
+        <a href="{{ path('app_controleur_history') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+    </div>
+
+    {# Infos générales #}
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-info-circle me-2"></i>Informations générales</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3"><strong>Date :</strong> {{ operation.createdAt|date('d/m/Y H:i') }}</div>
+                <div class="col-md-3"><strong>Type :</strong>
+                    {% if operation.type.value == 'entry' %}<span class="badge bg-success">Entrée</span>{% else %}<span class="badge bg-danger">Sortie</span>{% endif %}
+                </div>
+                <div class="col-md-3"><strong>Client :</strong> {{ operation.client.companyName }}</div>
+                <div class="col-md-3"><strong>Statut :</strong> <span class="badge bg-{{ operation.status.cssClass }}">{{ operation.status.label }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    {# Résumé #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <div class="fs-4 fw-bold">{{ operation.nombrePalettes }}</div>
+                <small class="text-muted">Palettes</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <div class="fs-4 fw-bold">{{ operation.totalCartons }}</div>
+                <small class="text-muted">Cartons</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <div class="fs-4 fw-bold">{{ operation.poidsTotal|number_format(0, ',', ' ') }} kg</div>
+                <small class="text-muted">Poids total</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <div class="fs-4 fw-bold">{{ operation.poidsTotalTonnes|number_format(2) }} T</div>
+                <small class="text-muted">Tonnage</small>
+            </div>
+        </div>
+    </div>
+
+    {# Tableau des palettes #}
+    <div class="card">
+        <div class="card-header"><i class="bi bi-grid me-2"></i>Palettes ({{ operation.palettes|length }})</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Espèce</th>
+                            <th>Qualité</th>
+                            <th>Moule</th>
+                            <th>Famille</th>
+                            <th class="text-center">Cartons</th>
+                            <th class="text-end">Poids (kg)</th>
+                            <th>Chambre</th>
+                            <th>Rayon</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in operation.palettes %}
+                        <tr>
+                            <td><code>{{ p.codePalette }}</code></td>
+                            <td>{{ p.espece }}</td>
+                            <td>{{ p.qualite ?? '—' }}</td>
+                            <td>{{ p.moule ?? '—' }}</td>
+                            <td>{{ p.famille ?? '—' }}</td>
+                            <td class="text-center">{{ p.nombreCartons }}</td>
+                            <td class="text-end">{{ (p.poidsTotal * 1000)|number_format(0, ',', ' ') }}</td>
+                            <td>{{ p.coldRoom ? p.coldRoom.name : '—' }}</td>
+                            <td>{{ p.rayon ?? '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

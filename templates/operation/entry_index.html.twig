@@ -11,11 +11,42 @@
         </a>
     </div>
 
-    {# Filtres #}
+    {# Filtres avancés #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Client</label>
+                    <select name="client" class="form-select">
+                        <option value="">Tous les clients</option>
+                        {% for c in clients %}
+                            <option value="{{ c.id }}" {{ filters.client == c.id ? 'selected' }}>{{ c.companyName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ filters.date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Code opération</label>
+                    <input type="text" name="code" class="form-control" placeholder="Ex: BR-2026..." value="{{ filters.code }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrer</button>
+                </div>
+                <div class="col-md-1">
+                    <a href="{{ path('app_operation_entry_index') }}" class="btn btn-outline-secondary w-100" title="Réinitialiser"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Filtre rapide par statut #}
     <div class="card mb-4">
         <div class="card-body py-2">
             <div class="d-flex align-items-center gap-3">
-                <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="🔍 Rechercher..." style="max-width:300px;">
+                <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="🔍 Recherche rapide..." style="max-width:300px;">
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-primary btn-sm active" data-filter="">Tous</button>
                     <button class="btn btn-outline-warning btn-sm" data-filter="pending">En attente</button>
@@ -61,17 +92,9 @@
                                 <span class="badge bg-{{ op.status.cssClass }}">{{ op.status.label }}</span>
                             </td>
                             <td class="text-center">
-                                <div class="d-flex gap-1 justify-content-center">
-                                    <a href="{{ path('app_operation_show', {id: op.id}) }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i> Détails
-                                    </a>
-                                    {% if op.isPending and is_granted('ROLE_CHEF_STOCK') %}
-                                    <form action="{{ path('app_operation_validate', {id: op.id}) }}" method="post" class="d-inline">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ op.id) }}">
-                                        <button class="btn btn-sm btn-outline-success" title="Valider"><i class="bi bi-check-circle"></i></button>
-                                    </form>
-                                    {% endif %}
-                                </div>
+                                <a href="{{ path('app_operation_show', {id: op.id}) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Détails
+                                </a>
                             </td>
                         </tr>
                         {% else %}

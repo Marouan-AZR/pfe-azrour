@@ -1,101 +1,141 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Performances Contrôleurs{% endblock %}
+{% block title %}Performances des Contrôleurs{% endblock %}
 
 {% block body %}
 <div class="container-fluid py-4">
-    <h1 class="mb-4"><i class="bi bi-bar-chart me-2"></i>Performances des Contrôleurs</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-bar-chart-line me-2"></i>Performances des Contrôleurs</h2>
+            <small class="text-muted">Suivi mensuel de l'activité</small>
+        </div>
+    </div>
 
-    <form method="get" class="row g-3 mb-4">
-        <div class="col-auto">
-            <select name="month" class="form-select">
-                {% for m in 1..12 %}
-                    <option value="{{ m }}" {{ m == month ? 'selected' : '' }}>{{ m|date('F') }}</option>
-                {% endfor %}
-            </select>
+    {# Sélecteur mois/année #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Mois</label>
+                    <select name="month" class="form-select">
+                        {% for m in 1..12 %}
+                            <option value="{{ m }}" {{ month == m ? 'selected' }}>
+                                {{ ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][m-1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Année</label>
+                    <select name="year" class="form-select">
+                        {% for y in (year-2)..(year+1) %}
+                            <option value="{{ y }}" {{ year == y ? 'selected' }}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Afficher</button>
+                </div>
+            </form>
         </div>
-        <div class="col-auto">
-            <select name="year" class="form-select">
-                {% for y in (year - 2)..(year + 1) %}
-                    <option value="{{ y }}" {{ y == year ? 'selected' : '' }}>{{ y }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-auto">
-            <button class="btn btn-primary"><i class="bi bi-search me-1"></i>Filtrer</button>
-        </div>
-    </form>
+    </div>
 
     <div class="row">
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header"><i class="bi bi-table me-2"></i>Tableau des opérations</div>
-                <div class="card-body p-0">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Contrôleur</th>
-                                <th class="text-center">Entrées</th>
-                                <th class="text-center">Sorties</th>
-                                <th class="text-center">Total</th>
-                                <th class="text-end">Tonnage</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for s in stats %}
-                            <tr>
-                                <td>{{ s.user.fullName|default(s.user.email) }}</td>
-                                <td class="text-center"><span class="badge bg-success">{{ s.entries }}</span></td>
-                                <td class="text-center"><span class="badge bg-warning">{{ s.exits }}</span></td>
-                                <td class="text-center"><strong>{{ s.total }}</strong></td>
-                                <td class="text-end">{{ s.tonnage }} T</td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="5" class="text-center text-muted py-3">Aucune donnée</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
+        {# Tableau des performances #}
+        <div class="col-lg-8 mb-4">
             <div class="card">
-                <div class="card-header"><i class="bi bi-bar-chart-fill me-2"></i>Graphique</div>
-                <div class="card-body">
-                    <canvas id="chartControleurs" height="200"></canvas>
+                <div class="card-header"><i class="bi bi-table me-2"></i>Récapitulatif des performances</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Contrôleur</th>
+                                    <th class="text-center">Entrées</th>
+                                    <th class="text-center">Sorties</th>
+                                    <th class="text-center">Total Opérations</th>
+                                    <th class="text-center">Cartons</th>
+                                    <th class="text-center">Tonnage (T)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in stats %}
+                                <tr>
+                                    <td><i class="bi bi-person-circle me-1"></i> {{ s.user.fullName }}</td>
+                                    <td class="text-center"><span class="badge bg-success">{{ s.entries }}</span></td>
+                                    <td class="text-center"><span class="badge bg-danger">{{ s.exits }}</span></td>
+                                    <td class="text-center fw-bold">{{ s.total }}</td>
+                                    <td class="text-center">{{ s.cartons|number_format(0, ',', ' ') }}</td>
+                                    <td class="text-center fw-bold">{{ s.tonnage }} T</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" class="text-center text-muted py-4">Aucune donnée pour cette période</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
+        {# Top 5 #}
+        <div class="col-lg-4 mb-4">
             <div class="card">
-                <div class="card-header"><i class="bi bi-trophy me-2"></i>Top 5</div>
-                <div class="card-body p-0">
-                    <ol class="list-group list-group-numbered list-group-flush">
-                        {% for s in top5 %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ s.user.fullName|default(s.user.email) }}
-                            <span class="badge bg-primary rounded-pill">{{ s.total }} ops / {{ s.tonnage }} T</span>
-                        </li>
-                        {% endfor %}
-                    </ol>
+                <div class="card-header"><i class="bi bi-trophy me-2"></i>Top 5 du mois</div>
+                <div class="card-body">
+                    {% for i, s in top5 %}
+                    <div class="d-flex align-items-center mb-3 p-2 rounded" style="background:var(--glass-bg)">
+                        <span class="badge bg-{{ i == 0 ? 'warning' : (i == 1 ? 'secondary' : 'dark') }} me-3 fs-6">{{ i + 1 }}</span>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">{{ s.user.fullName }}</div>
+                            <small class="text-muted">{{ s.total }} opérations · {{ s.tonnage }} T</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Aucune donnée</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
-</div>
 
+    {# Graphique #}
+    <div class="card">
+        <div class="card-header"><i class="bi bi-graph-up me-2"></i>Répartition des opérations</div>
+        <div class="card-body">
+            <canvas id="chartControleurs" height="100"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
-new Chart(document.getElementById('chartControleurs'), {
-    type: 'bar',
-    data: {
-        labels: [{% for s in stats %}'{{ s.user.fullName|default(s.user.email)|e('js') }}'{{ not loop.last ? ',' : '' }}{% endfor %}],
-        datasets: [
-            { label: 'Entrées', data: [{% for s in stats %}{{ s.entries }}{{ not loop.last ? ',' : '' }}{% endfor %}], backgroundColor: '#10b981' },
-            { label: 'Sorties', data: [{% for s in stats %}{{ s.exits }}{{ not loop.last ? ',' : '' }}{% endfor %}], backgroundColor: '#f59e0b' }
-        ]
-    },
-    options: { responsive: true, scales: { x: { stacked: false }, y: { beginAtZero: true } } }
-});
+const ctx = document.getElementById('chartControleurs');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [{% for s in stats %}'{{ s.user.fullName }}'{{ not loop.last ? ',' }}{% endfor %}],
+            datasets: [
+                {
+                    label: 'Entrées',
+                    data: [{% for s in stats %}{{ s.entries }}{{ not loop.last ? ',' }}{% endfor %}],
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)'
+                },
+                {
+                    label: 'Sorties',
+                    data: [{% for s in stats %}{{ s.exits }}{{ not loop.last ? ',' }}{% endfor %}],
+                    backgroundColor: 'rgba(239, 68, 68, 0.7)'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
 </script>
 {% endblock %}

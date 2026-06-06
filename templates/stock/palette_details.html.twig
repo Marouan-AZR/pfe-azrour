@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails Palette {{ palette.codePalette }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-box me-2"></i>Palette {{ palette.codePalette }}</h2>
+            <small class="text-muted">Détails et historique des mouvements</small>
+        </div>
+        <a href="{{ path('app_stock_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+    </div>
+
+    {# Informations générales #}
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-info-circle me-2"></i>Informations générales</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3"><strong>Client :</strong> {{ palette.operation.client.companyName }}</div>
+                <div class="col-md-3"><strong>Espèce :</strong> {{ palette.espece }}</div>
+                <div class="col-md-3"><strong>Qualité :</strong> {{ palette.qualite ?? '—' }}</div>
+                <div class="col-md-3"><strong>Moule :</strong> {{ palette.moule ?? '—' }}</div>
+                <div class="col-md-3 mt-2"><strong>Famille :</strong> {{ palette.famille ?? '—' }}</div>
+                <div class="col-md-3 mt-2"><strong>Chambre :</strong> {{ palette.coldRoom ? palette.coldRoom.name : '—' }}</div>
+                <div class="col-md-3 mt-2"><strong>Rayon :</strong> {{ palette.rayon ?? '—' }}</div>
+                <div class="col-md-3 mt-2"><strong>Date entrée :</strong> {{ palette.createdAt|date('d/m/Y') }}</div>
+            </div>
+        </div>
+    </div>
+
+    {# Résumé quantitatif #}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <div class="fw-bold fs-4">{{ palette.nombreCartons }}</div>
+                <small class="text-muted">Cartons Entrés</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <div class="fw-bold fs-4 text-danger">{{ palette.nombreCartons - palette.cartonsRestants }}</div>
+                <small class="text-muted">Cartons Sortis</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <div class="fw-bold fs-4 text-success">{{ palette.cartonsRestants }}</div>
+                <small class="text-muted">Cartons Restants</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <div class="fw-bold fs-4">{{ (palette.poidsRestant * 1000)|number_format(0, ',', ' ') }} kg</div>
+                <small class="text-muted">Poids Restant</small>
+            </div>
+        </div>
+    </div>
+
+    {# Historique des transferts #}
+    {% if palette.transfers|length > 0 %}
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-arrow-left-right me-2"></i>Historique des transferts</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Origine</th>
+                            <th>Destination</th>
+                            <th>Contrôleur</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in palette.transfers %}
+                        <tr>
+                            <td>{{ t.transferredAt|date('d/m/Y H:i') }}</td>
+                            <td>{{ t.fromColdRoom.name }} / {{ t.fromRayon ?? '—' }}</td>
+                            <td>{{ t.toColdRoom.name }} / {{ t.toRayon ?? '—' }}</td>
+                            <td>{{ t.transferredBy.fullName }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Statut #}
+    <div class="card">
+        <div class="card-header"><i class="bi bi-flag me-2"></i>Statut</div>
+        <div class="card-body">
+            {% if palette.cartonsRestants <= 0 %}
+                <span class="badge bg-danger fs-6">🔴 Sortie complète</span>
+            {% elseif palette.cartonsRestants < palette.nombreCartons %}
+                <span class="badge bg-warning fs-6">🟠 Sortie partielle</span>
+            {% else %}
+                <span class="badge bg-success fs-6">🟢 En stock (complet)</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

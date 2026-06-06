@@ -1,42 +1,86 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Transferts{% endblock %}
+{% block title %}Historique des Transferts{% endblock %}
 
 {% block body %}
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-arrow-left-right me-2"></i>Mes Transferts</h1>
-        <a href="{{ path('app_transfer_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Nouveau transfert</a>
+        <div>
+            <h2 class="mb-1"><i class="bi bi-arrow-left-right me-2"></i>Historique des Transferts</h2>
+            <small class="text-muted">Consultez vos transferts de palettes</small>
+        </div>
+        <a href="{{ path('app_transfer_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nouveau Transfert
+        </a>
     </div>
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
+    {# Filtres #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Client</label>
+                    <select name="client" class="form-select">
+                        <option value="">Tous</option>
+                        {% for c in clients %}
+                            <option value="{{ c.id }}" {{ filters.client == c.id ? 'selected' }}>{{ c.companyName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Code palette</label>
+                    <input type="text" name="code_palette" class="form-control" placeholder="Ex: BR-..." value="{{ filters.codePalette }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Chambre</label>
+                    <select name="cold_room" class="form-select">
+                        <option value="">Toutes</option>
+                        {% for room in coldRooms %}
+                            <option value="{{ room.id }}" {{ filters.coldRoom == room.id ? 'selected' }}>{{ room.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrer</button>
+                </div>
+                <div class="col-md-1">
+                    <a href="{{ path('app_transfer_index') }}" class="btn btn-outline-secondary w-100"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
 
+    {# Tableau #}
     <div class="card">
         <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Palette</th>
-                        <th>De</th>
-                        <th>Vers</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for t in transfers %}
-                    <tr>
-                        <td>{{ t.transferredAt|date('d/m/Y H:i') }}</td>
-                        <td><code>{{ t.palette.codePalette }}</code></td>
-                        <td>{{ t.fromColdRoom.name }} {% if t.fromRayon %}- {{ t.fromRayon }}{% endif %}</td>
-                        <td>{{ t.toColdRoom.name }} {% if t.toRayon %}- {{ t.toRayon }}{% endif %}</td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="4" class="text-center text-muted py-3">Aucun transfert</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Code Palette</th>
+                            <th>Client</th>
+                            <th>Localisation d'origine</th>
+                            <th>Nouvelle localisation</th>
+                            <th>Contrôleur</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transfers %}
+                        <tr>
+                            <td>{{ t.transferredAt|date('d/m/Y H:i') }}</td>
+                            <td><code>{{ t.palette.codePalette }}</code></td>
+                            <td>{{ t.palette.operation.client.companyName }}</td>
+                            <td>{{ t.fromColdRoom.name }} / {{ t.fromRayon ?? '—' }}</td>
+                            <td><strong>{{ t.toColdRoom.name }} / {{ t.toRayon ?? '—' }}</strong></td>
+                            <td>{{ t.transferredBy.fullName }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2rem"></i><p>Aucun transfert</p></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

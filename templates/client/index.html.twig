@@ -116,15 +116,18 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-center">
+                            <td>
                                 {% set stock = clientStock[client.id] ?? 0 %}
+                                {% set stockKg = stock * 1000 %}
                                 {% set pct = totalCapacity > 0 ? ((stock / totalCapacity) * 100)|round(1) : 0 %}
-                                {% set remaining = 100 - pct %}
-                                <div style="min-width:120px">
-                                    <div class="progress" style="height:8px;background:var(--glass-border)">
-                                        <div class="progress-bar {% if remaining <= 20 %}bg-danger{% elseif remaining <= 40 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ pct }}%"></div>
+                                <div style="min-width:150px">
+                                    <div class="progress" style="height:10px;background:var(--glass-border);border-radius:5px">
+                                        <div class="progress-bar {% if pct >= 80 %}bg-danger{% elseif pct >= 50 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ pct > 100 ? 100 : pct }}%;border-radius:5px"></div>
                                     </div>
-                                    <small class="text-muted">{{ stock|number_format(2) }} T ({{ pct }}%)</small>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small class="fw-bold">{{ pct }}%</small>
+                                        <small class="text-muted">{{ stockKg|number_format(0, ',', ' ') }} kg ({{ stock|number_format(2) }} T)</small>
+                                    </div>
                                 </div>
                             </td>
                             <td class="text-center">
