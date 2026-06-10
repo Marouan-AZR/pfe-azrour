@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ColdRoom;
 use App\Form\ColdRoomType;
 use App\Repository\ColdRoomRepository;
+use App\Service\ColdRoomOccupancyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +17,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ColdRoomController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
+        private ColdRoomOccupancyService $occupancyService,
     ) {}
 
     #[Route('', name: 'app_cold_room_index', methods: ['GET'])]
@@ -24,9 +26,11 @@ class ColdRoomController extends AbstractController
     public function index(ColdRoomRepository $repository): Response
     {
         $coldRooms = $repository->findAll();
+        $occupancyStats = $this->occupancyService->getOccupancyStatsForRooms($coldRooms);
 
         return $this->render('cold_room/index.html.twig', [
             'coldRooms' => $coldRooms,
+            'occupancyStats' => $occupancyStats,
         ]);
     }
 
@@ -55,18 +59,11 @@ class ColdRoomController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function show(ColdRoom $coldRoom): Response
     {
-        $racks = [];
-        foreach ($coldRoom->getStockItems() as $item) {
-            $rackCode = $item->getRackCode() ?? 'G1';
-            if (!isset($racks[$rackCode])) {
-                $racks[$rackCode] = [];
-            }
-            $racks[$rackCode][] = $item;
-        }
+        $occupancyStats = $this->occupancyService->getOccupancyStatsForRooms([$coldRoom]);
 
         return $this->render('cold_room/show.html.twig', [
             'coldRoom' => $coldRoom,
-            'racks' => $racks,
+            'occupancyStats' => $occupancyStats[$coldRoom->getId()] ?? null,
         ]);
     }
 
@@ -99,8 +96,7 @@ class ColdRoomController extends AbstractController
             return $this->redirectToRoute('app_cold_room_index');
         }
 
-        // Cannot deactivate if there's stock
-        if ($coldRoom->isActive() && $coldRoom->getUsedCapacity() > 0) {
+        if ($coldRoom->isActive() && $this->occupancyService->getUsedCapacity($coldRoom) > 0) {
             $this->addFlash('error', 'Impossible de désactiver une chambre contenant du stock.');
             return $this->redirectToRoute('app_cold_room_index');
         }

@@ -355,8 +355,13 @@ class OperationController extends AbstractController
     public function apiRayons(int $coldRoomId): JsonResponse
     {
         $rayons = [];
-        for ($i = 1; $i <= 44; $i++) {
-            $rayons[] = 'R' . str_pad((string)$i, 2, '0', STR_PAD_LEFT);
+        // Côté gauche G1-G22
+        for ($i = 1; $i <= 22; $i++) {
+            $rayons[] = 'G' . $i;
+        }
+        // Côté droit D1-D22
+        for ($i = 1; $i <= 22; $i++) {
+            $rayons[] = 'D' . $i;
         }
         return $this->json($rayons);
     }

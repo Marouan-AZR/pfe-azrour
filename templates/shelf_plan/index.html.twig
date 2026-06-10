@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Plan des Rayons{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <h2 class="mb-4"><i class="bi bi-grid-3x3-gap"></i> Plan des Rayons</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ totalShelves }}</h3>
+                    <small class="text-muted">Total Rayons</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0 text-danger">{{ occupiedShelves }}</h3>
+                    <small class="text-muted">Occupés</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-0 text-success">{{ availableShelves }}</h3>
+                    <small class="text-muted">Disponibles</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5 class="text-center mb-3">Côté Gauche (G1 - G22)</h5>
+            <div class="row g-2">
+                {% for i in 1..22 %}
+                    {% set key = 'G' ~ i %}
+                    {% set info = shelves[key] %}
+                    {% set isOccupied = info.occupied > 0 %}
+                    <div class="col-6 col-lg-4 col-xl-3">
+                        <a href="{{ path('app_shelf_plan_detail', {rayon: key}) }}" class="text-decoration-none">
+                            <div class="card text-center border-0 shadow-sm h-100 {{ isOccupied ? 'bg-danger bg-opacity-10 border-danger' : 'bg-success bg-opacity-10 border-success' }}" style="border-left: 4px solid {{ isOccupied ? '#dc3545' : '#198754' }} !important;">
+                                <div class="card-body py-2 px-1">
+                                    <strong>{{ key }}</strong><br>
+                                    <small class="{{ isOccupied ? 'text-danger' : 'text-success' }}">
+                                        {{ isOccupied ? 'Occupé' : 'Disponible' }}
+                                    </small><br>
+                                    <span class="badge {{ isOccupied ? 'bg-danger' : 'bg-success' }}">{{ info.total }} palette{{ info.total != 1 ? 's' : '' }}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h5 class="text-center mb-3">Côté Droit (D1 - D22)</h5>
+            <div class="row g-2">
+                {% for i in 1..22 %}
+                    {% set key = 'D' ~ i %}
+                    {% set info = shelves[key] %}
+                    {% set isOccupied = info.occupied > 0 %}
+                    <div class="col-6 col-lg-4 col-xl-3">
+                        <a href="{{ path('app_shelf_plan_detail', {rayon: key}) }}" class="text-decoration-none">
+                            <div class="card text-center border-0 shadow-sm h-100 {{ isOccupied ? 'bg-danger bg-opacity-10 border-danger' : 'bg-success bg-opacity-10 border-success' }}" style="border-left: 4px solid {{ isOccupied ? '#dc3545' : '#198754' }} !important;">
+                                <div class="card-body py-2 px-1">
+                                    <strong>{{ key }}</strong><br>
+                                    <small class="{{ isOccupied ? 'text-danger' : 'text-success' }}">
+                                        {{ isOccupied ? 'Occupé' : 'Disponible' }}
+                                    </small><br>
+                                    <span class="badge {{ isOccupied ? 'bg-danger' : 'bg-success' }}">{{ info.total }} palette{{ info.total != 1 ? 's' : '' }}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

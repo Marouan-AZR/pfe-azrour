@@ -9,7 +9,6 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -20,6 +19,28 @@ class ClientType extends AbstractType
         $builder
             ->add('companyName', TextType::class, [
                 'label' => 'Raison sociale',
+            ])
+            ->add('nomInterne', TextType::class, [
+                'label' => 'Nom interne (usage système)',
+                'required' => false,
+                'attr' => ['placeholder' => 'Nom utilisé en interne pour les opérations'],
+                'help' => 'Ce nom sera utilisé dans les filtres, recherches et opérations internes.',
+            ])
+            ->add('nomCommercial', TextType::class, [
+                'label' => 'Nom commercial complet (usage facturation)',
+                'required' => false,
+                'attr' => ['placeholder' => 'Dénomination officielle complète'],
+                'help' => 'Ce nom sera utilisé dans les factures et documents officiels.',
+            ])
+            ->add('rc', TextType::class, [
+                'label' => 'RC (Registre de Commerce)',
+                'required' => false,
+                'attr' => ['placeholder' => 'Ex: 123456'],
+            ])
+            ->add('ice', TextType::class, [
+                'label' => 'ICE (Identifiant Commun de l\'Entreprise)',
+                'required' => false,
+                'attr' => ['placeholder' => 'Ex: 001234567000012'],
             ])
             ->add('code', TextType::class, [
                 'label' => 'Code client',
@@ -46,7 +67,6 @@ class ClientType extends AbstractType
                 'label' => 'Actif',
                 'required' => false,
             ]);
-
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -16,14 +16,30 @@
     {# Filtres #}
     <div class="card mb-3">
         <div class="card-body py-2">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="🔍 Rechercher BL, client..." style="max-width:250px;">
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-primary btn-sm active" data-filter="">Tous</button>
-                    <button class="btn btn-outline-info btn-sm" data-filter="pending" title="En attente de contrôle">🔵 En attente contrôle</button>
-                    <button class="btn btn-outline-warning btn-sm" data-filter="pending">🟡 En attente validation</button>
-                    <button class="btn btn-outline-success btn-sm" data-filter="validated">🟢 Validé</button>
-                    <button class="btn btn-outline-danger btn-sm" data-filter="rejected">🔴 Rejeté</button>
+            <div class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="🔍 Rechercher BL, client...">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select form-select-sm" id="statusFilter">
+                        <option value="">Tous les statuts</option>
+                        <option value="en_attente_controle">En attente de contrôle</option>
+                        <option value="en_attente_validation">En attente de validation</option>
+                        <option value="validated">Validé</option>
+                        <option value="rejected">Rejeté</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select form-select-sm" id="clientFilter">
+                        <option value="">Tous les clients</option>
+                        {% set clientsSeen = [] %}
+                        {% for op in operations %}
+                            {% if op.client.companyName not in clientsSeen %}
+                                <option value="{{ op.client.companyName }}">{{ op.client.companyName }}</option>
+                                {% set clientsSeen = clientsSeen|merge([op.client.companyName]) %}
+                            {% endif %}
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
         </div>
@@ -39,20 +55,24 @@
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>BL N°</th>
+                            <th>N° BL</th>
                             <th>Date</th>
                             <th>Client</th>
                             <th>Espèces sorties</th>
                             <th class="text-center">Quantité (kg)</th>
                             <th class="text-center">Cartons</th>
                             <th class="text-center">Statut</th>
+                            <th>Contrôleur</th>
                             <th>Chef de stock</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for op in operations %}
-                        <tr class="op-row" data-search="{{ op.code }} {{ op.client.companyName }}" data-status="{{ op.status.value }}">
+                        <tr class="op-row"
+                            data-search="{{ op.code }} {{ op.client.companyName }}"
+                            data-status="{{ op.status.value }}"
+                            data-client="{{ op.client.companyName }}">
                             <td><code class="fw-bold">{{ op.code }}</code></td>
                             <td>
                                 {{ op.createdAt|date('d/m/Y') }}
@@ -63,26 +83,25 @@
                             <td class="text-center">{{ op.poidsTotal|number_format(0, ',', ' ') }}</td>
                             <td class="text-center">{{ op.totalCartons }}</td>
                             <td class="text-center">
-                                {% if op.ficheDecharge %}
-                                    {% if op.ficheDecharge.isEnCoursControle %}
-                                        <span class="badge bg-info">En cours de contrôle</span>
-                                    {% elseif op.ficheDecharge.isEnAttenteValidation %}
-                                        <span class="badge bg-warning">En attente de validation</span>
-                                    {% elseif op.ficheDecharge.isValidee %}
-                                        <span class="badge bg-success">Validée</span>
-                                    {% elseif op.ficheDecharge.isRejetee %}
-                                        <span class="badge bg-danger">Rejetée</span>
-                                    {% endif %}
+                                <span class="badge bg-{{ op.status.cssClass }}">{{ op.status.label }}</span>
+                            </td>
+                            <td>
+                                {% if op.controleur is defined and op.controleur %}
+                                    <small>{{ op.controleur.fullName }}</small>
                                 {% else %}
-                                    <span class="badge bg-{{ op.status.cssClass }}">{{ op.status.label }}</span>
+                                    <small class="text-muted">—</small>
                                 {% endif %}
                             </td>
                             <td>
-                                <small>{{ op.createdBy.fullName }}</small>
+                                {% if op.validatedBy is defined and op.validatedBy %}
+                                    <small>{{ op.validatedBy.fullName }}</small>
+                                {% else %}
+                                    <small class="text-muted">—</small>
+                                {% endif %}
                             </td>
                             <td class="text-center">
                                 <div class="d-flex gap-1 justify-content-center">
-                                    <a href="{{ path('app_operation_show', {id: op.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ path('app_operation_show', {id: op.id}) }}" class="btn btn-sm btn-outline-primary" title="Voir"><i class="bi bi-eye"></i></a>
                                     {% if op.isValidated %}
                                     <a href="{{ path('app_operation_bon_sortie', {id: op.id}) }}" class="btn btn-sm btn-outline-success" target="_blank" title="Bon de sortie"><i class="bi bi-file-earmark"></i></a>
                                     {% endif %}
@@ -96,7 +115,7 @@
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="9" class="text-center py-4 text-muted"><i class="bi bi-inbox" style="font-size:2rem"></i><p>Aucune opération de sortie</p></td></tr>
+                        <tr><td colspan="10" class="text-center py-4 text-muted"><i class="bi bi-inbox" style="font-size:2rem"></i><p>Aucune opération de sortie</p></td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -109,22 +128,24 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('searchInput')?.addEventListener('input', function() {
-        const q = this.value.toLowerCase();
-        document.querySelectorAll('.op-row').forEach(r => {
-            r.style.display = r.dataset.search.toLowerCase().includes(q) ? '' : 'none';
+    const rows = document.querySelectorAll('.op-row');
+
+    function applyFilters() {
+        const q = (document.getElementById('searchInput').value || '').toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const client = document.getElementById('clientFilter').value;
+
+        rows.forEach(r => {
+            const matchSearch = !q || r.dataset.search.toLowerCase().includes(q);
+            const matchStatus = !status || r.dataset.status === status;
+            const matchClient = !client || r.dataset.client === client;
+            r.style.display = (matchSearch && matchStatus && matchClient) ? '' : 'none';
         });
-    });
-    document.querySelectorAll('[data-filter]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active', 'btn-primary'));
-            this.classList.add('active', 'btn-primary');
-            const f = this.dataset.filter;
-            document.querySelectorAll('.op-row').forEach(r => {
-                r.style.display = (!f || r.dataset.status === f) ? '' : 'none';
-            });
-        });
-    });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById('clientFilter').addEventListener('change', applyFilters);
 });
 </script>
 {% endblock %}

@@ -111,16 +111,18 @@ class ColdRoom
         return $this->palettes;
     }
 
+    /**
+     * Used capacity in TONNES (converted from palette poidsRestant which is in kg).
+     */
     public function getUsedCapacity(): float
     {
-        // Calculate from actual palettes with remaining stock (in tons)
-        $total = 0.0;
+        $totalKg = 0.0;
         foreach ($this->palettes as $palette) {
             if ($palette->getCartonsRestants() > 0) {
-                $total += (float)$palette->getPoidsRestant();
+                $totalKg += (float)$palette->getPoidsRestant();
             }
         }
-        return $total;
+        return $totalKg / 1000.0;
     }
 
 

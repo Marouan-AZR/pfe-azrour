@@ -89,6 +89,8 @@
                         <tr>
                             <th>Code</th>
                             <th>Raison sociale</th>
+                            <th>RC</th>
+                            <th>ICE</th>
                             <th>Contact</th>
                             <th>Stockage</th>
                             <th class="text-center">Statut</th>
@@ -104,8 +106,16 @@
                             <td>
                                 <div class="client-info">
                                     <span class="client-name">{{ client.companyName }}</span>
+                                    {% if client.nomInterne or client.nomCommercial %}
+                                    <small class="text-muted d-block">
+                                        {% if client.nomInterne %}Int: {{ client.nomInterne }}{% endif %}
+                                        {% if client.nomCommercial %}{% if client.nomInterne %} | {% endif %}Com: {{ client.nomCommercial }}{% endif %}
+                                    </small>
+                                    {% endif %}
                                 </div>
                             </td>
+                            <td><small>{{ client.rc ?? '—' }}</small></td>
+                            <td><small>{{ client.ice ?? '—' }}</small></td>
                             <td>
                                 <div class="contact-info">
                                     <div class="contact-item">
@@ -117,16 +127,16 @@
                                 </div>
                             </td>
                             <td>
-                                {% set stock = clientStock[client.id] ?? 0 %}
-                                {% set stockKg = stock * 1000 %}
-                                {% set pct = totalCapacity > 0 ? ((stock / totalCapacity) * 100)|round(1) : 0 %}
-                                <div style="min-width:150px">
+                                {% set stockKg = clientStock[client.id] ?? 0 %}
+                                {% set stockT = stockKg / 1000 %}
+                                {% set pct = totalCapacity > 0 ? ((stockT / totalCapacity) * 100)|round(1) : 0 %}
+                                <div style="min-width:180px">
                                     <div class="progress" style="height:10px;background:var(--glass-border);border-radius:5px">
-                                        <div class="progress-bar {% if pct >= 80 %}bg-danger{% elseif pct >= 50 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ pct > 100 ? 100 : pct }}%;border-radius:5px"></div>
+                                        <div class="progress-bar {% if pct > 80 %}bg-danger{% elseif pct > 60 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ pct > 100 ? 100 : pct }}%;border-radius:5px"></div>
                                     </div>
                                     <div class="d-flex justify-content-between mt-1">
                                         <small class="fw-bold">{{ pct }}%</small>
-                                        <small class="text-muted">{{ stockKg|number_format(0, ',', ' ') }} kg ({{ stock|number_format(2) }} T)</small>
+                                        <small class="text-muted">{{ stockKg|number_format(0, ',', ' ') }} kg ({{ stockT|number_format(2, ',', ' ') }} T)</small>
                                     </div>
                                 </div>
                             </td>
@@ -201,7 +211,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <div class="empty-state">
                                     <i class="bi bi-people"></i>
                                     <p>Aucun client trouvé</p>

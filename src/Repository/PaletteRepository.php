@@ -79,6 +79,12 @@ class PaletteRepository extends ServiceEntityRepository
         if (!empty($filters['rayon'])) {
             $qb->andWhere('p.rayon = :rayon')->setParameter('rayon', $filters['rayon']);
         }
+        if (!empty($filters['dateFrom'])) {
+            $qb->andWhere('p.createdAt >= :dateFrom')->setParameter('dateFrom', $filters['dateFrom'] . ' 00:00:00');
+        }
+        if (!empty($filters['dateTo'])) {
+            $qb->andWhere('p.createdAt <= :dateTo')->setParameter('dateTo', $filters['dateTo'] . ' 23:59:59');
+        }
 
         return $qb->orderBy('o.client', 'ASC')->addOrderBy('p.espece', 'ASC')->getQuery()->getResult();
     }
@@ -112,6 +118,44 @@ class PaletteRepository extends ServiceEntityRepository
             'familles' => array_column($conn->fetchAllAssociative('SELECT DISTINCT famille FROM palettes WHERE famille IS NOT NULL ORDER BY famille'), 'famille'),
             'rayons' => array_column($conn->fetchAllAssociative('SELECT DISTINCT rayon FROM palettes WHERE rayon IS NOT NULL ORDER BY rayon'), 'rayon'),
         ];
+    }
+
+    public function countPalettesGroupedByRayon(): array
+    {
+        $rows = $this->createQueryBuilder('p')
+            ->select('p.rayon, COUNT(p.id) as total, SUM(CASE WHEN p.cartonsRestants > 0 THEN 1 ELSE 0 END) as occupied')
+            ->where('p.rayon IS NOT NULL')
+            ->groupBy('p.rayon')
+            ->getQuery()->getResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[$row['rayon']] = ['total' => (int)$row['total'], 'occupied' => (int)$row['occupied']];
+        }
+        return $result;
+    }
+
+    public function findByRayon(string $rayon, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->join('p.operation', 'o')
+            ->leftJoin('p.coldRoom', 'c')
+            ->where('p.rayon = :rayon')
+            ->setParameter('rayon', $rayon)
+            ->orderBy('p.createdAt', 'DESC');
+
+        if (!empty($filters['search'])) {
+            $qb->andWhere('p.codePalette LIKE :search OR p.espece LIKE :search')
+                ->setParameter('search', '%' . $filters['search'] . '%');
+        }
+        if (!empty($filters['client'])) {
+            $qb->andWhere('o.client = :client')->setParameter('client', $filters['client']);
+        }
+        if (!empty($filters['espece'])) {
+            $qb->andWhere('p.espece = :espece')->setParameter('espece', $filters['espece']);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     public function getTotalStockByClient(Client $client): float

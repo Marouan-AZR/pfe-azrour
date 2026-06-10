@@ -14,11 +14,11 @@ class ColdRoomOccupancyService
 
     /**
      * Occupation basée sur les palettes encore en chambre.
-     * Source: Palette::poidsRestant (tonnes restantes) et Palette::cartonsRestants.
+     * Retourne la capacité utilisée en TONNES.
+     * Palette::poidsRestant est stocké en KG, on divise par 1000.
      */
     public function getUsedCapacity(ColdRoom $coldRoom): float
     {
-
         $excluded = [
             PaletteStatus::SORTIE_COMPLETE->value,
             PaletteStatus::REJETEE->value,
@@ -27,16 +27,16 @@ class ColdRoomOccupancyService
         $qb = $this->paletteRepository
             ->createQueryBuilder('p')
             ->select('SUM(p.poidsRestant)')
-
             ->where('p.coldRoom = :coldRoom')
             ->setParameter('coldRoom', $coldRoom)
             ->andWhere('p.cartonsRestants > 0')
             ->andWhere('p.status NOT IN (:excludedStatuses)')
             ->setParameter('excludedStatuses', $excluded);
 
-        $result = $qb->getQuery()->getSingleScalarResult();
+        $resultKg = (float) ($qb->getQuery()->getSingleScalarResult() ?? 0.0);
 
-        return (float) ($result ?? 0.0);
+        // Convert kg -> tonnes
+        return $resultKg / 1000.0;
     }
 
     public function getAvailableCapacity(ColdRoom $coldRoom): float
@@ -55,8 +55,6 @@ class ColdRoomOccupancyService
     }
 
     /**
-     * Utilisé pour le dashboard: retourne un tableau par chambre avec used/available/rate.
-     *
      * @param ColdRoom[] $coldRooms
      * @return array<int, array{usedCapacity: float, availableCapacity: float, occupancyRate: float}>
      */
@@ -83,5 +81,3 @@ class ColdRoomOccupancyService
         return $stats;
     }
 }
-
-

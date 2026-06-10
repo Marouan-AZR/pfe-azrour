@@ -30,7 +30,6 @@
     </div>
 
     {% if selectedClient %}
-    {# Palette table with filters #}
     <form method="post">
         <input type="hidden" name="client" value="{{ selectedClient.id }}">
 
@@ -39,32 +38,68 @@
                 <span><i class="bi bi-grid me-2"></i>Palettes disponibles — {{ selectedClient.companyName }} ({{ palettes|length }})</span>
             </div>
 
-            {# Inline filters #}
+            {# Column dropdown filters #}
             <div class="card-body border-bottom py-2">
                 <div class="row g-2">
                     <div class="col">
-                        <input type="text" class="form-control form-control-sm" id="filterEspece" placeholder="Espèce">
+                        <select class="form-select form-select-sm" id="filterEspece">
+                            <option value="">Espèce</option>
+                            {% set especes = [] %}
+                            {% for p in palettes %}
+                                {% if p.espece not in especes %}
+                                    <option value="{{ p.espece }}">{{ p.espece }}</option>
+                                    {% set especes = especes|merge([p.espece]) %}
+                                {% endif %}
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="col">
-                        <input type="text" class="form-control form-control-sm" id="filterQualite" placeholder="Qualité">
+                        <select class="form-select form-select-sm" id="filterMoule">
+                            <option value="">Moule</option>
+                            {% set moules = [] %}
+                            {% for p in palettes %}
+                                {% if p.moule and p.moule not in moules %}
+                                    <option value="{{ p.moule }}">{{ p.moule }}</option>
+                                    {% set moules = moules|merge([p.moule]) %}
+                                {% endif %}
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="col">
-                        <input type="text" class="form-control form-control-sm" id="filterMoule" placeholder="Moule">
+                        <select class="form-select form-select-sm" id="filterQualite">
+                            <option value="">Qualité</option>
+                            {% set qualites = [] %}
+                            {% for p in palettes %}
+                                {% if p.qualite and p.qualite not in qualites %}
+                                    <option value="{{ p.qualite }}">{{ p.qualite }}</option>
+                                    {% set qualites = qualites|merge([p.qualite]) %}
+                                {% endif %}
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="col">
-                        <input type="text" class="form-control form-control-sm" id="filterFamille" placeholder="Famille">
+                        <select class="form-select form-select-sm" id="filterFamille">
+                            <option value="">Famille</option>
+                            {% set familles = [] %}
+                            {% for p in palettes %}
+                                {% if p.famille and p.famille not in familles %}
+                                    <option value="{{ p.famille }}">{{ p.famille }}</option>
+                                    {% set familles = familles|merge([p.famille]) %}
+                                {% endif %}
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="col">
-                        <input type="text" class="form-control form-control-sm" id="filterLot" placeholder="Code lot">
-                    </div>
-                    <div class="col">
-                        <input type="date" class="form-control form-control-sm" id="filterDate" placeholder="Date">
-                    </div>
-                    <div class="col">
-                        <input type="text" class="form-control form-control-sm" id="filterChambre" placeholder="Chambre">
-                    </div>
-                    <div class="col">
-                        <input type="text" class="form-control form-control-sm" id="filterRayon" placeholder="Rayon">
+                        <select class="form-select form-select-sm" id="filterRayon">
+                            <option value="">Rayon</option>
+                            {% set rayons = [] %}
+                            {% for p in palettes %}
+                                {% if p.rayon and p.rayon not in rayons %}
+                                    <option value="{{ p.rayon }}">{{ p.rayon }}</option>
+                                    {% set rayons = rayons|merge([p.rayon]) %}
+                                {% endif %}
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="col-auto">
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFilters()"><i class="bi bi-x-lg"></i></button>
@@ -80,35 +115,40 @@
                                 <th><input type="checkbox" id="selectAll"></th>
                                 <th>Code Palette</th>
                                 <th>Espèce</th>
-                                <th>Qualité</th>
                                 <th>Moule</th>
+                                <th>Qualité</th>
                                 <th>Famille</th>
-                                <th>Code Lot</th>
+                                <th>Code Lot Client</th>
                                 <th>Date Réception</th>
                                 <th>Chambre</th>
                                 <th>Rayon</th>
-                                <th class="text-center">Cartons Dispo</th>
-                                <th class="text-end">Poids Dispo (kg)</th>
+                                <th class="text-center">Qté Disponible</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for palette in palettes %}
-                            <tr class="palette-row" data-espece="{{ palette.espece }}" data-qualite="{{ palette.qualite }}" data-moule="{{ palette.moule }}" data-famille="{{ palette.famille }}" data-lot="{{ palette.operation.cdLotClient }}" data-date="{{ palette.operation.dateReception|date('Y-m-d') }}" data-chambre="{{ palette.coldRoom ? palette.coldRoom.name : '' }}" data-rayon="{{ palette.rayon }}">
+                            <tr class="palette-row"
+                                data-espece="{{ palette.espece }}"
+                                data-moule="{{ palette.moule ?? '' }}"
+                                data-qualite="{{ palette.qualite ?? '' }}"
+                                data-famille="{{ palette.famille ?? '' }}"
+                                data-rayon="{{ palette.rayon ?? '' }}"
+                                data-cartons="{{ palette.cartonsRestants }}"
+                                data-poids="{{ palette.poidsRestant ?? 0 }}">
                                 <td><input type="checkbox" name="selected_palettes[]" value="{{ palette.id }}"></td>
                                 <td><code>{{ palette.codePalette }}</code></td>
                                 <td>{{ palette.espece }}</td>
-                                <td>{{ palette.qualite ?? '—' }}</td>
                                 <td>{{ palette.moule ?? '—' }}</td>
+                                <td>{{ palette.qualite ?? '—' }}</td>
                                 <td>{{ palette.famille ?? '—' }}</td>
                                 <td>{{ palette.operation.cdLotClient ?? '—' }}</td>
-                                <td>{{ palette.operation.dateReception|date('d/m/Y') }}</td>
+                                <td>{{ palette.createdAt|date('d/m/Y') }}</td>
                                 <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
                                 <td>{{ palette.rayon ?? '—' }}</td>
                                 <td class="text-center fw-bold">{{ palette.cartonsRestants }}</td>
-                                <td class="text-end fw-bold">{{ palette.poidsRestant|number_format(0, ',', ' ') }}</td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="12" class="text-center py-4 text-muted">Aucune palette disponible</td></tr>
+                            <tr><td colspan="11" class="text-center py-4 text-muted">Aucune palette disponible</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -117,11 +157,11 @@
         </div>
 
         {% if palettes|length > 0 %}
-        {# Controleur + Submit #}
+        {# Controleur + Summary + Submit #}
         <div class="card">
             <div class="card-body">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-3">
                         <label class="form-label">Contrôleur responsable</label>
                         <select name="controleur" class="form-select">
                             <option value="">-- Sélectionner --</option>
@@ -130,10 +170,14 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <div id="selectionSummary" class="text-muted">0 palette(s) sélectionnée(s)</div>
+                    <div class="col-md-6">
+                        <div class="d-flex gap-4" id="selectionSummary">
+                            <span><strong id="sumPalettes">0</strong> palette(s)</span>
+                            <span><strong id="sumCartons">0</strong> cartons</span>
+                            <span><strong id="sumPoids">0</strong> kg</span>
+                        </div>
                     </div>
-                    <div class="col-md-4 text-end">
+                    <div class="col-md-3 text-end">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Enregistrer la sortie</button>
                     </div>
                 </div>
@@ -148,53 +192,54 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Select all
+    // Select all visible
     document.getElementById('selectAll')?.addEventListener('change', function() {
         document.querySelectorAll('.palette-row:not([style*="display: none"]) input[type="checkbox"]').forEach(cb => { cb.checked = this.checked; });
         updateSummary();
     });
 
-    // Update summary on checkbox change
     document.querySelectorAll('input[name="selected_palettes[]"]').forEach(cb => {
         cb.addEventListener('change', updateSummary);
     });
 
     function updateSummary() {
-        const checked = document.querySelectorAll('input[name="selected_palettes[]"]:checked').length;
-        document.getElementById('selectionSummary').textContent = checked + ' palette(s) sélectionnée(s)';
+        let palettes = 0, cartons = 0, poids = 0;
+        document.querySelectorAll('input[name="selected_palettes[]"]:checked').forEach(cb => {
+            const row = cb.closest('tr');
+            palettes++;
+            cartons += parseInt(row.dataset.cartons) || 0;
+            poids += parseFloat(row.dataset.poids) || 0;
+        });
+        document.getElementById('sumPalettes').textContent = palettes;
+        document.getElementById('sumCartons').textContent = cartons;
+        document.getElementById('sumPoids').textContent = poids.toLocaleString('fr-FR', {maximumFractionDigits: 0});
     }
 
-    // Inline filters
-    const filterFields = ['filterEspece', 'filterQualite', 'filterMoule', 'filterFamille', 'filterLot', 'filterDate', 'filterChambre', 'filterRayon'];
-    filterFields.forEach(id => {
-        document.getElementById(id)?.addEventListener('input', applyFilters);
+    // Dropdown filters
+    const filters = ['filterEspece', 'filterMoule', 'filterQualite', 'filterFamille', 'filterRayon'];
+    filters.forEach(id => {
+        document.getElementById(id)?.addEventListener('change', applyFilters);
     });
 
     function applyFilters() {
-        const espece = document.getElementById('filterEspece').value.toLowerCase();
-        const qualite = document.getElementById('filterQualite').value.toLowerCase();
-        const moule = document.getElementById('filterMoule').value.toLowerCase();
-        const famille = document.getElementById('filterFamille').value.toLowerCase();
-        const lot = document.getElementById('filterLot').value.toLowerCase();
-        const date = document.getElementById('filterDate').value;
-        const chambre = document.getElementById('filterChambre').value.toLowerCase();
-        const rayon = document.getElementById('filterRayon').value.toLowerCase();
+        const espece = document.getElementById('filterEspece').value;
+        const moule = document.getElementById('filterMoule').value;
+        const qualite = document.getElementById('filterQualite').value;
+        const famille = document.getElementById('filterFamille').value;
+        const rayon = document.getElementById('filterRayon').value;
 
         document.querySelectorAll('.palette-row').forEach(row => {
-            const show = (!espece || row.dataset.espece.toLowerCase().includes(espece))
-                && (!qualite || (row.dataset.qualite || '').toLowerCase().includes(qualite))
-                && (!moule || (row.dataset.moule || '').toLowerCase().includes(moule))
-                && (!famille || (row.dataset.famille || '').toLowerCase().includes(famille))
-                && (!lot || (row.dataset.lot || '').toLowerCase().includes(lot))
-                && (!date || row.dataset.date === date)
-                && (!chambre || (row.dataset.chambre || '').toLowerCase().includes(chambre))
-                && (!rayon || (row.dataset.rayon || '').toLowerCase().includes(rayon));
+            const show = (!espece || row.dataset.espece === espece)
+                && (!moule || row.dataset.moule === moule)
+                && (!qualite || row.dataset.qualite === qualite)
+                && (!famille || row.dataset.famille === famille)
+                && (!rayon || row.dataset.rayon === rayon);
             row.style.display = show ? '' : 'none';
         });
     }
 
     window.clearFilters = function() {
-        filterFields.forEach(id => { document.getElementById(id).value = ''; });
+        filters.forEach(id => { document.getElementById(id).value = ''; });
         document.querySelectorAll('.palette-row').forEach(r => r.style.display = '');
     };
 });

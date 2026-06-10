@@ -41,6 +41,8 @@ class StockController extends AbstractController
             'qualite' => $request->query->get('qualite'),
             'famille' => $request->query->get('famille'),
             'rayon' => $request->query->get('rayon'),
+            'dateFrom' => $request->query->get('dateFrom'),
+            'dateTo' => $request->query->get('dateTo'),
         ];
 
         $client = null;
