@@ -7,6 +7,7 @@ use App\Enum\FicheStatus;
 use App\Enum\PaletteStatus;
 use App\Enum\StockStatus;
 use App\Repository\FicheDechargeRepository;
+use App\Service\AuditService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/fiches')]
 class FicheController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $em) {}
+    public function __construct(private EntityManagerInterface $em, private AuditService $auditService) {}
 
     #[Route('', name: 'app_fiche_index')]
     #[IsGranted('ROLE_CONTROLEUR')]
@@ -59,6 +60,7 @@ class FicheController extends AbstractController
         $fiche->setObservation($commentaire);
 
         $this->em->flush();
+        $this->auditService->log('fiche_submitted', $fiche, $this->getUser(), null, ['numero' => $fiche->getNumero()]);
 
         $this->addFlash('success', 'Fiche envoyée pour validation.');
         return $this->redirectToRoute('app_fiche_show', ['id' => $fiche->getId()]);
@@ -90,6 +92,8 @@ class FicheController extends AbstractController
         }
 
         $this->em->flush();
+        $this->auditService->log('fiche_validated', $fiche, $this->getUser(), null, ['numero' => $fiche->getNumero()]);
+
         $this->addFlash('success', 'Fiche validée. Stock mis à jour.');
 
         return $this->redirectToRoute('app_fiche_show', ['id' => $fiche->getId()]);
@@ -108,6 +112,7 @@ class FicheController extends AbstractController
         $fiche->setStatus(FicheStatus::REJETEE);
         $fiche->setCommentaireRejet($reason);
         $this->em->flush();
+        $this->auditService->log('fiche_rejected', $fiche, $this->getUser(), null, ['numero' => $fiche->getNumero(), 'reason' => $reason]);
 
         $this->addFlash('warning', 'Fiche rejetée.');
         return $this->redirectToRoute('app_fiche_show', ['id' => $fiche->getId()]);

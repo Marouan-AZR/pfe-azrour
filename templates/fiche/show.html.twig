@@ -45,12 +45,63 @@
         </div>
     </div>
 
+    {# --- EXIT CONTROL: Scan card + progress counter --- #}
+    {% set isExitControl = fiche.operation.type.value == 'exit' and fiche.isEnCoursControle() and fiche.controleur and fiche.controleur.id == app.user.id %}
+
+    {% if isExitControl %}
+    {# Progress counter #}
+    {% set controlledCount = 0 %}
+    {% for p in fiche.operation.palettes %}
+        {% if p.status.value != 'en_attente' %}
+            {% set controlledCount = controlledCount + 1 %}
+        {% endif %}
+    {% endfor %}
+    <div class="card mb-4 border-info">
+        <div class="card-body d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-clipboard-check me-2"></i><strong>{{ controlledCount }} / {{ fiche.operation.palettes|length }}</strong> palettes contrôlées</span>
+            <div class="progress flex-grow-1 ms-3" style="height: 20px;">
+                <div class="progress-bar bg-info" style="width: {{ fiche.operation.palettes|length > 0 ? (controlledCount / fiche.operation.palettes|length * 100) : 0 }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    {# Contrôle terrain scan card #}
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white"><i class="bi bi-qr-code-scan me-2"></i>Contrôle terrain</div>
+        <div class="card-body">
+            <label class="form-label">Scanner ou saisir le code palette :</label>
+            <input type="text" id="scanInput" class="form-control form-control-lg" placeholder="Scannez le QR code..." autofocus>
+        </div>
+    </div>
+
+    {# Fiche de Charge - editable info #}
+    <div class="card mb-4">
+        <div class="card-header">Informations Chargement</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Heure début chargement</label>
+                    <input type="time" class="form-control" id="heureDebut" disabled>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Heure fin chargement</label>
+                    <input type="time" class="form-control" id="heureFin" disabled>
+                </div>
+                <div class="col-md-3"><small class="text-muted">Température</small><br><strong>{{ fiche.temperature ?? '—' }}</strong></div>
+                <div class="col-md-3"><small class="text-muted">Matricule</small><br><strong>{{ fiche.matricule ?? '—' }}</strong></div>
+                <div class="col-md-3"><small class="text-muted">N° Conteneur</small><br><strong>{{ fiche.numeroConteneur ?? '—' }}</strong></div>
+                <div class="col-md-3"><small class="text-muted">N° Agrément</small><br><strong>{{ fiche.numeroAgrement ?? '—' }}</strong></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     {# Tableau des palettes #}
     <div class="card mb-4">
         <div class="card-header">Tableau des palettes</div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover mb-0" id="palettesTable">
                     <thead>
                         <tr>
                             <th>Code Palette</th>
@@ -64,11 +115,16 @@
                             <th>Chambre</th>
                             <th>Rayon</th>
                             <th>Observation</th>
+                            {% if isExitControl %}
+                            <th class="text-center">Cartons à sortir</th>
+                            <th>Statut contrôle</th>
+                            <th>Actions</th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
                         {% for palette in fiche.operation.palettes %}
-                        <tr>
+                        <tr data-palette-code="{{ palette.codePalette }}">
                             <td><code>{{ palette.codePalette }}</code></td>
                             <td>{{ palette.espece }}</td>
                             <td>{{ palette.qualite ?? '—' }}</td>
@@ -80,6 +136,28 @@
                             <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
                             <td>{{ palette.rayon ?? '—' }}</td>
                             <td>{{ palette.observation ?? '' }}</td>
+                            {% if isExitControl %}
+                            <td class="text-center">
+                                <form method="post" action="{{ path('app_fiche_palette_controle', {id: fiche.id, paletteId: palette.id}) }}" class="palette-control-form">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('controle' ~ palette.id) }}">
+                                    <input type="number" name="cartons_sortis" value="{{ palette.nombreCartons }}" min="0" max="{{ palette.nombreCartons }}" class="form-control form-control-sm" style="width:80px;display:inline-block">
+                                </form>
+                            </td>
+                            <td><span class="badge bg-{{ palette.status.cssClass }}">{{ palette.status.label }}</span></td>
+                            <td>
+                                <button type="submit" form="form-ctrl-{{ palette.id }}" class="btn btn-sm btn-success" title="Valider"><i class="bi bi-check-lg"></i></button>
+                                <button type="button" class="btn btn-sm btn-danger btn-reject" data-palette-id="{{ palette.id }}" data-fiche-id="{{ fiche.id }}" title="Rejeter"><i class="bi bi-x-lg"></i></button>
+                                <form id="form-ctrl-{{ palette.id }}" method="post" action="{{ path('app_fiche_palette_controle', {id: fiche.id, paletteId: palette.id}) }}" style="display:none">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('controle' ~ palette.id) }}">
+                                    <input type="hidden" name="cartons_sortis" class="cartons-hidden" value="{{ palette.nombreCartons }}">
+                                </form>
+                                <form id="form-reject-{{ palette.id }}" method="post" action="{{ path('app_fiche_palette_controle', {id: fiche.id, paletteId: palette.id}) }}" style="display:none">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('controle' ~ palette.id) }}">
+                                    <input type="hidden" name="action" value="reject">
+                                    <input type="hidden" name="motif_rejet" class="motif-hidden" value="">
+                                </form>
+                            </td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -212,6 +290,51 @@
     <div class="alert alert-danger mt-3">
         <strong>Motif de rejet :</strong> {{ fiche.commentaireRejet }}
     </div>
+    {% endif %}
+
+    {% if isExitControl %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const scanInput = document.getElementById('scanInput');
+        if (scanInput) {
+            scanInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const code = this.value.trim();
+                    document.querySelectorAll('#palettesTable tbody tr').forEach(r => r.classList.remove('table-info'));
+                    const row = document.querySelector('#palettesTable tbody tr[data-palette-code="' + code + '"]');
+                    if (row) {
+                        row.classList.add('table-info');
+                        row.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    }
+                    this.value = '';
+                }
+            });
+        }
+
+        // Sync cartons_sortis to hidden form
+        document.querySelectorAll('.palette-control-form input[name="cartons_sortis"]').forEach(function(input) {
+            input.addEventListener('change', function() {
+                const row = this.closest('tr');
+                const hidden = row.querySelector('.cartons-hidden');
+                if (hidden) hidden.value = this.value;
+            });
+        });
+
+        // Reject buttons
+        document.querySelectorAll('.btn-reject').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const motif = prompt('Motif de rejet :');
+                if (motif) {
+                    const paletteId = this.dataset.paletteId;
+                    const form = document.getElementById('form-reject-' + paletteId);
+                    form.querySelector('.motif-hidden').value = motif;
+                    form.submit();
+                }
+            });
+        });
+    });
+    </script>
     {% endif %}
 </div>
 {% endblock %}

@@ -15,6 +15,7 @@ use App\Repository\FicheDechargeRepository;
 use App\Repository\OperationRepository;
 use App\Repository\PaletteRepository;
 use App\Repository\UserRepository;
+use App\Service\AuditService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,6 +31,7 @@ class OperationController extends AbstractController
         private EntityManagerInterface $em,
         private OperationRepository $operationRepo,
         private PaletteRepository $paletteRepo,
+        private AuditService $auditService,
     ) {}
 
     // ===== ENTRÉES =====
@@ -174,6 +176,7 @@ class OperationController extends AbstractController
         }
 
         $this->em->flush();
+        $this->auditService->log('operation_created', $operation, $this->getUser(), null, ['code' => $operation->getCode()]);
 
         $this->addFlash('success', sprintf(
             'Opération %s créée avec %d palette(s).',
@@ -258,6 +261,8 @@ class OperationController extends AbstractController
         }
 
         $this->em->flush();
+        $this->auditService->log('operation_validated', $operation, $this->getUser(), null, ['code' => $operation->getCode()]);
+
         $this->addFlash('success', 'Opération validée. Stock mis à jour.');
 
         return $this->redirectToRoute('app_operation_show', ['id' => $operation->getId()]);
@@ -281,6 +286,7 @@ class OperationController extends AbstractController
         $operation->setStatus(StockStatus::REJECTED);
         $operation->setRejectionReason($reason);
         $this->em->flush();
+        $this->auditService->log('operation_rejected', $operation, $this->getUser(), null, ['code' => $operation->getCode(), 'reason' => $reason]);
 
         $this->addFlash('success', 'Opération rejetée.');
         return $this->redirectToRoute('app_operation_entry_index');
@@ -471,6 +477,7 @@ class OperationController extends AbstractController
             }
 
             $this->em->flush();
+            $this->auditService->log('exit_operation_created', $operation, $this->getUser(), null, ['code' => $operation->getCode()]);
 
             $this->addFlash('success', 'Opération de sortie créée : ' . $operation->getCode());
             return $this->redirectToRoute('app_operation_show', ['id' => $operation->getId()]);

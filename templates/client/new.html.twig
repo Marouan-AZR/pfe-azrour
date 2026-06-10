@@ -21,6 +21,32 @@
                     {{ form_errors(form.companyName) }}
                 </div>
 
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-tag me-1 text-primary"></i> Nom interne</label>
+                        {{ form_widget(form.nomInterne, {'attr': {'class': 'form-control', 'placeholder': 'Usage système'}}) }}
+                        {{ form_errors(form.nomInterne) }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-file-earmark-text me-1 text-primary"></i> Nom commercial</label>
+                        {{ form_widget(form.nomCommercial, {'attr': {'class': 'form-control', 'placeholder': 'Usage facturation'}}) }}
+                        {{ form_errors(form.nomCommercial) }}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-journal-text me-1 text-primary"></i> RC</label>
+                        {{ form_widget(form.rc, {'attr': {'class': 'form-control', 'placeholder': 'Registre de Commerce'}}) }}
+                        {{ form_errors(form.rc) }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-card-text me-1 text-primary"></i> ICE</label>
+                        {{ form_widget(form.ice, {'attr': {'class': 'form-control', 'placeholder': 'Identifiant Commun de l\'Entreprise'}}) }}
+                        {{ form_errors(form.ice) }}
+                    </div>
+                </div>
+
                 <div class="mb-3">
                     <label class="form-label"><i class="bi bi-upc me-1 text-primary"></i> Code client</label>
                     {{ form_widget(form.code, {'attr': {'class': 'form-control', 'placeholder': 'CLI-XXXXXXXX (auto-généré)', 'readonly': true}}) }}
