@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture – PFE Azrour</title>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      padding: 40px 24px;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a202c;
+      letter-spacing: 0.5px;
+    }
+    .page-header p {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #718096;
+    }
+    .badge {
+      display: inline-block;
+      margin: 6px 4px 0;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #ebf4ff;
+      color: #2b6cb0;
+      border: 1px solid #bee3f8;
+    }
+
+    /* ── Section titles ── */
+    .section { max-width: 1100px; margin: 0 auto 80px; }
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d3748;
+      border-left: 5px solid #4299e1;
+      padding-left: 14px;
+      margin-bottom: 6px;
+    }
+    .section-subtitle {
+      font-size: 13px;
+      color: #718096;
+      margin-left: 20px;
+      margin-bottom: 32px;
+    }
+
+    /* ════════════════════════════════════════════
+       SECTION 1 – Architecture 3 Tiers
+    ════════════════════════════════════════════ */
+    .tier-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .tier {
+      border-radius: 0;
+      position: relative;
+    }
+    .tier:first-child { border-radius: 16px 16px 0 0; }
+    .tier:last-child  { border-radius: 0 0 16px 16px; }
+
+    .tier-header {
+      display: flex;
+      align-items: center;
+      padding: 18px 28px;
+      gap: 14px;
+    }
+    .tier-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .tier-label { flex: 1; }
+    .tier-label h2 { font-size: 16px; font-weight: 700; }
+    .tier-label p  { font-size: 12px; margin-top: 2px; opacity: .75; }
+    .tier-tech-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      opacity: .85;
+    }
+
+    .tier-body {
+      padding: 0 28px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .tier-card {
+      border-radius: 12px;
+      padding: 14px 18px;
+      min-width: 160px;
+      flex: 1 1 160px;
+    }
+    .tier-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .tier-card ul { list-style: none; padding: 0; }
+    .tier-card ul li {
+      font-size: 12px;
+      padding: 2px 0 2px 14px;
+      position: relative;
+      line-height: 1.5;
+    }
+    .tier-card ul li::before {
+      content: '›';
+      position: absolute;
+      left: 0;
+      font-weight: 700;
+    }
+
+    /* Tier colours */
+    /* Présentation – blue */
+    .tier-presentation {
+      background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+      border: 2px solid #90cdf4;
+    }
+    .tier-presentation .tier-icon  { background: #2b6cb0; color: #fff; }
+    .tier-presentation .tier-label h2 { color: #1a365d; }
+    .tier-presentation .tier-label p  { color: #2c5282; }
+    .tier-presentation .tier-tech-badge { background: #2b6cb0; color: #fff; }
+    .tier-presentation .tier-card  { background: rgba(255,255,255,.65); border: 1px solid #bee3f8; color: #1a365d; }
+    .tier-presentation .tier-card h3 { color: #2b6cb0; }
+    .tier-presentation .tier-card ul li::before { color: #2b6cb0; }
+
+    /* Métier – purple */
+    .tier-metier {
+      background: linear-gradient(135deg, #faf5ff 0%, #e9d8fd 100%);
+      border: 2px solid #d6bcfa;
+      border-top: none;
+    }
+    .tier-metier .tier-icon  { background: #6b46c1; color: #fff; }
+    .tier-metier .tier-label h2 { color: #322659; }
+    .tier-metier .tier-label p  { color: #44337a; }
+    .tier-metier .tier-tech-badge { background: #6b46c1; color: #fff; }
+    .tier-metier .tier-card  { background: rgba(255,255,255,.65); border: 1px solid #e9d8fd; color: #322659; }
+    .tier-metier .tier-card h3 { color: #6b46c1; }
+    .tier-metier .tier-card ul li::before { color: #6b46c1; }
+
+    /* Données – green */
+    .tier-donnees {
+      background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+      border: 2px solid #9ae6b4;
+      border-top: none;
+    }
+    .tier-donnees .tier-icon  { background: #276749; color: #fff; }
+    .tier-donnees .tier-label h2 { color: #1c4532; }
+    .tier-donnees .tier-label p  { color: #22543d; }
+    .tier-donnees .tier-tech-badge { background: #276749; color: #fff; }
+    .tier-donnees .tier-card  { background: rgba(255,255,255,.65); border: 1px solid #c6f6d5; color: #1c4532; }
+    .tier-donnees .tier-card h3 { color: #276749; }
+    .tier-donnees .tier-card ul li::before { color: #276749; }
+
+    /* Connector arrows between tiers */
+    .tier-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      height: 0;
+      position: relative;
+      z-index: 10;
+    }
+    .connector-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      top: 0;
+    }
+    .connector-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #718096;
+      background: #f0f4f8;
+      padding: 1px 8px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      white-space: nowrap;
+      margin: 3px 0;
+    }
+    .arrow-line {
+      width: 2px;
+      height: 18px;
+      background: #a0aec0;
+    }
+    .arrow-head-down {
+      width: 0; height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #a0aec0;
+    }
+    .arrow-head-up {
+      width: 0; height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 8px solid #a0aec0;
+    }
+
+    /* Client browser box (above tier 1) */
+    .browser-box {
+      text-align: center;
+      margin-bottom: 0;
+    }
+    .browser-icon-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 28px;
+      background: #fff;
+      border: 2px dashed #cbd5e0;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a5568;
+    }
+    .browser-icon-box span { font-size: 24px; }
+    .browser-connector {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      height: 40px;
+    }
+    .browser-connector .connector-label { font-size: 10px; }
+
+    /* ════════════════════════════════════════════
+       SECTION 2 – Architecture MVC
+    ════════════════════════════════════════════ */
+    .mvc-diagram {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 0;
+      position: relative;
+    }
+
+    /* Central controller column */
+    .mvc-controller-col {
+      grid-column: 2;
+      grid-row: 1 / 4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 12px;
+    }
+
+    /* User request (top-left) */
+    .mvc-user {
+      grid-column: 1;
+      grid-row: 1;
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      padding-bottom: 8px;
+      padding-right: 8px;
+    }
+    .user-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .user-avatar {
+      width: 54px; height: 54px;
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .user-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #4a5568;
+      text-align: center;
+    }
+    .user-role-chips {
+      display: flex; flex-wrap: wrap; gap: 4px; justify-content: center;
+    }
+    .role-chip {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+
+    /* MVC boxes */
+    .mvc-box {
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+    }
+    .mvc-box-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mvc-box-subtitle {
+      font-size: 11px;
+      margin-bottom: 12px;
+      opacity: .7;
+    }
+    .mvc-item-list { list-style: none; }
+    .mvc-item-list li {
+      font-size: 11px;
+      padding: 3px 0 3px 16px;
+      position: relative;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      line-height: 1.4;
+    }
+    .mvc-item-list li:last-child { border-bottom: none; }
+    .mvc-item-list li::before {
+      content: '▸';
+      position: absolute; left: 0;
+      font-size: 10px;
+    }
+    .mvc-item-tag {
+      display: inline-block;
+      font-size: 9px;
+      padding: 0 5px;
+      border-radius: 6px;
+      margin-left: 4px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+
+    /* Controller (center) */
+    .mvc-controller {
+      background: linear-gradient(160deg, #2b6cb0, #2c5282);
+      color: #fff;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(43,108,176,.35);
+    }
+    .mvc-controller .mvc-box-title { color: #fff; }
+    .mvc-controller .mvc-box-subtitle { color: #bee3f8; }
+    .mvc-controller .mvc-item-list li { border-color: rgba(255,255,255,.12); color: #ebf8ff; }
+    .mvc-controller .mvc-item-list li::before { color: #90cdf4; }
+    .mvc-item-tag.tag-ctrl { background: rgba(255,255,255,.15); color: #bee3f8; }
+
+    /* View (right) */
+    .mvc-view-col {
+      grid-column: 3;
+      grid-row: 1 / 4;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-left: 12px;
+      justify-content: center;
+    }
+    .mvc-view {
+      background: linear-gradient(135deg, #fffaf0, #feebc8);
+      border: 2px solid #f6ad55;
+      color: #7b341e;
+    }
+    .mvc-view .mvc-box-title { color: #c05621; }
+    .mvc-view .mvc-box-subtitle { color: #dd6b20; }
+    .mvc-view .mvc-item-list li { border-color: #feebc8; }
+    .mvc-view .mvc-item-list li::before { color: #dd6b20; }
+    .mvc-item-tag.tag-view { background: #feebc8; color: #c05621; }
+
+    /* Model (left) */
+    .mvc-model-col {
+      grid-column: 1;
+      grid-row: 2 / 4;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 12px;
+      justify-content: flex-start;
+      padding-top: 12px;
+    }
+    .mvc-model {
+      background: linear-gradient(135deg, #f0fff4, #c6f6d5);
+      border: 2px solid #68d391;
+      color: #1c4532;
+    }
+    .mvc-model .mvc-box-title { color: #276749; }
+    .mvc-model .mvc-box-subtitle { color: #38a169; }
+    .mvc-model .mvc-item-list li { border-color: #c6f6d5; }
+    .mvc-model .mvc-item-list li::before { color: #38a169; }
+    .mvc-item-tag.tag-model { background: #c6f6d5; color: #276749; }
+
+    /* MVC arrows (SVG overlay) */
+    .mvc-wrapper {
+      position: relative;
+    }
+    .mvc-arrows {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .mvc-arrows text {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 10px;
+      fill: #718096;
+      font-weight: 600;
+    }
+
+    /* Separator lines between tiers */
+    .tier-sep {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      padding: 6px 28px;
+      background: rgba(0,0,0,.04);
+    }
+    .tier-sep-line { flex: 1; height: 1px; background: rgba(0,0,0,.12); }
+    .tier-sep-text {
+      font-size: 10px;
+      font-weight: 700;
+      color: #a0aec0;
+      white-space: nowrap;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 32px;
+      padding: 18px 24px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #4a5568;
+    }
+    .legend-dot {
+      width: 14px; height: 14px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .mvc-diagram { grid-template-columns: 1fr; }
+      .mvc-controller-col,
+      .mvc-view-col,
+      .mvc-model-col { grid-column: 1; grid-row: auto; padding: 0; }
+      .tier-body { flex-direction: column; }
+    }
+
+    /* Print-friendly */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .section { break-inside: avoid; }
+    }
+
+    /* mvc arrow labels */
+    .mvc-flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px 0;
+      gap: 6px;
+    }
+    .mvc-flow-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .fa-line {
+      height: 2px;
+      width: 60px;
+      background: #a0aec0;
+      position: relative;
+    }
+    .fa-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #718096;
+      white-space: nowrap;
+      background: #f0f4f8;
+      padding: 1px 6px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+    .fa-arrowhead-r {
+      width: 0; height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 8px solid #a0aec0;
+    }
+    .fa-arrowhead-l {
+      width: 0; height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-right: 8px solid #a0aec0;
+    }
+
+    /* ── db box ── */
+    .db-box {
+      background: linear-gradient(135deg, #e6fffa, #b2f5ea);
+      border: 2px solid #4fd1c5;
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: #1d4044;
+    }
+    .db-box h3 { font-size: 13px; font-weight: 700; color: #2c7a7b; margin-bottom: 8px; }
+    .db-box ul { list-style: none; }
+    .db-box ul li { font-size: 11px; padding: 2px 0 2px 14px; position: relative; }
+    .db-box ul li::before { content: '›'; position: absolute; left: 0; color: #2c7a7b; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<!-- ── PAGE HEADER ── -->
+<div class="page-header">
+  <h1>Architecture du Système – Gestion de Chambre Froide</h1>
+  <p>Projet de Fin d'Études · Nada Azrour</p>
+  <span class="badge">Symfony 7</span>
+  <span class="badge">PHP 8.2</span>
+  <span class="badge">Doctrine ORM</span>
+  <span class="badge">MariaDB</span>
+  <span class="badge">Twig</span>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     SCHÉMA 1 – ARCHITECTURE 3 TIERS
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">1. Architecture 3 Tiers</div>
+  <div class="section-subtitle">Séparation claire entre présentation, logique métier et données</div>
+
+  <div class="tier-diagram">
+
+    <!-- CLIENT BROWSER -->
+    <div class="browser-box">
+      <div class="browser-icon-box">
+        <span>🌐</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;">Client (Navigateur Web)</div>
+          <div style="font-size:11px;color:#718096;font-weight:400;">Requête HTTP · Affichage HTML/CSS/JS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="browser-connector">
+      <div class="arrow-line"></div>
+      <div class="connector-label">Requête / Réponse HTTP</div>
+      <div class="arrow-line"></div>
+      <div class="arrow-head-down"></div>
+    </div>
+
+    <!-- TIER 1 – PRÉSENTATION -->
+    <div class="tier tier-presentation">
+      <div class="tier-header">
+        <div class="tier-icon">🖥️</div>
+        <div class="tier-label">
+          <h2>Couche Présentation</h2>
+          <p>Interface utilisateur · Traitement des requêtes HTTP · Routage</p>
+        </div>
+        <span class="tier-tech-badge">Controllers + Twig</span>
+      </div>
+      <div class="tier-body">
+        <div class="tier-card">
+          <h3>Contrôleurs (22)</h3>
+          <ul>
+            <li>AuthController – Authentification</li>
+            <li>DashboardController – Tableaux de bord</li>
+            <li>StockEntryController – Entrées stock</li>
+            <li>StockExitController – Sorties stock</li>
+            <li>InvoiceController – Facturation</li>
+            <li>ClientController – Clients</li>
+            <li>ColdRoomController – Chambres froides</li>
+            <li>AlertController – Alertes</li>
+            <li>ChatbotController – Chatbot IA</li>
+            <li>+ 13 autres contrôleurs</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <h3>Vues Twig (22 dossiers)</h3>
+          <ul>
+            <li>base.html.twig – Layout principal</li>
+            <li>auth/ – Login · Inscription</li>
+            <li>dashboard/ – 6 rôles distincts</li>
+            <li>stock/ – Inventaire · Entrées · Sorties</li>
+            <li>invoice/ – Génération · Suivi</li>
+            <li>cold_room/ – Chambres · Occupation</li>
+            <li>client/ – Fiches clients</li>
+            <li>fiche/ – Fiches de décharge</li>
+            <li>alerts/ – Notifications temps réel</li>
+            <li>+ 13 autres dossiers</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <h3>Sécurité & Formulaires</h3>
+          <ul>
+            <li>Firewall Symfony Security</li>
+            <li>Voters (Client, Invoice, Stock)</li>
+            <li>Hiérarchie des rôles (6 rôles)</li>
+            <li>Protection CSRF</li>
+            <li>Form Types (6 types)</li>
+            <li>Validation des données</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Separator -->
+    <div class="tier-sep">
+      <div class="tier-sep-line"></div>
+      <div class="tier-sep-text">↕ Appels de services · Injection de dépendances</div>
+      <div class="tier-sep-line"></div>
+    </div>
+
+    <!-- TIER 2 – MÉTIER -->
+    <div class="tier tier-metier">
+      <div class="tier-header">
+        <div class="tier-icon">⚙️</div>
+        <div class="tier-label">
+          <h2>Couche Logique Métier</h2>
+          <p>Règles de gestion · Traitement des données · Orchestration</p>
+        </div>
+        <span class="tier-tech-badge">Services PHP</span>
+      </div>
+      <div class="tier-body">
+        <div class="tier-card">
+          <h3>StockService</h3>
+          <ul>
+            <li>Validation des entrées/sorties</li>
+            <li>Vérification des capacités</li>
+            <li>Calcul des stocks disponibles</li>
+            <li>Gestion des palettes</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <h3>InvoiceService</h3>
+          <ul>
+            <li>Génération automatique</li>
+            <li>Application des tarifs clients</li>
+            <li>Calcul des montants</li>
+            <li>Gestion des statuts</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <h3>AuditService</h3>
+          <ul>
+            <li>Traçabilité complète</li>
+            <li>Journal des actions</li>
+            <li>AuditListener (événements)</li>
+            <li>Historique des modifications</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <h3>AlertService</h3>
+          <ul>
+            <li>Détection des seuils critiques</li>
+            <li>Création des alertes</li>
+            <li>Notifications utilisateurs</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <h3>ColdRoomOccupancyService</h3>
+          <ul>
+            <li>Calcul du taux d'occupation</li>
+            <li>Allocation des espaces</li>
+            <li>Statistiques de remplissage</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Separator -->
+    <div class="tier-sep">
+      <div class="tier-sep-line"></div>
+      <div class="tier-sep-text">↕ Requêtes ORM · Mapping objet-relationnel</div>
+      <div class="tier-sep-line"></div>
+    </div>
+
+    <!-- TIER 3 – DONNÉES -->
+    <div class="tier tier-donnees">
+      <div class="tier-header">
+        <div class="tier-icon">🗄️</div>
+        <div class="tier-label">
+          <h2>Couche Données</h2>
+          <p>Persistance · Accès aux données · Base de données relationnelle</p>
+        </div>
+        <span class="tier-tech-badge">Doctrine ORM + MariaDB</span>
+      </div>
+      <div class="tier-body">
+        <div class="tier-card">
+          <h3>Entités (15)</h3>
+          <ul>
+            <li>User – Utilisateurs & rôles</li>
+            <li>Client – Clients frigorifiques</li>
+            <li>ColdRoom – Chambres froides</li>
+            <li>StockItem – Articles en stock</li>
+            <li>StockEntry / StockExit</li>
+            <li>Palette / PaletteTransfer</li>
+            <li>Invoice / InvoiceLine</li>
+            <li>Operation · FicheDecharge</li>
+            <li>AuditLog · TarifClient</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <h3>Repositories (14)</h3>
+          <ul>
+            <li>Requêtes QueryBuilder</li>
+            <li>Filtres multicritères</li>
+            <li>Pagination & tri</li>
+            <li>Agrégations & statistiques</li>
+            <li>Recherche full-text</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <h3>Base de données</h3>
+          <ul>
+            <li>MariaDB 10.4.32</li>
+            <li>Timezone : UTC+1 (Casablanca)</li>
+            <li>Doctrine Migrations</li>
+            <li>Cache de requêtes (prod)</li>
+            <li>Transactions ACID</li>
+          </ul>
+        </div>
+        <div class="tier-card">
+          <h3>Enumérations (7)</h3>
+          <ul>
+            <li>UserRole</li>
+            <li>StockStatus</li>
+            <li>OperationType</li>
+            <li>InvoiceStatus</li>
+            <li>PaletteStatus</li>
+            <li>TypeStockage</li>
+            <li>FicheStatus</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tier-diagram -->
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#2b6cb0;"></div>
+      Couche Présentation – Controllers + Templates Twig
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#6b46c1;"></div>
+      Couche Métier – Services + Sécurité
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#276749;"></div>
+      Couche Données – ORM + MariaDB
+    </div>
+  </div>
+
+</div><!-- /section 1 -->
+
+
+<!-- ════════════════════════════════════════════════════════════
+     SCHÉMA 2 – ARCHITECTURE MVC
+════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">2. Architecture MVC (Modèle – Vue – Contrôleur)</div>
+  <div class="section-subtitle">Pattern Symfony : flux de données entre les trois composants</div>
+
+  <!-- MVC Diagram -->
+  <div style="background:#fff;border-radius:20px;border:1px solid #e2e8f0;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.06);">
+
+    <!-- Top row: User → (arrow) → Controller ← (arrow) ← View -->
+    <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:0;align-items:start;">
+
+      <!-- LEFT COL: User + Model -->
+      <div style="display:flex;flex-direction:column;gap:16px;padding-right:16px;">
+
+        <!-- User -->
+        <div style="text-align:center;padding:16px;background:#f7fafc;border-radius:14px;border:2px dashed #cbd5e0;">
+          <div style="font-size:36px;margin-bottom:6px;">👤</div>
+          <div style="font-weight:700;font-size:13px;color:#2d3748;">Utilisateur</div>
+          <div style="font-size:11px;color:#718096;margin-top:4px;">Navigateur Web</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:8px;">
+            <span class="role-chip" style="background:#ebf4ff;color:#2b6cb0;">Patron</span>
+            <span class="role-chip" style="background:#faf5ff;color:#6b46c1;">Directeur</span>
+            <span class="role-chip" style="background:#f0fff4;color:#276749;">Chef Stock</span>
+            <span class="role-chip" style="background:#fffaf0;color:#c05621;">Contrôleur</span>
+            <span class="role-chip" style="background:#fff5f5;color:#c53030;">Client</span>
+          </div>
+        </div>
+
+        <!-- Arrow: User ↔ Controller (horizontal, shown via middle) -->
+        <div style="text-align:center;color:#a0aec0;font-size:20px;">⇅</div>
+
+        <!-- Model -->
+        <div class="mvc-box mvc-model">
+          <div class="mvc-box-title">
+            <span style="font-size:20px;">🗃️</span> Modèle (Model)
+          </div>
+          <div class="mvc-box-subtitle">Données · Persistance · Règles métier</div>
+
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:700;color:#276749;margin-bottom:4px;">Entités Doctrine</div>
+            <ul class="mvc-item-list">
+              <li>User · Client · ColdRoom</li>
+              <li>StockEntry · StockExit · StockItem</li>
+              <li>Invoice · InvoiceLine</li>
+              <li>Palette · Operation</li>
+              <li>FicheDecharge · AuditLog</li>
+            </ul>
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:700;color:#276749;margin-bottom:4px;">Repositories (14)</div>
+            <ul class="mvc-item-list">
+              <li>Requêtes QueryBuilder</li>
+              <li>Filtrage & pagination</li>
+              <li>Agrégations statistiques</li>
+            </ul>
+          </div>
+
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#276749;margin-bottom:4px;">Services métier (5)</div>
+            <ul class="mvc-item-list">
+              <li>StockService <span class="mvc-item-tag tag-model">logique</span></li>
+              <li>InvoiceService <span class="mvc-item-tag tag-model">logique</span></li>
+              <li>AuditService <span class="mvc-item-tag tag-model">traçabilité</span></li>
+              <li>AlertService <span class="mvc-item-tag tag-model">alertes</span></li>
+              <li>ColdRoomOccupancyService</li>
+            </ul>
+          </div>
+        </div>
+
+      </div><!-- /left col -->
+
+      <!-- CENTER COL: Controller -->
+      <div style="padding:0 16px;">
+        <div class="mvc-box mvc-controller" style="height:100%;">
+          <div class="mvc-box-title" style="justify-content:center;margin-bottom:6px;">
+            <span style="font-size:22px;">🎮</span> Contrôleur (Controller)
+          </div>
+          <div class="mvc-box-subtitle" style="text-align:center;">Orchestration · Routage · Sécurité</div>
+
+          <div style="margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:700;color:#90cdf4;margin-bottom:4px;">Contrôleurs principaux</div>
+            <ul class="mvc-item-list">
+              <li>AuthController <span class="mvc-item-tag tag-ctrl">login/register</span></li>
+              <li>DashboardController <span class="mvc-item-tag tag-ctrl">6 rôles</span></li>
+              <li>StockEntryController <span class="mvc-item-tag tag-ctrl">entrées</span></li>
+              <li>StockExitController <span class="mvc-item-tag tag-ctrl">sorties</span></li>
+              <li>InvoiceController <span class="mvc-item-tag tag-ctrl">facturation</span></li>
+              <li>ClientController <span class="mvc-item-tag tag-ctrl">CRUD</span></li>
+              <li>ColdRoomController <span class="mvc-item-tag tag-ctrl">chambres</span></li>
+              <li>AlertController <span class="mvc-item-tag tag-ctrl">alertes</span></li>
+              <li>TransferController <span class="mvc-item-tag tag-ctrl">transferts</span></li>
+              <li>FicheController <span class="mvc-item-tag tag-ctrl">documents</span></li>
+              <li>HistoryController <span class="mvc-item-tag tag-ctrl">historique</span></li>
+              <li>ChatbotController <span class="mvc-item-tag tag-ctrl">IA</span></li>
+              <li>UserController <span class="mvc-item-tag tag-ctrl">gestion</span></li>
+              <li>+ 9 autres contrôleurs</li>
+            </ul>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:700;color:#90cdf4;margin-bottom:4px;">Responsabilités</div>
+            <ul class="mvc-item-list">
+              <li>Réception des requêtes HTTP</li>
+              <li>Vérification des autorisations (Voters)</li>
+              <li>Appel des services métier</li>
+              <li>Préparation des données de vue</li>
+              <li>Retour de la réponse (HTML/JSON)</li>
+              <li>Gestion des redirections</li>
+              <li>Validation des formulaires</li>
+              <li>Gestion des sessions Flash</li>
+            </ul>
+          </div>
+
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#90cdf4;margin-bottom:4px;">Sécurité</div>
+            <ul class="mvc-item-list">
+              <li>Firewall Symfony Security</li>
+              <li>ClientVoter · InvoiceVoter</li>
+              <li>StockEntryVoter · StockExitVoter</li>
+              <li>Protection CSRF sur tous les forms</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /center col -->
+
+      <!-- RIGHT COL: View -->
+      <div style="padding-left:16px;">
+        <div class="mvc-box mvc-view">
+          <div class="mvc-box-title">
+            <span style="font-size:20px;">🖼️</span> Vue (View)
+          </div>
+          <div class="mvc-box-subtitle">Interface utilisateur · Templates Twig</div>
+
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:700;color:#c05621;margin-bottom:4px;">Layout de base</div>
+            <ul class="mvc-item-list">
+              <li>base.html.twig <span class="mvc-item-tag tag-view">master</span></li>
+              <li>Navbar & sidebar dynamiques</li>
+              <li>Bootstrap 5 + CSS personnalisé</li>
+              <li>Turbo (Hotwire) + Stimulus JS</li>
+            </ul>
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:700;color:#c05621;margin-bottom:4px;">Vues par module (22)</div>
+            <ul class="mvc-item-list">
+              <li>auth/ – Login · Inscription</li>
+              <li>dashboard/ – 6 tableaux de bord</li>
+              <li>stock/ stock_entry/ stock_exit/</li>
+              <li>invoice/ – Génération · PDF</li>
+              <li>cold_room/ – Vue chambres</li>
+              <li>client/ – Fiches clients</li>
+              <li>fiche/ – Fiches décharge</li>
+              <li>alerts/ chatbot/ shelf_plan/</li>
+              <li>history/ controleur_history/</li>
+            </ul>
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:700;color:#c05621;margin-bottom:4px;">Extensions Twig</div>
+            <ul class="mvc-item-list">
+              <li>AuditExtension <span class="mvc-item-tag tag-view">filtres</span></li>
+              <li>NotificationsExtension</li>
+            </ul>
+          </div>
+
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#c05621;margin-bottom:4px;">Assets</div>
+            <ul class="mvc-item-list">
+              <li>CSS / SCSS personnalisé</li>
+              <li>JavaScript Stimulus</li>
+              <li>Chart.js (graphiques)</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /right col -->
+
+    </div><!-- /grid -->
+
+    <!-- Flow arrows description -->
+    <div style="margin-top:28px;padding:18px 24px;background:#f7fafc;border-radius:12px;border:1px solid #e2e8f0;">
+      <div style="font-size:12px;font-weight:700;color:#2d3748;margin-bottom:12px;text-align:center;">Flux de données MVC – Cycle de vie d'une requête</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;">
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#ebf8ff;border-radius:10px;border:1px solid #bee3f8;">
+          <span style="font-size:16px;">1️⃣</span>
+          <span style="font-size:11px;color:#2b6cb0;font-weight:600;">Utilisateur → envoi requête HTTP</span>
+        </div>
+        <span style="color:#a0aec0;font-size:16px;">→</span>
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#ebf8ff;border-radius:10px;border:1px solid #bee3f8;">
+          <span style="font-size:16px;">2️⃣</span>
+          <span style="font-size:11px;color:#2b6cb0;font-weight:600;">Contrôleur → reçoit & traite la requête</span>
+        </div>
+        <span style="color:#a0aec0;font-size:16px;">→</span>
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#f0fff4;border-radius:10px;border:1px solid #c6f6d5;">
+          <span style="font-size:16px;">3️⃣</span>
+          <span style="font-size:11px;color:#276749;font-weight:600;">Modèle → interroge la BDD via Repository</span>
+        </div>
+        <span style="color:#a0aec0;font-size:16px;">→</span>
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#f0fff4;border-radius:10px;border:1px solid #c6f6d5;">
+          <span style="font-size:16px;">4️⃣</span>
+          <span style="font-size:11px;color:#276749;font-weight:600;">Modèle → retourne les données au Contrôleur</span>
+        </div>
+        <span style="color:#a0aec0;font-size:16px;">→</span>
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fffaf0;border-radius:10px;border:1px solid #feebc8;">
+          <span style="font-size:16px;">5️⃣</span>
+          <span style="font-size:11px;color:#c05621;font-weight:600;">Contrôleur → passe les données à la Vue Twig</span>
+        </div>
+        <span style="color:#a0aec0;font-size:16px;">→</span>
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fffaf0;border-radius:10px;border:1px solid #feebc8;">
+          <span style="font-size:16px;">6️⃣</span>
+          <span style="font-size:11px;color:#c05621;font-weight:600;">Vue → génère le HTML · réponse HTTP</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DB box at the bottom of Model -->
+    <div style="margin-top:20px;max-width:340px;">
+      <div class="db-box">
+        <h3>🗄️ Base de données – MariaDB 10.4.32</h3>
+        <ul>
+          <li>15 tables (une par entité)</li>
+          <li>Relations : OneToMany · ManyToMany · ManyToOne</li>
+          <li>Doctrine Migrations versionnées</li>
+          <li>Timezone : Africa/Casablanca (UTC+1)</li>
+          <li>Cache de requêtes activé en production</li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- /white card -->
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#2b6cb0;"></div>
+      Contrôleur – Orchestration & routage HTTP
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#276749;"></div>
+      Modèle – Entités, Repositories & Services métier
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#c05621;"></div>
+      Vue – Templates Twig & assets frontend
+    </div>
+  </div>
+
+</div><!-- /section 2 -->
+
+</body>
+</html>

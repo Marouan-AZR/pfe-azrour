@@ -1,126 +1,281 @@
 {% extends 'base.html.twig' %}
+{% block title %}Mon Historique — Contrôleur{% endblock %}
 
-{% block title %}Mon Historique{% endblock %}
+{% block stylesheets %}
+<style>
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+.kpi-card { border-radius:.85rem; padding:1rem 1.25rem; transition:box-shadow .15s,transform .15s; }
+.kpi-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.1); }
+.kpi-val { font-size:2rem; font-weight:800; line-height:1; }
+.kpi-lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; margin-top:.2rem; opacity:.75; }
+.status-pill { display:inline-flex; align-items:center; gap:.35rem; font-size:.75rem; font-weight:700; padding:.3em .75em; border-radius:50px; }
+.tbl thead th { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; padding:.6rem 1rem; white-space:nowrap; }
+.tbl tbody td { font-size:.85rem; padding:.65rem 1rem; vertical-align:middle; }
+.tr-row { background:rgba(245,158,11,.03); }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container-fluid py-4">
-    <h2 class="mb-4"><i class="bi bi-journal-text me-2"></i>Mon Historique d'opérations</h2>
+<div class="container-fluid py-4 px-4">
 
-    {# KPIs #}
-    <div class="row g-3 mb-4">
-        <div class="col-md-2">
-            <div class="card text-center p-3">
-                <div class="fs-3 fw-bold text-success">{{ kpis.entries }}</div>
-                <small class="text-muted">📦 Entrées</small>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card text-center p-3">
-                <div class="fs-3 fw-bold text-danger">{{ kpis.exits }}</div>
-                <small class="text-muted">🚚 Sorties</small>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card text-center p-3">
-                <div class="fs-3 fw-bold text-info">{{ kpis.transfers }}</div>
-                <small class="text-muted">🔄 Transferts</small>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card text-center p-3">
-                <div class="fs-3 fw-bold">{{ kpis.palettes }}</div>
-                <small class="text-muted">🗂 Palettes</small>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card text-center p-3">
-                <div class="fs-3 fw-bold">{{ kpis.cartons|number_format(0, ',', ' ') }}</div>
-                <small class="text-muted">📊 Cartons</small>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card text-center p-3">
-                <div class="fs-3 fw-bold">{{ kpis.weight }} T</div>
-                <small class="text-muted">⚖️ Poids total</small>
-            </div>
-        </div>
+  {# ── Header ── #}
+  <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+      <h2 class="mb-1 fw-bold"><i class="bi bi-journal-text me-2 text-primary"></i>Mon Historique</h2>
+      <p class="text-secondary mb-0 small">Toutes vos opérations et transferts réalisés</p>
     </div>
+  </div>
 
-    {# Filtres #}
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label">Recherche</label>
-                    <input type="text" name="q" class="form-control" placeholder="Code, client, espèce..." value="{{ search }}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Date début</label>
-                    <input type="date" name="from" class="form-control" value="{{ from }}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Date fin</label>
-                    <input type="date" name="to" class="form-control" value="{{ to }}">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrer</button>
-                </div>
-                <div class="col-md-1">
-                    <a href="{{ path('app_controleur_history') }}" class="btn btn-outline-secondary w-100"><i class="bi bi-x-lg"></i></a>
-                </div>
-            </form>
-        </div>
+  {# ── KPI cards ── #}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-2">
+      <div class="kpi-card" style="background:rgba(16,185,129,.08);color:#065f46">
+        <div class="kpi-val">{{ kpis.entries }}</div>
+        <div class="kpi-lbl"><i class="bi bi-box-arrow-in-down me-1"></i>Entrées</div>
+      </div>
     </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card" style="background:rgba(239,68,68,.08);color:#991b1b">
+        <div class="kpi-val">{{ kpis.exits }}</div>
+        <div class="kpi-lbl"><i class="bi bi-box-arrow-up me-1"></i>Sorties</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card" style="background:rgba(245,158,11,.08);color:#b45309">
+        <div class="kpi-val">{{ kpis.transfers }}</div>
+        <div class="kpi-lbl"><i class="bi bi-arrow-left-right me-1"></i>Transferts</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card" style="background:rgba(20,184,166,.08);color:#0f766e">
+        <div class="kpi-val">{{ kpis.controlesRealises }}</div>
+        <div class="kpi-lbl"><i class="bi bi-clipboard-check me-1"></i>Contrôles réalisés</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card" style="background:rgba(59,130,246,.08);color:#1d4ed8">
+        <div class="kpi-val">{{ kpis.controlesEnAttente }}</div>
+        <div class="kpi-lbl"><i class="bi bi-hourglass-split me-1"></i>En attente contrôle</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card" style="background:rgba(245,158,11,.08);color:#b45309">
+        <div class="kpi-val">{{ kpis.weight }}</div>
+        <div class="kpi-lbl"><i class="bi bi-weight me-1"></i>Tonnage (T)</div>
+      </div>
+    </div>
+  </div>
 
-    {# Tableau des opérations #}
-    <div class="card">
-        <div class="card-header"><i class="bi bi-list-ul me-2"></i>Opérations ({{ operations|length }})</div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Client</th>
-                            <th>Espèces</th>
-                            <th class="text-center">Palettes</th>
-                            <th class="text-center">Total Cartons</th>
-                            <th class="text-end">Poids (kg)</th>
-                            <th class="text-end">Poids (T)</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for op in operations %}
-                        <tr>
-                            <td>{{ op.createdAt|date('d/m/Y') }}</td>
-                            <td>
-                                {% if op.type.value == 'entry' %}
-                                    <span class="badge bg-success">Entrée</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Sortie</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ op.client.companyName }}</td>
-                            <td>{{ op.especes|join(', ') }}</td>
-                            <td class="text-center">{{ op.nombrePalettes }}</td>
-                            <td class="text-center">{{ op.totalCartons }}</td>
-                            <td class="text-end">{{ op.poidsTotal|number_format(0, ',', ' ') }}</td>
-                            <td class="text-end">{{ op.poidsTotalTonnes|number_format(2) }} T</td>
-                            <td class="text-center">
-                                <a href="{{ path('app_controleur_history_detail', {id: op.id}) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i> Voir détails
-                                </a>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="9" class="text-center py-5 text-muted">Aucune opération pour cette période</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+  {# ── Filtres ── #}
+  <div class="glass mb-4 p-3">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-md-4">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-secondary"></i></span>
+          <input type="text" name="q" class="form-control border-start-0" placeholder="N° BL, client, espèce…" value="{{ search }}">
         </div>
+      </div>
+      <div class="col-md-2">
+        <input type="date" name="from" class="form-control form-control-sm" value="{{ from }}" placeholder="Date début">
+      </div>
+      <div class="col-md-2">
+        <input type="date" name="to" class="form-control form-control-sm" value="{{ to }}" placeholder="Date fin">
+      </div>
+      <div class="col-md-2">
+        <select class="form-select form-select-sm" id="typeSelect">
+          <option value="">Tous les types</option>
+          <option value="entry">Entrées</option>
+          <option value="exit">Sorties</option>
+          <option value="transfert">Transferts</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel"></i></button>
+      </div>
+      <div class="col-md-1">
+        <a href="{{ path('app_controleur_history') }}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-x-lg"></i></a>
+      </div>
+    </form>
+  </div>
+
+  {# ── Tableau unique : opérations + transferts ── #}
+  <div class="glass overflow-hidden">
+    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+      <h6 class="mb-0 fw-semibold">
+        <i class="bi bi-list-ul me-2 text-primary"></i>
+        Toutes les activités
+        <span class="badge rounded-pill ms-1" style="background:rgba(99,102,241,.12);color:#4f46e5;font-size:.72rem" id="rowCount">
+          {{ operations|length + transfers|length }}
+        </span>
+      </h6>
     </div>
+    <div class="table-responsive">
+      <table class="table tbl table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Référence</th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Client</th>
+            <th>Détail</th>
+            <th class="text-center">Palettes</th>
+            <th class="text-center">Cartons</th>
+            <th class="text-end">Poids (kg)</th>
+            <th class="text-center">Statut</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="mainTableBody">
+
+          {% for activity in activities %}
+          {% set rowtype = activity.type %}
+
+          {% if rowtype == 'operation' %}
+          {% set op = activity.data %}
+          {% set sv = op.status.value %}
+          <tr class="op-row" data-rowtype="{{ op.type.value }}">
+            <td>
+              <code style="background:rgba(99,102,241,.1);color:#4f46e5;padding:.2em .5em;border-radius:.35rem;font-weight:700">
+                {{ op.code }}
+              </code>
+            </td>
+            <td class="text-nowrap">
+              {{ op.createdAt|date('d/m/Y') }}<br>
+              <small class="text-secondary">{{ op.createdAt|date('H:i') }}</small>
+            </td>
+            <td>
+              {% if op.type.value == 'entry' %}
+                <span class="status-pill" style="background:rgba(16,185,129,.12);color:#065f46">
+                  <i class="bi bi-arrow-down-circle-fill"></i>Entrée
+                </span>
+              {% else %}
+                <span class="status-pill" style="background:rgba(239,68,68,.12);color:#991b1b">
+                  <i class="bi bi-arrow-up-circle-fill"></i>Sortie
+                </span>
+              {% endif %}
+            </td>
+            <td class="fw-semibold">{{ op.client.companyName }}</td>
+            <td>
+              {% for esp in op.especes %}
+              <span style="background:#f1f5f9;color:#475569;padding:.15em .45em;border-radius:.3rem;font-size:.75rem;font-weight:600;margin:.1rem .05rem">
+                {{ esp }}
+              </span>
+              {% endfor %}
+            </td>
+            <td class="text-center fw-semibold">{{ op.nombrePalettes }}</td>
+            <td class="text-center fw-semibold">{{ op.totalCartons }}</td>
+            <td class="text-end fw-semibold">{{ op.poidsTotal|number_format(0, ',', ' ') }}</td>
+            <td class="text-center">
+              {% if sv == 'validated' %}
+                <span class="status-pill" style="background:rgba(16,185,129,.12);color:#065f46">
+                  <i class="bi bi-check-circle-fill"></i>Validé
+                </span>
+              {% elseif sv == 'en_attente_validation' %}
+                <span class="status-pill" style="background:rgba(20,184,166,.12);color:#0f766e">
+                  <i class="bi bi-clipboard-check-fill"></i>Contrôle réalisé
+                </span>
+              {% elseif sv == 'rejected' %}
+                <span class="status-pill" style="background:rgba(239,68,68,.12);color:#991b1b">
+                  <i class="bi bi-x-circle-fill"></i>Rejeté
+                </span>
+              {% elseif sv == 'en_attente_controle' %}
+                <span class="status-pill" style="background:rgba(59,130,246,.12);color:#1d4ed8">
+                  <i class="bi bi-search"></i>À contrôler
+                </span>
+              {% else %}
+                <span class="status-pill" style="background:rgba(100,116,139,.12);color:#475569">
+                  <i class="bi bi-clock"></i>En attente
+                </span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <a href="{{ path('app_operation_show', {id: op.id}) }}"
+                 class="btn btn-sm btn-outline-primary" title="Voir détail" style="border-radius:.5rem">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+
+          {% else %}
+          {% set tr = activity.data %}
+          <tr class="op-row tr-row" data-rowtype="transfert">
+            <td>
+              <code style="background:rgba(245,158,11,.12);color:#92400e;padding:.2em .5em;border-radius:.35rem;font-weight:700">
+                {{ tr.palette.codePalette }}
+              </code>
+            </td>
+            <td class="text-nowrap">
+              {{ tr.transferredAt|date('d/m/Y') }}<br>
+              <small class="text-secondary">{{ tr.transferredAt|date('H:i') }}</small>
+            </td>
+            <td>
+              <span class="status-pill" style="background:rgba(245,158,11,.12);color:#92400e">
+                <i class="bi bi-arrow-left-right"></i>Transfert
+              </span>
+            </td>
+            <td class="fw-semibold">{{ tr.palette.operation.client.companyName }}</td>
+            <td>
+              <span style="font-size:.8rem">
+                <span style="background:rgba(14,165,233,.1);color:#0369a1;padding:.15em .4em;border-radius:.3rem;font-weight:600">
+                  <i class="bi bi-snow2" style="font-size:.6rem"></i> {{ tr.fromColdRoom.name }}{% if tr.fromRayon %} / {{ tr.fromRayon }}{% endif %}
+                </span>
+                <i class="bi bi-arrow-right mx-1 text-secondary"></i>
+                <span style="background:rgba(16,185,129,.1);color:#065f46;padding:.15em .4em;border-radius:.3rem;font-weight:600">
+                  <i class="bi bi-snow2" style="font-size:.6rem"></i> {{ tr.toColdRoom.name }}{% if tr.toRayon %} / {{ tr.toRayon }}{% endif %}
+                </span>
+              </span>
+            </td>
+            <td class="text-center fw-semibold">1</td>
+            <td class="text-center text-secondary">{{ tr.palette.cartonsRestants }}</td>
+            <td class="text-end text-secondary">{{ tr.palette.poidsRestant|number_format(0, ',', ' ') }}</td>
+            <td class="text-center">
+              <span class="status-pill" style="background:rgba(245,158,11,.12);color:#92400e">
+                <i class="bi bi-check-circle-fill"></i>Réalisé
+              </span>
+            </td>
+            <td class="text-center">
+              <a href="{{ path('app_operation_show', {id: tr.palette.operation.id}) }}"
+                 class="btn btn-sm btn-outline-warning" title="Voir opération source" style="border-radius:.5rem">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% endif %}
+
+          {% else %}
+          <tr>
+            <td colspan="10" class="text-center py-5 text-secondary">
+              <i class="bi bi-inbox display-4 d-block mb-2 opacity-25"></i>
+              <div>Aucune activité pour cette période</div>
+            </td>
+          </tr>
+          {% endfor %}
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+  const rows = document.querySelectorAll('.op-row');
+  const countBadge = document.getElementById('rowCount');
+
+  document.getElementById('typeSelect')?.addEventListener('change', function () {
+    const val = this.value;
+    let visible = 0;
+    rows.forEach(r => {
+      const show = !val || r.dataset.rowtype === val;
+      r.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    if (countBadge) countBadge.textContent = visible;
+  });
+})();
+</script>
 {% endblock %}

@@ -1,372 +1,426 @@
 {% extends 'base.html.twig' %}
+{% block title %}Gestion des clients{% endblock %}
 
-{% block title %}Clients{% endblock %}
+{% block stylesheets %}
+<style>
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 2px 16px rgba(0,0,0,.06); }
+
+/* KPI */
+.kpi-wrap { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
+.kpi { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; padding:1.1rem 1.25rem; position:relative; overflow:hidden; transition:transform .18s,box-shadow .18s; }
+.kpi:hover { transform:translateY(-3px); box-shadow:0 6px 24px rgba(0,0,0,.09); }
+.kpi-bar { position:absolute; top:0; left:0; right:0; height:3px; border-radius:1rem 1rem 0 0; }
+.kpi-icon { width:42px; height:42px; border-radius:.7rem; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+.kpi-val { font-size:1.7rem; font-weight:900; color:#111827; letter-spacing:-.03em; line-height:1; }
+.kpi-lbl { font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:#6b7280; margin-top:.25rem; }
+
+/* Layout 2 colonnes */
+.main-grid { display:grid; grid-template-columns:1fr 380px; gap:1.25rem; align-items:start; }
+
+/* Donut card */
+.chart-card { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; padding:1.25rem; box-shadow:0 2px 16px rgba(0,0,0,.06); }
+.card-title { font-size:.85rem; font-weight:700; color:#111827; display:flex; align-items:center; gap:.4rem; margin-bottom:1.1rem; }
+.card-title i { color:#2563eb; }
+.donut-container { position:relative; width:200px; height:200px; margin:0 auto 1.25rem; }
+.donut-center-txt { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+.donut-center-txt .dv { font-size:1.3rem; font-weight:900; color:#111827; line-height:1; }
+.donut-center-txt .dl { font-size:.62rem; color:#9ca3af; text-transform:uppercase; letter-spacing:.06em; }
+
+.leg-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.55rem; }
+.leg-item { display:flex; align-items:center; gap:.65rem; }
+.leg-dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.leg-name { flex:1; font-size:.8rem; color:#374151; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.leg-pct  { font-size:.75rem; font-weight:700; color:#6b7280; white-space:nowrap; }
+.leg-ton  { font-size:.72rem; color:#9ca3af; white-space:nowrap; }
+
+/* Table card */
+.tbl-card { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; overflow:hidden; box-shadow:0 2px 16px rgba(0,0,0,.06); }
+.tbl-head-bar { padding:.85rem 1.25rem; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
+.tbl-head-bar h6 { margin:0; font-size:.88rem; font-weight:700; color:#111827; display:flex; align-items:center; gap:.4rem; }
+.tbl-cnt { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; border-radius:50px; font-size:.72rem; font-weight:700; padding:.15rem .6rem; }
+
+table.ct { width:100%; border-collapse:collapse; }
+table.ct thead th { padding:.6rem 1rem; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#64748b; background:#f8fafc; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+table.ct tbody td { padding:.8rem 1rem; font-size:.84rem; color:#111827; border-bottom:1px solid #f8fafc; vertical-align:middle; }
+table.ct tbody tr:last-child td { border-bottom:none; }
+table.ct tbody tr:hover td { background:#fafafa; }
+table.ct tbody tr.inactive td { opacity:.5; }
+
+.code-badge { background:rgba(99,102,241,.12); color:#4f46e5; padding:.2rem .5rem; border-radius:.35rem; font-size:.78rem; font-family:ui-monospace,monospace; font-weight:700; }
+.st-actif   { background:rgba(16,185,129,.12); color:#065f46; border:1px solid rgba(16,185,129,.25); font-size:.72rem; font-weight:700; padding:.25em .65em; border-radius:50px; display:inline-flex; align-items:center; gap:.25rem; }
+.st-inactif { background:rgba(100,116,139,.12); color:#475569; border:1px solid rgba(100,116,139,.25); font-size:.72rem; font-weight:700; padding:.25em .65em; border-radius:50px; display:inline-flex; align-items:center; gap:.25rem; }
+
+.bar-bg   { height:7px; border-radius:4px; background:#e2e8f0; overflow:hidden; margin-bottom:3px; }
+.bar-fill { height:100%; border-radius:4px; }
+.pct-lbl  { font-size:.7rem; font-weight:700; padding:.15em .45em; border-radius:.3rem; }
+
+/* Pagination */
+.pag { padding:.75rem 1.25rem; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
+.pag-info { font-size:.78rem; color:#6b7280; }
+.pag-btns { display:flex; gap:.3rem; }
+.pb { min-width:32px; height:32px; border-radius:.5rem; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:.8rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.pb:hover:not(:disabled) { border-color:#2563eb; color:#2563eb; }
+.pb.on { background:#2563eb; border-color:#2563eb; color:#fff; }
+.pb:disabled { opacity:.3; cursor:not-allowed; }
+
+/* Legend strip */
+.leg-strip { padding:.6rem 1.25rem; border-top:1px solid #f1f5f9; background:#f8fafc; display:flex; flex-wrap:wrap; gap:.85rem; align-items:center; }
+.ls { display:flex; align-items:center; gap:.4rem; font-size:.7rem; color:#6b7280; }
+.ls-line { display:inline-block; width:22px; height:5px; border-radius:3px; }
+
+/* Search */
+.srch { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; padding:.85rem 1.25rem; margin-bottom:1.25rem; display:flex; gap:.75rem; align-items:center; }
+.srch-in { position:relative; flex:1; }
+.srch-in i { position:absolute; left:.85rem; top:50%; transform:translateY(-50%); color:#9ca3af; font-size:.85rem; pointer-events:none; }
+.srch-in input { width:100%; padding:.5rem 1rem .5rem 2.4rem; border:1.5px solid #e5e7eb; border-radius:.6rem; font-size:.875rem; color:#111827; background:#f9fafb; outline:none; transition:border-color .2s,box-shadow .2s; }
+.srch-in input:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#fff; }
+.btn-s { background:#2563eb; color:#fff; border:none; border-radius:.6rem; padding:.52rem 1rem; font-size:.875rem; font-weight:600; cursor:pointer; transition:background .2s; white-space:nowrap; }
+.btn-s:hover { background:#1d4ed8; }
+.btn-r { background:#f3f4f6; color:#6b7280; border:1.5px solid #e5e7eb; border-radius:.6rem; padding:.52rem .75rem; text-decoration:none; transition:all .2s; }
+.btn-r:hover { background:#e5e7eb; color:#111827; }
+
+@media(max-width:900px){ .main-grid{grid-template-columns:1fr;} .kpi-wrap{grid-template-columns:repeat(2,1fr);} }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-        <div class="alert alert-danger">{{ message }}</div>
-    {% endfor %}
+<div class="container-fluid py-4 px-4">
 
-    <div class="page-header">
-        <div class="header-content">
-            <h1><i class="bi bi-people"></i> Gestion des clients</h1>
-            {% if is_granted('CLIENT_CREATE') %}
-            <a href="{{ path('app_client_new') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Nouveau client
-            </a>
-            {% endif %}
+{# Flash #}
+{% for msg in app.flashes('success') %}<div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-3 rounded-3"><i class="bi bi-check-circle-fill"></i>{{ msg }}<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button></div>{% endfor %}
+{% for msg in app.flashes('error') %}<div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-3 rounded-3"><i class="bi bi-exclamation-circle-fill"></i>{{ msg }}<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button></div>{% endfor %}
+{% for msg in app.flashes('warning') %}<div class="alert alert-warning alert-dismissible fade show d-flex align-items-center gap-2 mb-3 rounded-3"><i class="bi bi-exclamation-triangle-fill"></i>{{ msg }}<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button></div>{% endfor %}
+
+{# Calculs #}
+{% set activeCount  = 0 %}
+{% set totalStockKg = 0 %}
+{% for c in clients %}
+    {% if c.isActive %}{% set activeCount = activeCount + 1 %}{% endif %}
+    {% set totalStockKg = totalStockKg + (clientStock[c.id] ?? 0) %}
+{% endfor %}
+{% set totalStockT = totalStockKg / 1000 %}
+{% set globalPct   = totalCapacity > 0 ? (totalStockT / totalCapacity * 100)|round(1) : 0 %}
+{% set gColor = globalPct <= 20 ? '#ef4444' : globalPct <= 60 ? '#f59e0b' : '#10b981' %}
+{% set gGrad  = globalPct <= 20 ? 'linear-gradient(90deg,#ef4444,#dc2626)' : globalPct <= 60 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#10b981,#059669)' %}
+
+{# Header #}
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+        <h2 class="mb-1 fw-bold" style="color:#111827;letter-spacing:-.02em"><i class="bi bi-people me-2" style="color:#2563eb"></i>Gestion des clients</h2>
+    </div>
+    {% if is_granted('CLIENT_CREATE') %}
+    <a href="{{ path('app_client_new') }}" class="btn btn-primary d-flex align-items-center gap-2"><i class="bi bi-plus-lg"></i>Nouveau client</a>
+    {% endif %}
+</div>
+
+{# KPI #}
+<div class="kpi-wrap">
+    <div class="kpi">
+        <div class="kpi-bar" style="background:#2563eb"></div>
+        <div class="d-flex align-items-center gap-3 mt-1">
+            <div class="kpi-icon" style="background:#eff6ff;color:#2563eb"><i class="bi bi-people-fill"></i></div>
+            <div><div class="kpi-val">{{ clients|length }}</div><div class="kpi-lbl">Total clients</div></div>
         </div>
     </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
-                <i class="bi bi-people-fill"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ clients|length }}</div>
-                <div class="stat-label">Total clients</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #059669);">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">
-                    {% set activeCount = 0 %}
-                    {% for client in clients %}
-                        {% if client.isActive %}{% set activeCount = activeCount + 1 %}{% endif %}
-                    {% endfor %}
-                    {{ activeCount }}
-                </div>
-                <div class="stat-label">Clients actifs</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning), #d97706);">
-                <i class="bi bi-pause-circle"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ clients|length - activeCount }}</div>
-                <div class="stat-label">Clients inactifs</div>
-            </div>
+    <div class="kpi">
+        <div class="kpi-bar" style="background:#10b981"></div>
+        <div class="d-flex align-items-center gap-3 mt-1">
+            <div class="kpi-icon" style="background:#ecfdf5;color:#10b981"><i class="bi bi-check-circle-fill"></i></div>
+            <div><div class="kpi-val">{{ activeCount }}</div><div class="kpi-lbl">Clients actifs</div></div>
         </div>
     </div>
-
-    <div class="card mb-4">
-        <div class="card-header">
-            <i class="bi bi-search"></i> Recherche
-        </div>
-        <div class="card-body">
-            <form method="get" class="search-form">
-                <div class="search-input-wrapper">
-                    <i class="bi bi-search"></i>
-                    <input type="text" name="q" class="form-control" placeholder="Rechercher par raison sociale, email ou code..." value="{{ search }}">
-                </div>
-                <button type="submit" class="btn btn-primary">Rechercher</button>
-                {% if search %}
-                <a href="{{ path('app_client_index') }}" class="btn btn-outline-light">
-                    <i class="bi bi-x-lg"></i> Réinitialiser
-                </a>
-                {% endif %}
-            </form>
+    <div class="kpi">
+        <div class="kpi-bar" style="background:#64748b"></div>
+        <div class="d-flex align-items-center gap-3 mt-1">
+            <div class="kpi-icon" style="background:#f8fafc;color:#64748b"><i class="bi bi-pause-circle-fill"></i></div>
+            <div><div class="kpi-val">{{ clients|length - activeCount }}</div><div class="kpi-lbl">Clients inactifs</div></div>
         </div>
     </div>
-
-    <div class="card">
-        <div class="card-header">
-            <i class="bi bi-table"></i> Liste des clients
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Code</th>
-                            <th>Raison sociale</th>
-                            <th>RC</th>
-                            <th>ICE</th>
-                            <th>Contact</th>
-                            <th>Stockage</th>
-                            <th class="text-center">Statut</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for client in clients %}
-                        <tr class="{{ not client.isActive ? 'row-inactive' }}">
-                            <td>
-                                <code class="client-code">{{ client.code }}</code>
-                            </td>
-                            <td>
-                                <div class="client-info">
-                                    <span class="client-name">{{ client.companyName }}</span>
-                                    {% if client.nomInterne or client.nomCommercial %}
-                                    <small class="text-muted d-block">
-                                        {% if client.nomInterne %}Int: {{ client.nomInterne }}{% endif %}
-                                        {% if client.nomCommercial %}{% if client.nomInterne %} | {% endif %}Com: {{ client.nomCommercial }}{% endif %}
-                                    </small>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td><small>{{ client.rc ?? '—' }}</small></td>
-                            <td><small>{{ client.ice ?? '—' }}</small></td>
-                            <td>
-                                <div class="contact-info">
-                                    <div class="contact-item">
-                                        <i class="bi bi-envelope"></i> {{ client.email }}
-                                    </div>
-                                    <div class="contact-item">
-                                        <i class="bi bi-telephone"></i> {{ client.phone }}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                {% set stockKg = clientStock[client.id] ?? 0 %}
-                                {% set stockT = stockKg / 1000 %}
-                                {% set pct = totalCapacity > 0 ? ((stockT / totalCapacity) * 100)|round(1) : 0 %}
-                                <div style="min-width:180px">
-                                    <div class="progress" style="height:10px;background:var(--glass-border);border-radius:5px">
-                                        <div class="progress-bar {% if pct > 80 %}bg-danger{% elseif pct > 60 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ pct > 100 ? 100 : pct }}%;border-radius:5px"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between mt-1">
-                                        <small class="fw-bold">{{ pct }}%</small>
-                                        <small class="text-muted">{{ stockKg|number_format(0, ',', ' ') }} kg ({{ stockT|number_format(2, ',', ' ') }} T)</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="text-center">
-                                {% if client.isActive %}
-                                    <span class="status-badge status-active">
-                                        <i class="bi bi-check-circle"></i> Actif
-                                    </span>
-                                {% else %}
-                                    <span class="status-badge status-inactive">
-                                        <i class="bi bi-pause-circle"></i> Inactif
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    {% if is_granted('CLIENT_EDIT') %}
-                                    <a href="{{ path('app_client_edit', {id: client.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ path('app_client_toggle', {id: client.id}) }}" method="post" class="d-inline">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ client.id) }}">
-                                        <button type="submit" class="btn btn-sm {{ client.isActive ? 'btn-outline-warning' : 'btn-outline-success' }}" title="{{ client.isActive ? 'Désactiver' : 'Activer' }}">
-                                            <i class="bi {{ client.isActive ? 'bi-pause' : 'bi-play' }}"></i>
-                                        </button>
-                                    </form>
-                                    <form action="{{ path('app_client_create_account', {id: client.id}) }}" method="post" class="d-inline">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('create_account' ~ client.id) }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-info" title="Créer compte utilisateur">
-                                            <i class="bi bi-person-plus"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
-                                    {% if is_granted('CLIENT_DELETE') %}
-                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ client.id }}" title="Supprimer">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                                
-                                {% if is_granted('CLIENT_DELETE') %}
-                                <div class="modal fade" id="deleteModal{{ client.id }}" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="bi bi-exclamation-triangle text-danger"></i> Confirmer la suppression
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <p>Êtes-vous sûr de vouloir supprimer le client :</p>
-                                                <p class="text-center">
-                                                    <strong class="text-danger">{{ client.companyName }}</strong>
-                                                </p>
-                                                <p class="text-muted small">Cette action est irréversible.</p>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                <form action="{{ path('app_client_delete', {id: client.id}) }}" method="post" class="d-inline">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ client.id) }}">
-                                                    <button type="submit" class="btn btn-danger">
-                                                        <i class="bi bi-trash"></i> Supprimer
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="8" class="text-center py-5">
-                                <div class="empty-state">
-                                    <i class="bi bi-people"></i>
-                                    <p>Aucun client trouvé</p>
-                                    {% if is_granted('CLIENT_CREATE') %}
-                                    <a href="{{ path('app_client_new') }}" class="btn btn-primary">
-                                        <i class="bi bi-plus-lg"></i> Ajouter un client
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="kpi">
+        <div class="kpi-bar" style="background:{{ gColor }}"></div>
+        <div class="d-flex align-items-center gap-3 mt-1">
+            <div class="kpi-icon" style="background:{{ gColor }}22;color:{{ gColor }}"><i class="bi bi-database-fill"></i></div>
+            <div class="flex-fill">
+                <div class="kpi-val">{{ globalPct }}<span style="font-size:.5em;font-weight:600"> %</span></div>
+                <div class="kpi-lbl">{{ totalStockT|number_format(1) }} T / {{ totalCapacity|number_format(0) }} T</div>
+                <div class="bar-bg mt-1"><div class="bar-fill" style="width:{{ globalPct > 100 ? 100 : globalPct }}%;background:{{ gGrad }}"></div></div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-.page-header {
-    margin-bottom: 2rem;
-}
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-.stat-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: transform 0.3s ease;
-}
-.stat-card:hover {
-    transform: translateY(-5px);
-}
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-}
-.stat-value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--text);
-}
-.stat-label {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-.search-form {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-.search-input-wrapper {
-    flex: 1;
-    position: relative;
-}
-.search-input-wrapper i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-}
-.search-input-wrapper input {
-    padding-left: 2.5rem;
-}
-.client-code {
-    background: rgba(99, 102, 241, 0.2);
-    color: var(--primary-light);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-}
-.client-name {
-    font-weight: 600;
-    color: var(--text);
-}
-.contact-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-.contact-item {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.contact-item i {
-    color: var(--primary-light);
-}
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-.status-active {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
-}
-.status-inactive {
-    background: rgba(100, 116, 139, 0.2);
-    color: #64748b;
-}
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-}
-.row-inactive {
-    opacity: 0.6;
-}
-.empty-state {
-    color: var(--text-muted);
-}
-.empty-state i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-}
-@media (max-width: 768px) {
-    .search-form {
-        flex-direction: column;
+{# Recherche #}
+<div class="srch">
+    <form method="get" class="d-flex gap-2 align-items-center w-100">
+        <div class="srch-in">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" placeholder="Rechercher par raison sociale, email ou code…" value="{{ search }}">
+        </div>
+        <button type="submit" class="btn-s"><i class="bi bi-search me-1"></i>Rechercher</button>
+        {% if search %}<a href="{{ path('app_client_index') }}" class="btn-r"><i class="bi bi-x-lg"></i></a>{% endif %}
+    </form>
+</div>
+
+{# Grille principale : tableau gauche + graphe droite #}
+<div class="main-grid">
+
+    {# ── Tableau ── #}
+    <div class="tbl-card">
+        <div class="tbl-head-bar">
+            <h6><i class="bi bi-table" style="color:#2563eb"></i>Liste des clients <span class="tbl-cnt">{{ clients|length }}</span></h6>
+            {% if search %}<small class="text-secondary"><i class="bi bi-funnel me-1"></i>« {{ search }} »</small>{% endif %}
+        </div>
+        <div class="table-responsive">
+            <table class="ct">
+                <thead>
+                    <tr>
+                        <th style="width:40px">#</th>
+                        <th>Code</th>
+                        <th>Client</th>
+                        <th>Contact</th>
+                        <th style="width:200px">Stockage</th>
+                        <th class="text-center">Statut</th>
+                        {% if is_granted('CLIENT_EDIT') %}<th class="text-center">Actions</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody id="clientTbody">
+                {% for client in clients %}
+                {% set stockKg = clientStock[client.id] ?? 0 %}
+                {% set stockT  = stockKg / 1000 %}
+                {% set pct     = totalCapacity > 0 ? (stockT / totalCapacity * 100)|round(1) : 0 %}
+                {% set barW    = stockKg > 0 ? (pct < 4 ? 4 : (pct > 100 ? 100 : pct)) : 0 %}
+                {% set fg      = pct <= 20 ? 'linear-gradient(90deg,#ef4444,#dc2626)' : pct <= 60 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#10b981,#059669)' %}
+                {% set bbg     = pct <= 20 ? 'rgba(239,68,68,.15)' : pct <= 60 ? 'rgba(245,158,11,.15)' : 'rgba(16,185,129,.15)' %}
+                {% set bclr    = pct <= 20 ? '#991b1b' : pct <= 60 ? '#92400e' : '#065f46' %}
+                <tr class="{{ not client.isActive ? 'inactive' }}">
+                    <td class="text-center text-secondary" style="font-size:.78rem;font-weight:700">{{ loop.index }}</td>
+                    <td><span class="code-badge">{{ client.code }}</span></td>
+                    <td>
+                        <div class="fw-semibold">{{ client.companyName }}</div>
+                        {% if client.nomInterne %}<small class="text-secondary">{{ client.nomInterne }}</small>{% endif %}
+                    </td>
+                    <td>
+                        <div class="small text-secondary"><i class="bi bi-envelope me-1" style="color:#2563eb"></i>{{ client.email }}</div>
+                        <div class="small text-secondary mt-1"><i class="bi bi-telephone me-1" style="color:#2563eb"></i>{{ client.phone }}</div>
+                    </td>
+                    <td>
+                        <div class="bar-bg"><div class="bar-fill" style="width:{{ barW }}%;background:{{ fg }}"></div></div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span class="pct-lbl" style="background:{{ bbg }};color:{{ bclr }}">{{ pct }} %</span>
+                            <span class="small text-secondary">{{ stockT|number_format(2) }} T</span>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        {% if client.isActive %}<span class="st-actif"><i class="bi bi-check-circle"></i>Actif</span>
+                        {% else %}<span class="st-inactif"><i class="bi bi-pause-circle"></i>Inactif</span>{% endif %}
+                    </td>
+                    {% if is_granted('CLIENT_EDIT') %}
+                    <td>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="{{ path('app_client_edit', {id: client.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifier" style="border-radius:.5rem"><i class="bi bi-pencil"></i></a>
+                            <form action="{{ path('app_client_toggle', {id: client.id}) }}" method="post" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ client.id) }}">
+                                <button type="submit" class="btn btn-sm {{ client.isActive ? 'btn-outline-warning' : 'btn-outline-success' }}" title="{{ client.isActive ? 'Désactiver' : 'Activer' }}" style="border-radius:.5rem">
+                                    <i class="bi {{ client.isActive ? 'bi-pause' : 'bi-play' }}"></i>
+                                </button>
+                            </form>
+                            <form action="{{ path('app_client_create_account', {id: client.id}) }}" method="post" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('create_account' ~ client.id) }}">
+                                <button type="submit" class="btn btn-sm btn-outline-info" title="Créer compte" style="border-radius:.5rem"><i class="bi bi-person-plus"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr><td colspan="{{ is_granted('CLIENT_EDIT') ? 7 : 6 }}" class="text-center py-5 text-secondary">
+                    <i class="bi bi-people" style="font-size:2.5rem;opacity:.2;display:block;margin-bottom:.75rem"></i>
+                    Aucun client trouvé
+                    {% if is_granted('CLIENT_CREATE') and not search %}<br><a href="{{ path('app_client_new') }}" class="btn btn-primary btn-sm mt-3"><i class="bi bi-plus-lg me-1"></i>Ajouter</a>{% endif %}
+                </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# Pagination #}
+        <div class="pag" id="pagBar">
+            <span class="pag-info" id="pagInfo"></span>
+            <div class="pag-btns" id="pagBtns"></div>
+        </div>
+
+        {# Légende couleurs #}
+        <div class="leg-strip">
+            <small class="fw-semibold text-secondary">Stockage :</small>
+            <span class="ls"><span class="ls-line" style="background:linear-gradient(90deg,#ef4444,#dc2626)"></span>Critique (0–20 %)</span>
+            <span class="ls"><span class="ls-line" style="background:linear-gradient(90deg,#f59e0b,#d97706)"></span>Moyen (21–60 %)</span>
+            <span class="ls"><span class="ls-line" style="background:linear-gradient(90deg,#10b981,#059669)"></span>Optimal (61–100 %)</span>
+        </div>
+    </div>
+
+    {# ── Graphe circulaire ── #}
+    <div class="chart-card">
+        <div class="card-title"><i class="bi bi-pie-chart-fill"></i>Répartition du stock par client</div>
+        <div class="donut-container">
+            <canvas id="stockChart"></canvas>
+            <div class="donut-center-txt">
+                <span class="dv" id="donutTotal">—</span>
+                <span class="dl">Tonnes</span>
+            </div>
+        </div>
+        <ul class="leg-list" id="donutLegend"></ul>
+    </div>
+
+</div>
+
+{# Données pour le graphe — construction sans bug de virgule #}
+{% set chartEntries = [] %}
+{% for client in clients %}
+    {% set kg = clientStock[client.id] ?? 0 %}
+    {% if kg > 0 %}
+        {% set chartEntries = chartEntries|merge([{'name': client.companyName, 'tons': (kg / 1000)|round(3)}]) %}
+    {% endif %}
+{% endfor %}
+<script id="stockData" type="application/json">{{ chartEntries|json_encode|raw }}</script>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* ============================================================
+   PALETTE de couleurs distinctes
+   ============================================================ */
+const COLORS = [
+    '#6366f1','#2563eb','#10b981','#f59e0b',
+    '#ef4444','#8b5cf6','#ec4899','#14b8a6',
+    '#f97316','#84cc16','#06b6d4','#a855f7'
+];
+
+/* ============================================================
+   GRAPHE CIRCULAIRE
+   ============================================================ */
+(function () {
+    const raw = JSON.parse(document.getElementById('stockData').textContent)
+                    .filter(d => d.tons > 0);
+
+    const labels = raw.map(d => d.name);
+    const data   = raw.map(d => d.tons);
+    const colors = raw.map((_, i) => COLORS[i % COLORS.length]);
+    const total  = data.reduce((a, b) => a + b, 0);
+
+    /* Total au centre */
+    const totalEl = document.getElementById('donutTotal');
+    if (totalEl) totalEl.textContent = total.toFixed(1) + ' T';
+
+    /* Légende */
+    const legEl = document.getElementById('donutLegend');
+    if (legEl) {
+        legEl.innerHTML = '';
+        raw.forEach((d, i) => {
+            const pct = total > 0 ? ((d.tons / total) * 100).toFixed(1) : 0;
+            const li  = document.createElement('li');
+            li.className = 'leg-item';
+            li.innerHTML =
+                `<span class="leg-dot" style="background:${COLORS[i % COLORS.length]}"></span>` +
+                `<span class="leg-name" title="${d.name}">${d.name}</span>` +
+                `<span class="leg-ton">${d.tons.toFixed(1)} T</span>` +
+                `<span class="leg-pct">${pct}%</span>`;
+            legEl.appendChild(li);
+        });
     }
-    .search-input-wrapper {
-        width: 100%;
+
+    /* Canvas */
+    if (data.length === 0) return;
+    new Chart(document.getElementById('stockChart'), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data:            data,
+                backgroundColor: colors,
+                borderWidth:     3,
+                borderColor:     '#ffffff',
+                hoverOffset:     10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '65%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                            return `  ${ctx.parsed.toFixed(1)} T  (${pct}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+})();
+
+/* ============================================================
+   PAGINATION — 3 lignes par page
+   ============================================================ */
+(function () {
+    const PER  = 3;
+    const body = document.getElementById('clientTbody');
+    if (!body) return;
+
+    /* Sélectionne uniquement les vraies lignes client (pas la ligne "vide") */
+    const rows = Array.from(body.querySelectorAll('tr')).filter(function(r) {
+        return !r.querySelector('td[colspan]');
+    });
+
+    if (rows.length === 0) return;
+
+    let cur = 1;
+    const tot = Math.max(1, Math.ceil(rows.length / PER));
+
+    function show(p) {
+        if (p < 1 || p > tot) return;
+        cur = p;
+        const start = (p - 1) * PER;
+        rows.forEach(function(r, i) {
+            r.style.display = (i >= start && i < start + PER) ? '' : 'none';
+        });
+        render();
     }
-    .action-buttons {
-        flex-wrap: wrap;
+
+    function render() {
+        const info = document.getElementById('pagInfo');
+        const btns = document.getElementById('pagBtns');
+        const s = Math.min((cur - 1) * PER + 1, rows.length);
+        const e = Math.min(cur * PER, rows.length);
+
+        if (info) info.textContent = 'Affichage ' + s + ' – ' + e + ' sur ' + rows.length + ' client(s)';
+
+        if (!btns) return;
+        btns.innerHTML = '';
+
+        function mk(label, page, disabled, active) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'pb' + (active ? ' on' : '');
+            b.disabled = disabled;
+            b.innerHTML = label;
+            if (!disabled) b.addEventListener('click', function() { show(page); });
+            btns.appendChild(b);
+        }
+
+        mk('&lsaquo;', cur - 1, cur === 1, false);
+        for (var p = 1; p <= tot; p++) mk(p, p, false, p === cur);
+        mk('&rsaquo;', cur + 1, cur === tot, false);
+
+        /* La barre reste toujours visible */
     }
-}
-</style>
+
+    show(1);
+})();
+</script>
 {% endblock %}

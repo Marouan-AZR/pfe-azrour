@@ -18,13 +18,13 @@ class ControleurHistoryController extends AbstractController
     #[IsGranted('ROLE_CONTROLEUR')]
     public function index(Request $request, OperationRepository $operationRepo, PaletteTransferRepository $transferRepo): Response
     {
-        $user = $this->getUser();
-        $from = $request->query->get('from') ? new \DateTime($request->query->get('from')) : null;
-        $to = $request->query->get('to') ? new \DateTime($request->query->get('to') . ' 23:59:59') : null;
+        $user   = $this->getUser();
+        $from   = $request->query->get('from') ? new \DateTime($request->query->get('from')) : null;
+        $to     = $request->query->get('to') ? new \DateTime($request->query->get('to') . ' 23:59:59') : null;
         $search = $request->query->get('q');
 
         $operations = $operationRepo->findByControleurAndDates($user, $from, $to);
-        $transfers = $transferRepo->findByControleur($user);
+        $transfers  = $transferRepo->findByControleur($user);
 
         // Filter by search
         if ($search) {
@@ -37,24 +37,46 @@ class ControleurHistoryController extends AbstractController
         }
 
         // KPIs
-        $entries = array_filter($operations, fn($o) => $o->getType() === OperationType::ENTRY);
-        $exits = array_filter($operations, fn($o) => $o->getType() === OperationType::EXIT);
+        $entries  = array_filter($operations, fn($o) => $o->getType() === OperationType::ENTRY);
+        $exits    = array_filter($operations, fn($o) => $o->getType() === OperationType::EXIT);
+
+        $controlesRealises  = array_filter($exits, fn($o) => in_array(
+            $o->getStatus()->value, ['en_attente_validation', 'validated']
+        ));
+        $controlesEnAttente = array_filter($exits, fn($o) => in_array(
+            $o->getStatus()->value, ['en_attente_controle', 'pending']
+        ));
+
         $totalPalettes = array_sum(array_map(fn($o) => $o->getNombrePalettes(), $operations));
-        $totalCartons = array_sum(array_map(fn($o) => $o->getTotalCartons(), $operations));
-        $totalWeight = array_sum(array_map(fn($o) => $o->getPoidsTotal(), $operations));
+        $totalCartons  = array_sum(array_map(fn($o) => $o->getTotalCartons(), $operations));
+        $totalWeight   = array_sum(array_map(fn($o) => $o->getPoidsTotal(), $operations));
+
+        // Fusion opérations + transferts triés par date DESC
+        $activities = [];
+        foreach ($operations as $op) {
+            $activities[] = ['type' => 'operation', 'date' => $op->getCreatedAt(), 'data' => $op];
+        }
+        foreach ($transfers as $tr) {
+            $activities[] = ['type' => 'transfert', 'date' => $tr->getTransferredAt(), 'data' => $tr];
+        }
+        usort($activities, fn($a, $b) => $b['date'] <=> $a['date']);
 
         return $this->render('controleur_history/index.html.twig', [
+            'activities' => $activities,
             'operations' => $operations,
-            'kpis' => [
-                'entries' => count($entries),
-                'exits' => count($exits),
-                'transfers' => count($transfers),
-                'palettes' => $totalPalettes,
-                'cartons' => $totalCartons,
-                'weight' => round($totalWeight / 1000, 2),
+            'transfers'  => $transfers,
+            'kpis'       => [
+                'entries'            => count($entries),
+                'exits'              => count($exits),
+                'transfers'          => count($transfers),
+                'controlesRealises'  => count($controlesRealises),
+                'controlesEnAttente' => count($controlesEnAttente),
+                'palettes'           => $totalPalettes,
+                'cartons'            => $totalCartons,
+                'weight'             => round($totalWeight / 1000, 2),
             ],
-            'from' => $request->query->get('from'),
-            'to' => $request->query->get('to'),
+            'from'   => $request->query->get('from'),
+            'to'     => $request->query->get('to'),
             'search' => $search,
         ]);
     }
@@ -63,7 +85,6 @@ class ControleurHistoryController extends AbstractController
     #[IsGranted('ROLE_CONTROLEUR')]
     public function detail(Operation $operation): Response
     {
-        // Security check - only own operations
         if ($operation->getControleur() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
         }

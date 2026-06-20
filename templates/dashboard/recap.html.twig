@@ -1,0 +1,521 @@
+{% extends 'base.html.twig' %}
+{% block title %}Récapitulatif annuel {{ year }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* ═══════════════════════════════
+   FILTER BAR (screen only)
+═══════════════════════════════ */
+.recap-filter-bar {
+    background:#fff;
+    border:1px solid #e2e8f0;
+    border-radius:.75rem;
+    padding:.9rem 1.25rem;
+    margin-bottom:1.25rem;
+}
+
+/* ═══════════════════════════════
+   DOCUMENT WRAPPER
+═══════════════════════════════ */
+.doc-wrapper {
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:.75rem;
+    box-shadow:0 4px 24px rgba(0,0,0,.07);
+    overflow:hidden;
+}
+
+/* ── Document header ── */
+.doc-header {
+    background:linear-gradient(135deg,#1e3a5f 0%,#1e40af 100%);
+    padding:1.5rem 2rem;
+    color:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:1rem;
+}
+.doc-header-left {}
+.doc-company {
+    font-size:.8rem;
+    font-weight:600;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    opacity:.8;
+    margin-bottom:.35rem;
+}
+.doc-title {
+    font-size:1.2rem;
+    font-weight:800;
+    letter-spacing:.02em;
+    margin-bottom:.25rem;
+    line-height:1.2;
+}
+.doc-subtitle {
+    font-size:.82rem;
+    opacity:.8;
+}
+.doc-header-right {
+    text-align:right;
+    font-size:.8rem;
+    opacity:.85;
+    white-space:nowrap;
+}
+.doc-header-right .doc-date-label {
+    font-size:.7rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    opacity:.7;
+    margin-bottom:.2rem;
+}
+.doc-header-right .doc-date-val {
+    font-size:1rem;
+    font-weight:700;
+    opacity:1;
+}
+
+/* ── Meta info bar ── */
+.doc-meta {
+    background:#f8fafc;
+    border-bottom:1px solid #e2e8f0;
+    padding:.6rem 2rem;
+    display:flex;
+    gap:2rem;
+    font-size:.78rem;
+    color:#64748b;
+    flex-wrap:wrap;
+}
+.doc-meta span strong { color:#1e293b; }
+
+/* ── Table section ── */
+.doc-table-section { padding:0; }
+
+.recap-table {
+    width:100%;
+    border-collapse:collapse;
+    font-size:.83rem;
+}
+.recap-table thead th {
+    background:#1e293b;
+    color:#fff;
+    padding:.65rem 1.25rem;
+    font-size:.71rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    white-space:nowrap;
+}
+
+/* Month separator */
+.month-header td {
+    background:linear-gradient(90deg,#2563eb 0%,#1d4ed8 100%);
+    color:#fff;
+    font-weight:700;
+    font-size:.8rem;
+    padding:.5rem 1.25rem;
+    letter-spacing:.04em;
+}
+
+/* Data rows */
+.data-row td {
+    padding:.55rem 1.25rem;
+    border-bottom:1px solid #f1f5f9;
+    color:#1e293b;
+    vertical-align:middle;
+}
+.data-row:hover td { background:#f8fafc; }
+.data-row td.client-name {
+    font-weight:600;
+    font-style:italic;
+    color:#0f172a;
+}
+.data-row td.num-cell {
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    font-family:'Courier New',monospace;
+    font-size:.82rem;
+}
+
+/* Month subtotal */
+.month-total-row td {
+    padding:.5rem 1.25rem;
+    font-weight:700;
+    font-size:.78rem;
+    background:#eff6ff;
+    border-top:2px solid #bfdbfe;
+    border-bottom:2px solid #bfdbfe;
+    color:#1e40af;
+    font-variant-numeric:tabular-nums;
+}
+.month-total-row td.label {
+    font-size:.75rem;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+}
+
+/* Grand total inside table */
+.grand-total-row td {
+    padding:.75rem 1.25rem;
+    font-weight:800;
+    font-size:.86rem;
+    background:#1e293b;
+    color:#fff;
+    font-variant-numeric:tabular-nums;
+}
+
+/* Colors */
+.kg-entry    { color:#059669; }
+.kg-exit     { color:#dc2626; }
+.kg-stock    { color:#2563eb; }
+.mad-facture { color:#d97706; }
+
+/* ── Document footer ── */
+.doc-footer {
+    border-top:2px solid #e2e8f0;
+    padding:1.25rem 2rem;
+    background:#f8fafc;
+}
+.doc-footer-title {
+    font-size:.7rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:#64748b;
+    margin-bottom:.75rem;
+}
+.kpi-grid {
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1rem;
+}
+.kpi-box {
+    background:#fff;
+    border:1px solid #e2e8f0;
+    border-radius:.5rem;
+    padding:.75rem 1rem;
+    text-align:center;
+}
+.kpi-box .kpi-lbl {
+    font-size:.68rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#94a3b8;
+    margin-bottom:.3rem;
+}
+.kpi-box .kpi-val {
+    font-size:1.05rem;
+    font-weight:800;
+    font-variant-numeric:tabular-nums;
+}
+
+/* ── Signature strip ── */
+.doc-sign {
+    margin-top:1rem;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:.73rem;
+    color:#94a3b8;
+    flex-wrap:wrap;
+    gap:.5rem;
+}
+.doc-sign .sign-block {
+    border-top:1px dashed #cbd5e1;
+    padding-top:.3rem;
+    min-width:150px;
+    text-align:center;
+    color:#64748b;
+    font-size:.72rem;
+}
+
+/* ── Empty state ── */
+.recap-empty { text-align:center; padding:3rem 1rem; color:#94a3b8; }
+
+/* ═══════════════════════════════
+   PRINT STYLES
+═══════════════════════════════ */
+@media print {
+    /* Suppress browser URL / date / page-number margins */
+    @page {
+        margin: 0;
+        size: A4 portrait;
+    }
+
+    /* Add internal spacing so content isn't flush against edge */
+    body { margin: 0; padding: 0; font-size:9pt; }
+    .container-fluid { padding: 8mm 10mm !important; }
+
+    /* Hide navigation chrome */
+    .recap-filter-bar,
+    .no-print,
+    aside.sidebar,
+    #sidebar,
+    header.main-header,
+    .main-header,
+    .sidebar-toggle-mobile,
+    nav { display:none !important; }
+
+    /* Main content fills page */
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Document styling for print */
+    .doc-wrapper { box-shadow:none; border:1px solid #ccc; }
+    .doc-header { background:#1e3a5f !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .doc-meta { background:#f8fafc !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .month-header td { background:#2563eb !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .month-total-row td { background:#eff6ff !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .grand-total-row td { background:#1e293b !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .recap-table { font-size:8pt; }
+    .doc-footer { background:#f8fafc !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .doc-footer .kpi-grid { grid-template-columns:repeat(4,1fr); }
+    .kpi-box { border:1px solid #ccc !important; background:#fff !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 px-4">
+
+    {# ── Page action bar (screen only) ── #}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 no-print">
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ path('app_dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Retour
+            </a>
+            <span class="text-secondary small">/ Récapitulatif annuel</span>
+        </div>
+        <button onclick="window.print()" class="btn btn-dark btn-sm d-flex align-items-center gap-2">
+            <i class="bi bi-printer"></i>Imprimer / PDF
+        </button>
+    </div>
+
+    {# ── Filters (screen only) ── #}
+    <div class="recap-filter-bar no-print">
+        <form method="get" class="d-flex gap-3 align-items-end flex-wrap">
+            <div>
+                <label class="form-label mb-1 small fw-semibold text-secondary">Année</label>
+                <select name="year" class="form-select form-select-sm" style="min-width:100px">
+                    {% for y in years %}
+                    <option value="{{ y }}" {{ y == year ? 'selected' : '' }}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label mb-1 small fw-semibold text-secondary">Mois</label>
+                {% set moisNoms = {1:'Janvier',2:'Février',3:'Mars',4:'Avril',5:'Mai',6:'Juin',7:'Juillet',8:'Août',9:'Septembre',10:'Octobre',11:'Novembre',12:'Décembre'} %}
+                <select name="month" class="form-select form-select-sm" style="min-width:140px">
+                    <option value="">Tous les mois</option>
+                    {% for num, nom in moisNoms %}
+                    <option value="{{ num }}" {{ num == monthFilter ? 'selected' : '' }}>{{ nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label mb-1 small fw-semibold text-secondary">Client</label>
+                <select name="client" class="form-select form-select-sm" style="min-width:210px">
+                    <option value="">Tous les clients</option>
+                    {% for c in clients %}
+                    <option value="{{ c.id }}" {{ c.id == clientFilter ? 'selected' : '' }}>{{ c.companyName }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary btn-sm px-4">
+                    <i class="bi bi-search me-1"></i>Rechercher
+                </button>
+                <a href="{{ path('app_recap', {year: year}) }}" class="btn btn-outline-secondary btn-sm ms-2">
+                    <i class="bi bi-x-circle me-1"></i>Réinitialiser
+                </a>
+            </div>
+        </form>
+    </div>
+
+    {# ═══════════════════════════════════════════════
+       DOCUMENT
+    ═══════════════════════════════════════════════ #}
+    <div class="doc-wrapper">
+
+        {# ── Document header ── #}
+        <div class="doc-header">
+            <div class="doc-header-left" style="display:flex;align-items:center;gap:1.25rem">
+                <div style="background:#fff;border-radius:12px;padding:6px;width:72px;height:72px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.25)">
+                    <img src="{{ asset('images/Logo essai.png') }}" alt="Golden Logistics" style="width:100%;height:100%;object-fit:contain">
+                </div>
+                <div>
+                    <div class="doc-company">
+                        Golden Logistics — Entrepôt frigorifique
+                    </div>
+                    <div class="doc-title">
+                        Récapitulatif de Stock — Année {{ year }}
+                    </div>
+                    <div class="doc-subtitle">
+                        {% if clientFilter %}
+                            {% for c in clients %}{% if c.id == clientFilter %}Client : {{ c.companyName }}{% endif %}{% endfor %}
+                        {% else %}
+                            Tous les clients
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="doc-header-right">
+                <div class="doc-date-label">Arrêté au</div>
+                <div class="doc-date-val">31/déc./{{ year|slice(-2) }}</div>
+                <div class="mt-2" style="font-size:.7rem;opacity:.7">
+                    Édité le {{ 'now'|date('d/m/Y') }}
+                </div>
+            </div>
+        </div>
+
+        {# ── Meta bar ── #}
+        <div class="doc-meta">
+            <span><strong>Document :</strong> Récapitulatif annuel des mouvements de stock</span>
+            <span><strong>Période :</strong> 01/janv./{{ year }} — 31/déc./{{ year }}</span>
+            <span><strong>Unité poids :</strong> Kilogrammes (KG)</span>
+            <span><strong>Unité montant :</strong> Dirhams marocains (MAD)</span>
+        </div>
+
+        {# ── Table ── #}
+        <div class="doc-table-section">
+            <div class="table-responsive">
+                <table class="recap-table">
+                    <thead>
+                        <tr>
+                            <th style="width:28%">Clients</th>
+                            <th style="width:13%">Durée</th>
+                            <th class="text-end" style="width:15%">Entré (KG)</th>
+                            <th class="text-end" style="width:15%">Sortie (KG)</th>
+                            <th class="text-end" style="width:15%">Stock Final (KG)</th>
+                            <th class="text-end" style="width:14%">Facture (MAD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    {% set monthNames = {
+                        1:'janv.',2:'févr.',3:'mars',4:'avr.',5:'mai',6:'juin',
+                        7:'juil.',8:'août',9:'sept.',10:'oct.',11:'nov.',12:'déc.'
+                    } %}
+                    {% set monthFull = {
+                        1:'Janvier',2:'Février',3:'Mars',4:'Avril',5:'Mai',6:'Juin',
+                        7:'Juillet',8:'Août',9:'Septembre',10:'Octobre',11:'Novembre',12:'Décembre'
+                    } %}
+                    {% set daysInMonth = {1:31,2:28,3:31,4:30,5:31,6:30,7:31,8:31,9:30,10:31,11:30,12:31} %}
+
+                    {% if byMonth is empty %}
+                        <tr>
+                            <td colspan="6" class="recap-empty">
+                                <i class="bi bi-inbox display-4 d-block mb-2 opacity-25"></i>
+                                Aucune donnée pour cette période
+                            </td>
+                        </tr>
+                    {% else %}
+
+                    {% for month, rows in byMonth %}
+                        {% set lastDay = month == 2 and year % 4 == 0 ? 29 : daysInMonth[month] %}
+                        {% set monthLabel = lastDay ~ '/' ~ monthNames[month] ~ '/' ~ year|slice(-2) %}
+
+                        {# Month separator #}
+                        <tr class="month-header">
+                            <td colspan="6">
+                                <i class="bi bi-calendar2-month me-2"></i>{{ monthFull[month] }} {{ year }}
+                            </td>
+                        </tr>
+
+                        {% for cid, row in rows %}
+                        <tr class="data-row">
+                            <td class="client-name">{{ row.name }}</td>
+                            <td style="font-size:.77rem;color:#64748b">{{ monthLabel }}</td>
+                            <td class="text-end num-cell kg-entry">
+                                {{ row.entry > 0 ? row.entry|number_format(2, ',', ' ') : '—' }}
+                            </td>
+                            <td class="text-end num-cell kg-exit">
+                                {{ row.exit > 0 ? row.exit|number_format(2, ',', ' ') : '—' }}
+                            </td>
+                            <td class="text-end num-cell kg-stock">
+                                {{ row.stock|number_format(2, ',', ' ') }}
+                            </td>
+                            <td class="text-end num-cell mad-facture">
+                                {{ row.facture > 0 ? row.facture|number_format(2, ',', ' ') : '—' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                        {# Month subtotal #}
+                        {% if monthTotals[month] is defined %}
+                        {% set mt = monthTotals[month] %}
+                        <tr class="month-total-row">
+                            <td class="label" colspan="2">
+                                Sous-total — {{ monthFull[month] }} {{ year }}
+                            </td>
+                            <td class="text-end">{{ mt.entry|number_format(2, ',', ' ') }}</td>
+                            <td class="text-end">{{ mt.exit|number_format(2, ',', ' ') }}</td>
+                            <td class="text-end">{{ mt.stock|number_format(2, ',', ' ') }}</td>
+                            <td class="text-end">{{ mt.facture|number_format(2, ',', ' ') }}</td>
+                        </tr>
+                        {% endif %}
+
+                    {% endfor %}
+
+                    {# Grand Total row #}
+                    <tr class="grand-total-row">
+                        <td colspan="2">
+                            <i class="bi bi-check2-all me-2"></i>Grand Total — Année {{ year }}
+                        </td>
+                        <td class="text-end">{{ grandTotal.entry|number_format(2, ',', ' ') }}</td>
+                        <td class="text-end">{{ grandTotal.exit|number_format(2, ',', ' ') }}</td>
+                        <td class="text-end">{{ grandTotal.stock|number_format(2, ',', ' ') }}</td>
+                        <td class="text-end">{{ grandTotal.facture|number_format(2, ',', ' ') }}</td>
+                    </tr>
+
+                    {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# ── Document footer ── #}
+        {% if byMonth is not empty %}
+        <div class="doc-footer">
+            <div class="doc-footer-title">
+                <i class="bi bi-bar-chart-line me-1"></i>Récapitulatif global — {{ year }}
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi-box">
+                    <div class="kpi-lbl">Total Entrées</div>
+                    <div class="kpi-val kg-entry">{{ grandTotal.entry|number_format(0, ',', ' ') }}</div>
+                    <div style="font-size:.68rem;color:#94a3b8;margin-top:.15rem">KG</div>
+                </div>
+                <div class="kpi-box">
+                    <div class="kpi-lbl">Total Sorties</div>
+                    <div class="kpi-val kg-exit">{{ grandTotal.exit|number_format(0, ',', ' ') }}</div>
+                    <div style="font-size:.68rem;color:#94a3b8;margin-top:.15rem">KG</div>
+                </div>
+                <div class="kpi-box">
+                    <div class="kpi-lbl">Stock Final</div>
+                    <div class="kpi-val kg-stock">{{ grandTotal.stock|number_format(0, ',', ' ') }}</div>
+                    <div style="font-size:.68rem;color:#94a3b8;margin-top:.15rem">KG</div>
+                </div>
+                <div class="kpi-box">
+                    <div class="kpi-lbl">Total Facturé</div>
+                    <div class="kpi-val mad-facture">{{ grandTotal.facture|number_format(2, ',', ' ') }}</div>
+                    <div style="font-size:.68rem;color:#94a3b8;margin-top:.15rem">MAD</div>
+                </div>
+            </div>
+
+            <div class="doc-sign">
+                <span>
+                    <i class="bi bi-shield-check me-1 text-success"></i>
+                    Document généré automatiquement par le système de gestion d'entrepôt
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>{# /doc-wrapper #}
+
+</div>
+{% endblock %}

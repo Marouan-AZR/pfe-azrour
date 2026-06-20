@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Enum\PaletteStatus;
+use App\Enum\TypeStockage;
 use App\Repository\PaletteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -67,6 +68,18 @@ class Palette
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $motifRejet = null;
+
+    /** Référence vers la palette source (entrée) pour les palettes de sortie */
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Palette $sourcePalette = null;
+
+    /** Cartons réellement sortis, saisis par le contrôleur sur le terrain */
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $cartonsReellementSortis = null;
+
+    #[ORM\Column(type: 'string', enumType: TypeStockage::class, nullable: true)]
+    private ?TypeStockage $typeStockage = null;
 
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
@@ -148,6 +161,15 @@ class Palette
 
     public function getMotifRejet(): ?string { return $this->motifRejet; }
     public function setMotifRejet(?string $motifRejet): static { $this->motifRejet = $motifRejet; return $this; }
+
+    public function getSourcePalette(): ?Palette { return $this->sourcePalette; }
+    public function setSourcePalette(?Palette $sourcePalette): static { $this->sourcePalette = $sourcePalette; return $this; }
+
+    public function getCartonsReellementSortis(): ?int { return $this->cartonsReellementSortis; }
+    public function setCartonsReellementSortis(?int $cartonsReellementSortis): static { $this->cartonsReellementSortis = $cartonsReellementSortis; return $this; }
+
+    public function getTypeStockage(): ?TypeStockage { return $this->typeStockage; }
+    public function setTypeStockage(?TypeStockage $typeStockage): static { $this->typeStockage = $typeStockage; return $this; }
 
     public function getCreatedAt(): \DateTimeInterface { return $this->createdAt; }
     public function getUpdatedAt(): \DateTimeInterface { return $this->updatedAt; }

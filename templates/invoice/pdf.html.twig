@@ -4,92 +4,346 @@
     <meta charset="UTF-8">
     <title>Facture {{ invoice.invoiceNumber }}</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; line-height: 1.4; color: #333; background: #fff; padding: 20px; }
-        .document { max-width: 800px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 3px solid #1e3a5f; margin-bottom: 20px; }
-        .logo h1 { font-size: 24px; color: #1e3a5f; margin-bottom: 5px; }
-        .logo p { font-size: 10px; color: #666; }
-        .invoice-info { text-align: right; }
-        .invoice-info .title { font-size: 28px; font-weight: 700; color: #1e3a5f; margin-bottom: 10px; }
-        .invoice-info .number { font-size: 14px; font-weight: 600; color: #0066cc; }
-        .invoice-info .date { font-size: 11px; color: #666; margin-top: 5px; }
-        .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-        .party { padding: 15px; background: #f8f9fa; border-radius: 8px; }
-        .party-label { font-size: 10px; text-transform: uppercase; color: #666; margin-bottom: 8px; font-weight: 600; }
-        .party-name { font-size: 14px; font-weight: 700; color: #1e3a5f; margin-bottom: 5px; }
-        .party-details { font-size: 11px; color: #555; line-height: 1.6; }
-        .period { background: #e8f4f8; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th { background: #1e3a5f; color: white; padding: 12px 10px; text-align: left; font-size: 10px; text-transform: uppercase; }
-        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 11px; }
-        .text-right { text-align: right; }
-        .totals { margin-left: auto; width: 280px; }
-        .total-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #eee; }
-        .total-row.final { background: #1e3a5f; color: white; font-weight: 700; font-size: 14px; border-radius: 0 0 6px 6px; }
-        .footer { margin-top: 30px; padding-top: 20px; border-top: 2px solid #1e3a5f; text-align: center; font-size: 9px; color: #666; }
-        @media print { body { padding: 0; } .no-print { display: none; } }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: Arial, sans-serif; font-size:10px; color:#1a1a1a; background:#fff; }
+
+        /* ── Format A4 : margin 0 supprime l'URL/date du navigateur ── */
+        @page { size: A4; margin: 0; }
+
+        @media print {
+            .ctrl-bar { display:none !important; }
+            html, body { width:210mm; height:297mm; overflow:hidden; }
+            .doc {
+                box-shadow: none;
+                height: 297mm;
+                min-height: 0;
+                padding: 12mm 18mm 0 18mm;
+            }
+            /* Le footer reste dans le flux flex — plus de position fixed */
+            .page-footer { padding: 4mm 0 6mm 0; }
+        }
+
+        /* ── Barre de contrôle ── */
+        .ctrl-bar {
+            background:#1e3a5f; padding:10px 20px;
+            display:flex; align-items:center; gap:12px;
+        }
+        .ctrl-bar button {
+            background:#fff; color:#1e3a5f; border:none; border-radius:4px;
+            padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer;
+        }
+        .ctrl-bar span { color:rgba(255,255,255,.8); font-size:12px; }
+
+        /* ── Document ── */
+        .doc {
+            width: 210mm;
+            min-height: 267mm;
+            margin: 0 auto;
+            padding: 12mm 18mm 0 18mm;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── En-tête ── */
+        .hdr {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 10px;
+        }
+
+        /* ── Logo ── */
+        .logo-box { display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
+        .logo-box img { width:80px; height:auto; object-fit:contain; }
+        .logo-text .name { font-size:11px; font-weight:900; color:#1e3a5f; letter-spacing:.04em; }
+        .logo-text .sub  { font-size:6.5px; color:#6b7280; text-transform:uppercase; letter-spacing:.08em; }
+
+        /* ── Titre FACTURE (centre) ── */
+        .facture-title-block {
+            text-align: center;
+        }
+        .facture-title-block .ft-label {
+            font-size: 22px;
+            font-weight: 900;
+            color: #1e3a5f;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+        .facture-title-block .ft-num {
+            font-size: 8px;
+            color: #6b7280;
+            font-weight: 600;
+            letter-spacing: .05em;
+            margin-top: 3px;
+        }
+
+        /* ── Bloc client (droite) ── */
+        .client-block {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #1e3a5f;
+            border-radius: 6px;
+            padding: 9px 12px;
+            text-align: left;
+            justify-self: end;
+            min-width: 190px;
+            max-width: 240px;
+        }
+        .cb-label {
+            font-size:7px; text-transform:uppercase; letter-spacing:.1em;
+            color:#6b7280; font-weight:700; margin-bottom:4px;
+        }
+        .cb-name {
+            font-size:12px; font-weight:900; color:#1e3a5f;
+            margin-bottom:6px; letter-spacing:.01em; line-height:1.2;
+        }
+        .cb-row {
+            display:flex; align-items:flex-start; gap:5px;
+            font-size:8px; color:#374151; margin-bottom:2px; line-height:1.5;
+        }
+        .cb-row .cb-key { font-weight:700; color:#6b7280; white-space:nowrap; min-width:26px; }
+        .cb-divider { border:none; border-top:1px solid #e2e8f0; margin:5px 0; }
+
+        /* ── Séparateur bleu ── */
+        .divider {
+            height: 3px;
+            background: linear-gradient(90deg,#1e3a5f,#2563eb,#1e3a5f);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+
+        /* ── Métadonnées facture ── */
+        .meta-row {
+            display:flex; gap:0; border:1px solid #d1d5db; border-radius:6px;
+            overflow:hidden; margin-bottom:14px;
+        }
+        .meta-cell { flex:1; padding:7px 10px; border-right:1px solid #d1d5db; }
+        .meta-cell:last-child { border-right:none; }
+        .meta-cell .lbl { font-size:7px; text-transform:uppercase; letter-spacing:.07em; color:#6b7280; font-weight:700; margin-bottom:2px; }
+        .meta-cell .val { font-size:10px; font-weight:800; color:#1e3a5f; }
+
+        /* ── Tableau des prestations ── */
+        table.prestations {
+            width:100%; border-collapse:collapse; margin-bottom:12px;
+            border:1px solid #d1d5db; border-radius:6px; overflow:hidden;
+        }
+        table.prestations thead tr { background:#1e3a5f; }
+        table.prestations thead th {
+            color:#fff; font-size:8px; font-weight:700; text-transform:uppercase;
+            letter-spacing:.05em; padding:8px 9px; text-align:left;
+            border-right:1px solid rgba(255,255,255,.15);
+        }
+        table.prestations thead th:last-child { border-right:none; }
+        table.prestations thead th.r { text-align:right; }
+        table.prestations tbody tr { border-bottom:1px solid #f1f5f9; }
+        table.prestations tbody tr:last-child { border-bottom:none; }
+        table.prestations tbody tr:nth-child(even) { background:#f8fafc; }
+        table.prestations tbody td {
+            padding:8px 9px; font-size:9px; color:#1a1a1a;
+            border-right:1px solid #f1f5f9;
+        }
+        table.prestations tbody td:last-child { border-right:none; }
+        table.prestations tbody td.r { text-align:right; }
+        table.prestations tbody td.prestation { font-weight:700; font-size:8.5px; }
+        table.prestations tbody td.pu-forfait { text-align:right; }
+        .badge-forfait {
+            display:inline-block; background:#059669; color:#fff;
+            font-size:7px; font-weight:800; padding:2px 5px; border-radius:3px;
+        }
+
+        /* ── Total ── */
+        .total-row { display:flex; justify-content:flex-end; margin-bottom:12px; }
+        .total-box {
+            border:2px solid #1e3a5f; border-radius:6px; overflow:hidden; min-width:280px;
+        }
+        .total-box .total-final {
+            background:#1e3a5f; display:flex; justify-content:space-between; padding:9px 14px;
+        }
+        .total-box .total-final .tl { color:rgba(255,255,255,.8); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+        .total-box .total-final .tv { color:#fff; font-size:13px; font-weight:900; }
+
+        /* ── Arrêté ── */
+        .arrete { font-size:8.5px; color:#374151; font-style:italic; margin-bottom:4px; }
+        .arrete span { font-weight:700; }
+
+        /* ── Espaceur flexible ── */
+        .doc-spacer { flex:1; }
+
+        /* ── Direction / Signature (avant la barre) ── */
+        .direction-row { display:flex; justify-content:flex-end; margin-bottom:10px; }
+        .direction-box { text-align:center; }
+        .sig-space { width:190px; height:44px; }
+        .sig-label {
+            border-top: 1.5px solid #1e3a5f;
+            padding-top: 4px;
+            font-size: 9.5px; font-weight:700; color:#1e3a5f; text-align:center;
+        }
+
+        /* ── Barre + Footer légal ── */
+        .page-footer {
+            border-top: 1.5px solid #1e3a5f;
+            padding: 5px 0 6mm 0;
+        }
+        .footer { text-align:center; }
+        .footer p { font-size:7px; color:#6b7280; line-height:1.7; }
     </style>
 </head>
 <body>
-    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
-        <button onclick="window.print()" style="padding: 10px 30px; font-size: 14px; cursor: pointer; background: #1e3a5f; color: white; border: none; border-radius: 4px;">🖨️ Imprimer</button>
+
+    {# Barre de contrôle (non imprimée) #}
+    <div class="ctrl-bar">
+        <button onclick="window.print()">🖨️ Imprimer / Enregistrer PDF</button>
+        <span>Facture {{ invoice.invoiceNumber }} — {{ invoice.client.officialName }}</span>
     </div>
-    <div class="document">
-        <div class="header">
-            <div class="logo">
-                <h1>🧊 GOLDEN LOGISTICS</h1>
-                <p>Entrepôt Frigorifique - Dakhla, Maroc</p>
+
+    <div class="doc">
+
+        {# ── En-tête (3 colonnes : Logo | FACTURE | Client) ── #}
+        <div class="hdr">
+
+            {# Logo #}
+            <div class="logo-box">
+                <img src="{{ absolute_url(asset('images/Logo essai.png')) }}" alt="Golden Logistics">
+                <div class="logo-text">
+                    <div class="name">GOLDEN LOGISTICS</div>
+                    <div class="sub">Entrepôt Frigorifique</div>
+                </div>
             </div>
-            <div class="invoice-info">
-                <div class="title">FACTURE</div>
-                <div class="number">{{ invoice.invoiceNumber }}</div>
-                <div class="date">Date: {{ invoice.createdAt|date('d/m/Y') }}</div>
+
+            {# Titre centré #}
+            <div class="facture-title-block">
+                <div class="ft-label">Facture</div>
+                <div class="ft-num">{{ invoice.invoiceNumber }}</div>
+            </div>
+
+            {# Bloc client #}
+            <div class="client-block">
+                <div class="cb-label">Facturé à</div>
+                <div class="cb-name">{{ invoice.client.officialName }}</div>
+                <hr class="cb-divider">
+                <div class="cb-row">
+                    <span class="cb-key">Adr.</span>
+                    <span>{{ invoice.client.address }}</span>
+                </div>
+
+                {% if invoice.client.rc %}
+                <div class="cb-row">
+                    <span class="cb-key">RC</span>
+                    <span>{{ invoice.client.rc }}</span>
+                </div>
+                {% endif %}
+                {% if invoice.client.ice %}
+                <div class="cb-row">
+                    <span class="cb-key">ICE</span>
+                    <span>{{ invoice.client.ice }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="divider"></div>
+
+        {# ── Métadonnées ── #}
+        <div class="meta-row">
+            <div class="meta-cell">
+                <div class="lbl">Date</div>
+                <div class="val">{{ invoice.createdAt|date('d/m/Y') }}</div>
+            </div>
+            <div class="meta-cell">
+                <div class="lbl">N° Facture</div>
+                <div class="val">{{ invoice.invoiceNumber }}</div>
+            </div>
+            <div class="meta-cell">
+                <div class="lbl">Période</div>
+                <div class="val">
+                    {% set moisFr = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'] %}
+                    {{ moisFr[(invoice.periodStart|date('n'))|number_format(0) - 1] }}/{{ invoice.periodStart|date('y') }}
+                </div>
+            </div>
+            <div class="meta-cell">
+                <div class="lbl">Du — Au</div>
+                <div class="val">{{ invoice.periodStart|date('d/m/Y') }} → {{ invoice.periodEnd|date('d/m/Y') }}</div>
             </div>
         </div>
-        <div class="parties">
-            <div class="party">
-                <div class="party-label">Émetteur</div>
-                <div class="party-name">GOLDEN LOGISTICS SARL</div>
-                <div class="party-details">Zone Industrielle, Dakhla, Maroc</div>
-            </div>
-            <div class="party">
-                <div class="party-label">Client</div>
-                <div class="party-name">{{ invoice.client.companyName }}</div>
-                <div class="party-details">{{ invoice.client.address|nl2br }}<br>{{ invoice.client.phone }}</div>
-            </div>
-        </div>
-        <div class="period">
-            <strong>Période:</strong> Du {{ invoice.periodStart|date('d/m/Y') }} au {{ invoice.periodEnd|date('d/m/Y') }}
-        </div>
-        <table>
+
+        {# ── Tableau des prestations ── #}
+        <table class="prestations">
             <thead>
                 <tr>
-                    <th>Désignation</th>
-                    <th class="text-right">Quantité</th>
-                    <th class="text-right">Prix unitaire</th>
-                    <th class="text-right">Montant HT</th>
+                    <th style="width:38%">Prestations</th>
+                    <th class="r" style="width:17%">Quantité (KG)</th>
+                    <th class="r" style="width:12%">Quantité (J)</th>
+                    <th class="r" style="width:16%">PU</th>
+                    <th class="r" style="width:17%">Total (MAD)</th>
                 </tr>
             </thead>
             <tbody>
                 {% for line in invoice.lines %}
                 <tr>
-                    <td>{{ line.designation }}</td>
-                    <td class="text-right">{{ line.quantity|number_format(3, ',', ' ') }}</td>
-                    <td class="text-right">{{ line.unitPrice|number_format(4, ',', ' ') }} DH</td>
-                    <td class="text-right">{{ line.lineTotal|number_format(2, ',', ' ') }} DH</td>
+                    <td class="prestation">{{ line.designation }}</td>
+                    <td class="r">{{ line.quantity|number_format(2, ',', ' ') }}</td>
+                    <td class="r">
+                        {% if line.quantityJours is not null %}
+                            {{ line.quantityJours|number_format(0, ',', ' ') }}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="r pu-forfait">
+                        {% if line.unitPriceDisplay == 'FORFAIT' %}
+                            <span class="badge-forfait">FORFAIT</span>
+                        {% else %}
+                            {{ line.unitPrice|number_format(5, ',', ' ') }}
+                        {% endif %}
+                    </td>
+                    <td class="r" style="font-weight:700">{{ line.lineTotal|number_format(2, ',', ' ') }}</td>
                 </tr>
+                {% else %}
+                <tr><td colspan="5" style="text-align:center;padding:14px;color:#9ca3af">Aucune prestation</td></tr>
                 {% endfor %}
             </tbody>
         </table>
-        <div class="totals">
-            <div class="total-row"><span>Total HT</span><span>{{ invoice.totalHt|number_format(2, ',', ' ') }} DH</span></div>
-            <div class="total-row"><span>TVA ({{ invoice.vatRate }}%)</span><span>{{ invoice.vatAmount|number_format(2, ',', ' ') }} DH</span></div>
-            <div class="total-row final"><span>Total TTC</span><span>{{ invoice.totalTtc|number_format(2, ',', ' ') }} DH</span></div>
+
+        {# ── Total à payer ── #}
+        <div class="total-row">
+            <div class="total-box">
+                <div class="total-final">
+                    <span class="tl">Total à payer (MAD)</span>
+                    <span class="tv">{{ invoice.totalHt|number_format(2, ',', ' ') }}</span>
+                </div>
+            </div>
         </div>
-        <div class="footer">
-            <p><strong>GOLDEN LOGISTICS SARL</strong> - Zone Industrielle, Dakhla, Maroc</p>
+
+        {# ── Arrêté ── #}
+        <div class="arrete">
+            Arrêté la présente facture à la somme de :
+            <span>{{ invoice.totalHt|number_format(2, ',', ' ') }} Dirhams</span>
         </div>
+
+        {# ── Espaceur → pousse le footer en bas ── #}
+        <div class="doc-spacer"></div>
+
+        {# ── Direction / Signature (au-dessus de la barre) ── #}
+        <div class="direction-row">
+            <div class="direction-box">
+                <div class="sig-space"></div>
+                <div class="sig-label">La Direction</div>
+            </div>
+        </div>
+
+        {# ── Barre + Footer légal ── #}
+        <div class="page-footer">
+            <div class="footer">
+                <p>
+                    Société à Responsabilité Limitée au Capital de 8 000 000,00 Dhs &nbsp;—&nbsp;
+                    RC 13 155 (Dakhla) &nbsp;—&nbsp; TP 77501883 &nbsp;—&nbsp; IF 33673539<br>
+                    ICE 002180147000093 &nbsp;—&nbsp;
+                    N° Compte Bancaire : 007 530 0015182000000087 74 &nbsp; Attijariwafa Bank
+                </p>
+            </div>
+        </div>
+
     </div>
 </body>
 </html>

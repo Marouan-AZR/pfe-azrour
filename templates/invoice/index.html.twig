@@ -4,7 +4,8 @@
 
 {% block body %}
 <div class="container-fluid py-4">
-    {# Header #}
+
+    {# ── Header ─────────────────────────────────────────────── #}
     <div class="d-flex justify-content-between align-items-start mb-4">
         <div class="d-flex align-items-center gap-3">
             <a href="{{ path('app_dashboard') }}" class="btn btn-outline-primary btn-sm rounded-pill">
@@ -15,236 +16,349 @@
                 <small class="text-muted">Gestion complète des factures</small>
             </div>
         </div>
-        <select id="monthSelector" class="form-select form-select-sm w-auto bg-white text-dark border">
-            <option>Janvier 2025</option>
-            <option>Février 2025</option>
-            <option selected>Mars 2025</option>
-            <option>Avril 2025</option>
-            <option>Mai 2025</option>
-            <option>Juin 2025</option>
-        </select>
+        {# Sélecteur de mois — dropdown custom #}
+        {% set moisNoms = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'] %}
+        <div style="position:relative" id="mpWrapper">
+            <button type="button" id="mpToggle" onclick="toggleMonthPicker()"
+                    style="display:flex;align-items:center;gap:.6rem;background:#fff;border:1.5px solid #e2e8f0;border-radius:.75rem;padding:.5rem 1rem;cursor:pointer;font-family:inherit;transition:border-color .15s,box-shadow .15s">
+                <i class="bi bi-calendar3" style="color:#6366f1;font-size:1rem"></i>
+                <span id="mpLabel" style="font-size:.88rem;font-weight:700;color:#0f172a;min-width:130px;text-align:left">{{ moisNoms[month - 1] }} {{ year }}</span>
+                <i class="bi bi-chevron-down" id="mpChevron" style="color:#94a3b8;font-size:.75rem;transition:transform .2s"></i>
+            </button>
+            <div id="mpDropdown"
+                 style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1.5px solid #e2e8f0;border-radius:1rem;box-shadow:0 8px 30px rgba(0,0,0,.12);width:260px;z-index:9999;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .85rem;background:linear-gradient(135deg,#4f46e5,#7c3aed)">
+                    <button type="button" onclick="mpChangeYear(-1)"
+                            style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:.5rem;width:28px;height:28px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="mpYear" style="color:#fff;font-weight:800;font-size:.95rem">{{ year }}</span>
+                    <button type="button" onclick="mpChangeYear(1)"
+                            style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:.5rem;width:28px;height:28px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <div id="mpGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;padding:.75rem"></div>
+            </div>
+        </div>
     </div>
 
-    {# Tabs #}
+    {% for msg in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+    {% for msg in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+
+    {# ── Onglets ────────────────────────────────────────────── #}
     <ul class="nav nav-tabs border-0 mb-4" id="facturationTabs" role="tablist">
         <li class="nav-item">
-            <button class="nav-link active bg-transparent text-primary border-0 border-bottom border-3 border-primary" id="recap-tab" data-bs-toggle="tab" data-bs-target="#recap" type="button" role="tab">
-                <i class="bi bi-bar-chart-line me-1"></i> Récapitulatif
+            <button class="nav-link active bg-transparent text-primary border-0 border-bottom border-3 border-primary fw-semibold"
+                    data-bs-toggle="tab" data-bs-target="#recap" type="button">
+                <i class="bi bi-bar-chart-line me-1"></i>Récapitulatif
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link bg-transparent text-muted border-0" id="tarifs-tab" data-bs-toggle="tab" data-bs-target="#tarifs" type="button" role="tab">
-                <i class="bi bi-tags me-1"></i> Tarifs
+            <button class="nav-link bg-transparent text-muted border-0"
+                    id="tarifs-tab" data-bs-toggle="tab" data-bs-target="#tarifs" type="button">
+                <i class="bi bi-tags me-1"></i>Grille Tarifaire
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link bg-transparent text-muted border-0" id="factures-tab" data-bs-toggle="tab" data-bs-target="#factures" type="button" role="tab">
-                <i class="bi bi-receipt me-1"></i> Factures
+            <button class="nav-link bg-transparent text-muted border-0"
+                    data-bs-toggle="tab" data-bs-target="#factures" type="button">
+                <i class="bi bi-receipt me-1"></i>Factures
             </button>
         </li>
     </ul>
 
     <div class="tab-content">
-        {# TAB 1 - Récapitulatif #}
+
+        {# ── TAB 1 : Récapitulatif mensuel ──────────────────── #}
         <div class="tab-pane fade show active" id="recap" role="tabpanel">
-            <div class="card border-0 rounded-4 shadow" style="background:#fff">>
+            <div class="card border-0 rounded-4 shadow bg-white">
                 <div class="card-body p-4">
-                    <h5 class="text-dark mb-1"><i class="bi bi-graph-up me-2"></i>Tableau Récapitulatif Mensuel</h5>
-                    <p class="text-muted small mb-4">Vue synthétique de l'activité de chaque client pour <span id="selectedMonthLabel">Mars 2025</span></p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="text-dark mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>Récapitulatif mensuel</h5>
+                            <small class="text-muted">Activité de chaque client — <strong>{{ moisNoms[month - 1] }} {{ year }}</strong></small>
+                        </div>
+                        {% if is_granted('INVOICE_CREATE') %}
+                        <a href="{{ path('app_invoice_generate') }}" class="btn btn-success btn-sm rounded-pill">
+                            <i class="bi bi-plus-circle me-1"></i>Générer une facture
+                        </a>
+                        {% endif %}
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead>
-                                <tr class="text-muted small text-uppercase">
+                        <table class="table table-hover align-middle mb-0" style="font-size:.84rem">
+                            <thead class="table-light">
+                                <tr class="text-muted text-uppercase" style="font-size:.7rem">
                                     <th>Client</th>
-                                    <th>CA (MAD)</th>
-                                    <th>Stock Initial (kg)</th>
-                                    <th>Entrées (kg)</th>
-                                    <th>Sorties (kg)</th>
-                                    <th>Stock Final (kg)</th>
-                                    <th>Stock Moyen (kg)</th>
-                                    <th>Stock Moyen (%)</th>
+                                    <th class="text-end">Entrées (kg)</th>
+                                    <th class="text-end">Sorties (kg)</th>
+                                    <th class="text-end">Stock en cours (kg)</th>
+                                    <th class="text-end">CA facturé HT (MAD)</th>
+                                    <th class="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="text-dark">Maroc Fruits Export</td>
-                                    <td class="fw-bold" style="color:#f0a500">120.000</td>
-                                    <td class="text-dark">5.000</td>
-                                    <td class="text-success">+2.000</td>
-                                    <td class="text-danger">-1.500</td>
-                                    <td class="text-dark">5.500</td>
-                                    <td class="text-dark">5.250</td>
-                                    <td><span class="badge bg-primary">10%</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-dark">Atlas Seafood</td>
-                                    <td class="fw-bold" style="color:#f0a500">85.000</td>
-                                    <td class="text-dark">3.000</td>
-                                    <td class="text-success">+1.200</td>
-                                    <td class="text-danger">-900</td>
-                                    <td class="text-dark">3.300</td>
-                                    <td class="text-dark">3.150</td>
-                                    <td><span class="badge bg-primary">6%</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-dark">Casablanca Fresh</td>
-                                    <td class="fw-bold" style="color:#f0a500">95.000</td>
-                                    <td class="text-dark">4.000</td>
-                                    <td class="text-success">+1.800</td>
-                                    <td class="text-danger">-1.200</td>
-                                    <td class="text-dark">4.600</td>
-                                    <td class="text-dark">4.300</td>
-                                    <td><span class="badge bg-primary">8%</span></td>
-                                </tr>
+                                {% set totalEntry = 0 %}
+                                {% set totalExit  = 0 %}
+                                {% set totalStock = 0 %}
+                                {% set totalCa    = 0 %}
+                                {% for row in monthSummary %}
+                                    {% set totalEntry = totalEntry + row.entryKg %}
+                                    {% set totalExit  = totalExit  + row.exitKg %}
+                                    {% set totalStock = totalStock + row.stockKg %}
+                                    {% set totalCa    = totalCa    + row.ca %}
+                                    <tr>
+                                        <td class="fw-semibold text-dark">{{ row.client.officialName }}</td>
+                                        <td class="text-end"><span class="text-success fw-semibold">+{{ row.entryKg|number_format(0,'.',' ') }}</span></td>
+                                        <td class="text-end"><span class="text-danger fw-semibold">-{{ row.exitKg|number_format(0,'.',' ') }}</span></td>
+                                        <td class="text-end text-dark">{{ row.stockKg|number_format(0,'.',' ') }}</td>
+                                        <td class="text-end fw-bold" style="color:#1e3a5f">
+                                            {{ row.ca > 0 ? row.ca|number_format(2,',',' ') ~ ' MAD' : '—' }}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if is_granted('INVOICE_CREATE') and row.ca == 0 %}
+                                            <a href="{{ path('app_invoice_generate') }}?client={{ row.client.id }}"
+                                               class="btn btn-outline-primary btn-sm"
+                                               style="font-size:.72rem;padding:.2rem .6rem;border-radius:.4rem">
+                                                <i class="bi bi-receipt me-1"></i>Facturer
+                                            </a>
+                                            {% elseif row.ca > 0 %}
+                                            <span class="badge" style="background:#dcfce7;color:#065f46;font-size:.68rem">
+                                                <i class="bi bi-check-circle-fill me-1"></i>Facturé
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr><td colspan="6" class="text-center text-muted py-5">
+                                        <i class="bi bi-inbox" style="font-size:2rem;opacity:.3;display:block;margin-bottom:.5rem"></i>
+                                        Aucune activité pour ce mois.
+                                    </td></tr>
+                                {% endfor %}
                             </tbody>
-                            <tfoot>
-                                <tr class="fw-bold border-top">
-                                    <td class="text-dark">TOTAL</td>
-                                    <td style="color:#f0a500">300.000</td>
-                                    <td class="text-dark">12.000</td>
-                                    <td class="text-success">+5.000</td>
-                                    <td class="text-danger">-3.600</td>
-                                    <td class="text-dark">13.400</td>
-                                    <td class="text-dark">12.700</td>
-                                    <td><span class="badge bg-primary">94.8%</span></td>
+                            {% if monthSummary|length > 0 %}
+                            <tfoot style="background:#f8fafc;font-weight:700;font-size:.8rem;border-top:2px solid #e2e8f0">
+                                <tr>
+                                    <td>TOTAL</td>
+                                    <td class="text-end text-success">+{{ totalEntry|number_format(0,'.',' ') }}</td>
+                                    <td class="text-end text-danger">-{{ totalExit|number_format(0,'.',' ') }}</td>
+                                    <td class="text-end text-dark">{{ totalStock|number_format(0,'.',' ') }}</td>
+                                    <td class="text-end" style="color:#1e3a5f">{{ totalCa|number_format(2,',',' ') }} MAD</td>
+                                    <td></td>
                                 </tr>
                             </tfoot>
+                            {% endif %}
                         </table>
                     </div>
                 </div>
             </div>
         </div>
 
-        {# TAB 2 - Tarifs #}
+        {# ── TAB 2 : Grille Tarifaire ───────────────────────── #}
         <div class="tab-pane fade" id="tarifs" role="tabpanel">
-            <div class="card border-0 rounded-4 shadow" style="background:#fff">>
-                <div class="card-body p-4">
-                    <h5 class="text-dark mb-4"><i class="bi bi-tags me-2"></i>Grille Tarifaire</h5>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead>
-                                <tr class="text-muted small text-uppercase">
-                                    <th>Client</th>
-                                    <th>Type</th>
-                                    <th>Manip. Entrée (DH/T)</th>
-                                    <th>Manip. Sortie (DH/T)</th>
-                                    <th>PU Stockage (DH)</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% set tarifs = [
-                                    {client:'Maroc Fruits Export', type:'Séjour', entree:150, sortie:120, pu:80},
-                                    {client:'Atlas Seafood', type:'Forfait', entree:180, sortie:140, pu:95},
-                                    {client:'Casablanca Fresh', type:'Séjour', entree:160, sortie:130, pu:85}
-                                ] %}
-                                {% for t in tarifs %}
-                                <tr>
-                                    <td class="text-dark">{{ t.client }}</td>
-                                    <td><span class="badge bg-info">{{ t.type }}</span></td>
-                                    <td class="text-dark">{{ t.entree }}</td>
-                                    <td class="text-dark">{{ t.sortie }}</td>
-                                    <td class="text-dark">{{ t.pu }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-warning rounded-pill" data-bs-toggle="modal" data-bs-target="#tarifModal"
-                                            data-client="{{ t.client }}" data-type="{{ t.type }}" data-entree="{{ t.entree }}" data-sortie="{{ t.sortie }}" data-pu="{{ t.pu }}">
-                                            <i class="bi bi-pencil me-1"></i>Modifier
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            {% if clients|length == 0 %}
+                <div class="alert alert-info">Aucun client actif trouvé.</div>
+            {% else %}
+            <div class="row g-4">
+                {% for client in clients %}
+                {% set tarif = tarifClients[client.id] ?? null %}
+                <div class="col-lg-6">
+                    <div class="card border-0 rounded-4 shadow bg-white h-100">
+                        <div class="card-header bg-white rounded-top-4 border-bottom d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <span class="fw-bold text-dark">{{ client.officialName }}</span>
+                                {% if client.officialName != client.companyName %}
+                                    <small class="text-muted ms-1">({{ client.companyName }})</small>
+                                {% endif %}
+                                {% if tarif %}
+                                    <small class="text-muted ms-2">Mis à jour {{ tarif.updatedAt ? tarif.updatedAt|date('d/m/Y') : '–' }}</small>
+                                {% else %}
+                                    <span class="badge bg-warning ms-2">Non configuré</span>
+                                {% endif %}
+                            </div>
+                            {% if is_granted('INVOICE_CREATE') %}
+                            <button class="btn btn-sm btn-outline-warning rounded-pill"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#tarifModal{{ client.id }}">
+                                <i class="bi bi-pencil me-1"></i>Modifier
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="row g-3">
+                                {# Tarif Séjour #}
+                                <div class="col-12">
+                                    <div class="rounded-3 p-3" style="background:rgba(13,110,253,.04);border:1px solid rgba(13,110,253,.15)">
+                                        <div class="fw-semibold text-primary small mb-2"><i class="bi bi-calendar-week me-1"></i>TARIF SÉJOUR</div>
+                                        <div class="row g-2 small">
+                                            <div class="col-4 text-center">
+                                                <div class="text-muted">PU Séjour</div>
+                                                <div class="fw-bold text-dark">{{ tarif ? tarif.puSejour|number_format(5,',',' ') : '—' }} <span class="fw-normal text-muted">DH/kg/j</span></div>
+                                            </div>
+                                            <div class="col-4 text-center">
+                                                <div class="text-muted">Manip. Entrée</div>
+                                                <div class="fw-bold text-dark">{{ tarif ? tarif.puManipEntree|number_format(5,',',' ') : '—' }} <span class="fw-normal text-muted">DH/kg</span></div>
+                                            </div>
+                                            <div class="col-4 text-center">
+                                                <div class="text-muted">Manip. Sortie</div>
+                                                <div class="fw-bold text-dark">{{ tarif ? tarif.puManipSortie|number_format(5,',',' ') : '—' }} <span class="fw-normal text-muted">DH/kg</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {# Tarif Forfait #}
+                                <div class="col-12">
+                                    <div class="rounded-3 p-3" style="background:rgba(25,135,84,.04);border:1px solid rgba(25,135,84,.15)">
+                                        <div class="fw-semibold text-success small mb-2"><i class="bi bi-tag-fill me-1"></i>TARIF FORFAIT</div>
+                                        <div class="text-muted small">Montant mensuel fixe</div>
+                                        <div class="fw-bold text-dark fs-5">{{ tarif ? tarif.montantForfait|number_format(2,',',' ') : '—' }} <span class="fw-normal text-muted fs-6">DH/mois</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {# Tarif Modal #}
-            <div class="modal fade" id="tarifModal" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content bg-white border rounded-4">
-                        <div class="modal-header border-bottom">
-                            <h5 class="modal-title text-dark"><i class="bi bi-pencil-square me-2"></i>Modifier Tarif</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="tarifForm">
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">Manipulation entrée (DH/T)</label>
-                                    <input type="number" class="form-control bg-white text-dark border" id="modalEntree">
+                {# Modal de modification du tarif #}
+                {% if is_granted('INVOICE_CREATE') %}
+                <div class="modal fade" id="tarifModal{{ client.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 rounded-4 shadow">
+                            <form method="post" action="{{ path('app_invoice_save_tarif', {id: client.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('tarif_' ~ client.id) }}">
+                                <div class="modal-header border-bottom">
+                                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Tarifs — {{ client.officialName }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">Manipulation sortie (DH/T)</label>
-                                    <input type="number" class="form-control bg-white text-dark border" id="modalSortie">
+                                <div class="modal-body">
+                                    {# Section Séjour #}
+                                    <div class="rounded-3 p-3 mb-3" style="background:rgba(13,110,253,.04);border:1px solid rgba(13,110,253,.15)">
+                                        <div class="fw-semibold text-primary small mb-3"><i class="bi bi-calendar-week me-1"></i>TARIF SÉJOUR</div>
+                                        <div class="mb-3">
+                                            <label class="form-label small text-muted">PU Séjour (DH / kg / jour)</label>
+                                            <input type="number" step="0.00001" name="pu_sejour"
+                                                   class="form-control form-control-sm"
+                                                   value="{{ tarif ? tarif.puSejour : '0.00970' }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label small text-muted">Manipulation Entrée (DH / kg)</label>
+                                            <input type="number" step="0.00001" name="pu_manip_entree"
+                                                   class="form-control form-control-sm"
+                                                   value="{{ tarif ? tarif.puManipEntree : '0.07000' }}" required>
+                                        </div>
+                                        <div class="mb-0">
+                                            <label class="form-label small text-muted">Manipulation Sortie (DH / kg)</label>
+                                            <input type="number" step="0.00001" name="pu_manip_sortie"
+                                                   class="form-control form-control-sm"
+                                                   value="{{ tarif ? tarif.puManipSortie : '0.07000' }}" required>
+                                        </div>
+                                    </div>
+                                    {# Section Forfait #}
+                                    <div class="rounded-3 p-3" style="background:rgba(25,135,84,.04);border:1px solid rgba(25,135,84,.15)">
+                                        <div class="fw-semibold text-success small mb-3"><i class="bi bi-tag-fill me-1"></i>TARIF FORFAIT</div>
+                                        <div class="mb-0">
+                                            <label class="form-label small text-muted">Montant mensuel fixe (DH)</label>
+                                            <input type="number" step="0.01" name="montant_forfait"
+                                                   class="form-control form-control-sm"
+                                                   value="{{ tarif ? tarif.montantForfait : '0.00' }}" required>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">PU Stockage (DH)</label>
-                                    <input type="number" class="form-control bg-white text-dark border" id="modalPu">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">Type</label>
-                                    <select class="form-select bg-white text-dark border" id="modalType">
-                                        <option value="Séjour">Séjour</option>
-                                        <option value="Forfait">Forfait</option>
-                                    </select>
+                                <div class="modal-footer border-top">
+                                    <button type="button" class="btn btn-secondary rounded-pill btn-sm" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="submit" class="btn btn-primary rounded-pill btn-sm">
+                                        <i class="bi bi-check-lg me-1"></i>Enregistrer
+                                    </button>
                                 </div>
                             </form>
                         </div>
-                        <div class="modal-footer border-top">
-                            <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Annuler</button>
-                            <button type="button" class="btn btn-warning rounded-pill">Enregistrer</button>
-                        </div>
                     </div>
                 </div>
+                {% endif %}
+                {% endfor %}
             </div>
+            {% endif %}
         </div>
 
-        {# TAB 3 - Factures #}
+        {# ── TAB 3 : Liste des Factures ─────────────────────── #}
         <div class="tab-pane fade" id="factures" role="tabpanel">
-            <div class="card border-0 rounded-4 shadow" style="background:#fff">>
+            <div class="card border-0 rounded-4 shadow bg-white">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="text-dark mb-0"><i class="bi bi-receipt me-2"></i>Liste des Factures</h5>
+                        <div>
+                            <h5 class="text-dark mb-0"><i class="bi bi-receipt me-2 text-primary"></i>Liste des Factures</h5>
+                            <small class="text-muted">Toutes les factures générées — {{ moisNoms[month - 1] }} {{ year }}</small>
+                        </div>
                         {% if is_granted('INVOICE_CREATE') %}
-                            <a href="{{ path('app_invoice_generate') }}" class="btn btn-success rounded-pill">
+                            <a href="{{ path('app_invoice_generate') }}" class="btn btn-success rounded-pill btn-sm">
                                 <i class="bi bi-plus-circle me-1"></i>Générer une facture
                             </a>
                         {% endif %}
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead>
-                                <tr class="text-muted small text-uppercase">
+                        <table class="table table-hover align-middle mb-0" style="font-size:.84rem">
+                            <thead class="table-light">
+                                <tr class="text-muted text-uppercase" style="font-size:.7rem">
                                     <th>N° Facture</th>
                                     <th>Client</th>
                                     <th>Période</th>
-                                    <th>Montant (DH)</th>
+                                    <th class="text-end">Total (MAD)</th>
                                     <th>Statut</th>
-                                    <th>Actions</th>
+                                    <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for invoice in invoices %}
                                 <tr>
-                                    <td class="text-dark">{{ invoice.invoiceNumber }}</td>
-                                    <td class="text-dark">{{ invoice.client.companyName }}</td>
-                                    <td class="text-muted">{{ invoice.periodStart|date('d/m/Y') }} - {{ invoice.periodEnd|date('d/m/Y') }}</td>
-                                    <td class="text-dark fw-bold">{{ invoice.totalTtc|number_format(2, ',', '.') }}</td>
-                                    <td>
-                                        <span class="badge bg-{{ invoice.status.cssClass }}">{{ invoice.status.label }}</span>
+                                    <td class="fw-bold" style="color:#1e3a5f;font-family:monospace">{{ invoice.invoiceNumber }}</td>
+                                    <td class="fw-semibold text-dark">{{ invoice.client.officialName }}</td>
+                                    <td class="text-muted">
+                                        {{ invoice.periodStart|date('d/m/Y') }} –
+                                        {{ invoice.periodEnd|date('d/m/Y') }}
                                     </td>
+                                    <td class="text-end fw-bold" style="color:#1e3a5f">{{ invoice.totalHt|number_format(2,',',' ') }}</td>
                                     <td>
-                                        <a href="{{ path('app_invoice_show', {id: invoice.id}) }}" class="btn btn-sm btn-outline-primary rounded-pill me-1">
-                                            <i class="bi bi-eye"></i> Consulter
+                                        {% if invoice.status.value == 'draft' %}
+                                            <span class="badge" style="background:#f1f5f9;color:#64748b;font-size:.72rem">
+                                                <i class="bi bi-pencil me-1"></i>Brouillon
+                                            </span>
+                                        {% elseif invoice.status.value == 'pending_validation' %}
+                                            <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.72rem">
+                                                <i class="bi bi-hourglass-split me-1"></i>En attente
+                                            </span>
+                                        {% elseif invoice.status.value == 'validated' %}
+                                            <span class="badge" style="background:#dcfce7;color:#065f46;font-size:.72rem">
+                                                <i class="bi bi-check-circle-fill me-1"></i>Validée
+                                            </span>
+                                        {% else %}
+                                            <span class="badge" style="background:#dbeafe;color:#1e40af;font-size:.72rem">
+                                                <i class="bi bi-send-fill me-1"></i>Envoyée
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ path('app_invoice_show', {id: invoice.id}) }}"
+                                           class="btn btn-sm btn-outline-primary rounded-pill me-1"
+                                           style="font-size:.72rem;padding:.2rem .65rem">
+                                            <i class="bi bi-eye"></i> Voir
                                         </a>
-                                        <a href="{{ path('app_invoice_pdf', {id: invoice.id}) }}" class="btn btn-sm btn-outline-danger rounded-pill">
-                                            <i class="bi bi-file-pdf"></i> PDF
+                                        <a href="{{ path('app_invoice_pdf', {id: invoice.id}) }}"
+                                           class="btn btn-sm btn-outline-danger rounded-pill" target="_blank"
+                                           style="font-size:.72rem;padding:.2rem .5rem">
+                                            <i class="bi bi-file-pdf"></i>
                                         </a>
                                     </td>
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">Aucune facture trouvée.</td>
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <i class="bi bi-inbox" style="font-size:2rem;opacity:.3;display:block;margin-bottom:.5rem"></i>
+                                        Aucune facture trouvée pour cette période.
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -253,41 +367,92 @@
                 </div>
             </div>
         </div>
-    </div>
+
+    </div>{# /tab-content #}
 </div>
 {% endblock %}
 
 {% block javascripts %}
 {{ parent() }}
 <script>
+// ── Month Picker custom ──
+const MP_MOIS   = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+const MP_MOIS_L = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+let mpYear    = {{ year }};
+let mpMonth   = {{ month }};
+const mpBase  = '{{ path('app_invoice_index') }}';
+
+function renderMpGrid() {
+    const now = new Date();
+    const grid = document.getElementById('mpGrid');
+    document.getElementById('mpYear').textContent = mpYear;
+    grid.innerHTML = '';
+    MP_MOIS.forEach(function(m, i) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = m;
+        const isSel = (i + 1 === mpMonth && mpYear === {{ year }});
+        const isNow = (i + 1 === now.getMonth() + 1 && mpYear === now.getFullYear());
+        btn.style.cssText = [
+            'border:none;border-radius:.5rem;padding:.45rem .1rem;font-size:.78rem;font-weight:700;cursor:pointer;width:100%;transition:background .12s,color .12s',
+            isSel ? 'background:#4f46e5;color:#fff' : (isNow ? 'background:#ede9fe;color:#4f46e5' : 'background:#f8fafc;color:#374151')
+        ].join(';');
+        btn.onmouseover = function() { if (!isSel) this.style.background='#e0e7ff'; this.style.color=isSel?'#fff':'#4f46e5'; };
+        btn.onmouseout  = function() {
+            this.style.background = isSel ? '#4f46e5' : (isNow ? '#ede9fe' : '#f8fafc');
+            this.style.color      = isSel ? '#fff'    : (isNow ? '#4f46e5' : '#374151');
+        };
+        btn.onclick = function() {
+            const mm = String(i + 1).padStart(2, '0');
+            window.location.href = mpBase + '?month=' + mpYear + '-' + mm;
+        };
+        grid.appendChild(btn);
+    });
+}
+
+function mpChangeYear(delta) {
+    mpYear += delta;
+    renderMpGrid();
+}
+
+function toggleMonthPicker() {
+    const d  = document.getElementById('mpDropdown');
+    const ch = document.getElementById('mpChevron');
+    const tg = document.getElementById('mpToggle');
+    const open = d.style.display === 'none';
+    d.style.display  = open ? 'block' : 'none';
+    ch.style.transform = open ? 'rotate(180deg)' : '';
+    tg.style.borderColor = open ? '#6366f1' : '#e2e8f0';
+    tg.style.boxShadow   = open ? '0 0 0 3px rgba(99,102,241,.15)' : '';
+    if (open) { mpYear = {{ year }}; renderMpGrid(); }
+}
+
+document.addEventListener('click', function(e) {
+    if (!document.getElementById('mpWrapper').contains(e.target)) {
+        document.getElementById('mpDropdown').style.display = 'none';
+        document.getElementById('mpChevron').style.transform = '';
+        document.getElementById('mpToggle').style.borderColor = '#e2e8f0';
+        document.getElementById('mpToggle').style.boxShadow = '';
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Tab active styling
+
+    // ── Style actif des onglets ──
     document.querySelectorAll('#facturationTabs .nav-link').forEach(function (tab) {
         tab.addEventListener('shown.bs.tab', function () {
             document.querySelectorAll('#facturationTabs .nav-link').forEach(function (t) {
-                t.classList.remove('border-bottom', 'border-3', 'border-primary', 'text-primary');
+                t.classList.remove('border-bottom', 'border-3', 'border-primary', 'text-primary', 'fw-semibold');
                 t.classList.add('text-muted');
             });
-            this.classList.add('border-bottom', 'border-3', 'border-primary', 'text-primary');
+            this.classList.add('border-bottom', 'border-3', 'border-primary', 'text-primary', 'fw-semibold');
             this.classList.remove('text-muted');
         });
     });
 
-    // Month selector label update
-    document.getElementById('monthSelector').addEventListener('change', function () {
-        document.getElementById('selectedMonthLabel').textContent = this.value;
-    });
-
-    // Tarif modal population
-    var tarifModal = document.getElementById('tarifModal');
-    if (tarifModal) {
-        tarifModal.addEventListener('show.bs.modal', function (e) {
-            var btn = e.relatedTarget;
-            document.getElementById('modalEntree').value = btn.getAttribute('data-entree');
-            document.getElementById('modalSortie').value = btn.getAttribute('data-sortie');
-            document.getElementById('modalPu').value = btn.getAttribute('data-pu');
-            document.getElementById('modalType').value = btn.getAttribute('data-type');
-        });
+    // Ouvrir l'onglet Tarifs si fragment #tarifs dans l'URL
+    if (window.location.hash === '#tarifs') {
+        document.getElementById('tarifs-tab').click();
     }
 });
 </script>

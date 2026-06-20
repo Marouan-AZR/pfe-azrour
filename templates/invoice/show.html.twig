@@ -1,293 +1,397 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}Facture {{ invoice.invoiceNumber }}{% endblock %}
 
-{% block body %}
-<div class="container-fluid">
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-        <div class="alert alert-danger">{{ message }}</div>
-    {% endfor %}
-
-    <div class="page-header">
-        <div class="header-content">
-            <div class="header-title">
-                <h1><i class="bi bi-receipt"></i> Facture {{ invoice.invoiceNumber }}</h1>
-                <div class="header-badges">
-                    {% if invoice.status.value == 'draft' %}
-                        <span class="status-badge status-draft"><i class="bi bi-pencil"></i> Brouillon</span>
-                    {% elseif invoice.status.value == 'pending_validation' %}
-                        <span class="status-badge status-pending"><i class="bi bi-hourglass-split"></i> En attente</span>
-                    {% elseif invoice.status.value == 'validated' %}
-                        <span class="status-badge status-validated"><i class="bi bi-check-circle"></i> Validée</span>
-                    {% else %}
-                        <span class="status-badge status-sent"><i class="bi bi-send"></i> Envoyée</span>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="header-actions">
-                {% if invoice.status.value == 'pending_validation' and is_granted('INVOICE_VALIDATE') %}
-                <form action="{{ path('app_invoice_validate', {id: invoice.id}) }}" method="post" class="d-inline">
-                    <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ invoice.id) }}">
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-lg"></i> Valider
-                    </button>
-                </form>
-                {% endif %}
-                {% if is_granted('INVOICE_EXPORT') %}
-                <a href="{{ path('app_invoice_pdf', {id: invoice.id}) }}" class="btn btn-secondary" target="_blank">
-                    <i class="bi bi-file-pdf"></i> PDF
-                </a>
-                {% endif %}
-                <a href="{{ path('app_invoice_index') }}" class="btn btn-outline-light">
-                    <i class="bi bi-arrow-left"></i> Retour
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="invoice-container">
-        <div class="invoice-header-section">
-            <div class="invoice-party">
-                <div class="party-label">Émetteur</div>
-                <div class="party-name">Golden Logistics</div>
-                <div class="party-details">
-                    Zone Industrielle, Dakhla<br>
-                    Maroc<br>
-                    contact@golden-logistics.ma
-                </div>
-            </div>
-            <div class="invoice-party">
-                <div class="party-label">Client</div>
-                <div class="party-name">{{ invoice.client.companyName }}</div>
-                <div class="party-details">
-                    {{ invoice.client.address|nl2br }}<br>
-                    {{ invoice.client.email }}<br>
-                    {{ invoice.client.phone }}
-                </div>
-            </div>
-            <div class="invoice-meta">
-                <div class="meta-item">
-                    <span class="meta-label">Période</span>
-                    <span class="meta-value">{{ invoice.periodStart|date('d/m/Y') }} - {{ invoice.periodEnd|date('d/m/Y') }}</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">Créée le</span>
-                    <span class="meta-value">{{ invoice.createdAt|date('d/m/Y') }}</span>
-                </div>
-                {% if invoice.validatedAt %}
-                <div class="meta-item">
-                    <span class="meta-label">Validée le</span>
-                    <span class="meta-value">{{ invoice.validatedAt|date('d/m/Y') }}</span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-list-ul"></i> Lignes de facturation
-            </div>
-            <div class="card-body p-0">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Désignation</th>
-                            <th class="text-end">Quantité</th>
-                            <th class="text-end">Prix unitaire</th>
-                            <th class="text-end">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for line in invoice.lines %}
-                        <tr>
-                            <td><span class="product-name">{{ line.designation }}</span></td>
-                            <td class="text-end">{{ line.quantity|number_format(3, ',', ' ') }}</td>
-                            <td class="text-end">{{ line.unitPrice|number_format(4, ',', ' ') }} DH</td>
-                            <td class="text-end"><span class="amount">{{ line.lineTotal|number_format(2, ',', ' ') }} DH</span></td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">Aucune ligne</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="invoice-totals">
-            <div class="totals-card">
-                <div class="total-row">
-                    <span class="total-label">Total HT</span>
-                    <span class="total-value">{{ invoice.totalHt|number_format(2, ',', ' ') }} DH</span>
-                </div>
-                <div class="total-row">
-                    <span class="total-label">TVA ({{ invoice.vatRate }}%)</span>
-                    <span class="total-value">{{ ((invoice.totalTtc - invoice.totalHt))|number_format(2, ',', ' ') }} DH</span>
-                </div>
-                <div class="total-row total-final">
-                    <span class="total-label">Total TTC</span>
-                    <span class="total-value">{{ invoice.totalTtc|number_format(2, ',', ' ') }} DH</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block stylesheets %}
 <style>
-.page-header {
-    margin-bottom: 2rem;
+/* ── Layout ── */
+.inv-wrap { max-width:960px; margin:0 auto; }
+
+/* ── Actions bar ── */
+.inv-actions { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+.inv-actions .sep { flex:1; }
+
+/* ── Status badge ── */
+.inv-status {
+    display:inline-flex; align-items:center; gap:.45rem;
+    padding:.35em .9em; border-radius:50px; font-size:.78rem; font-weight:700;
 }
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 1rem;
+.s-draft    { background:#f1f5f9; color:#64748b; }
+.s-pending  { background:#fef3c7; color:#92400e; }
+.s-valid    { background:#dcfce7; color:#065f46; }
+.s-sent     { background:#dbeafe; color:#1e40af; }
+
+/* ── Invoice card ── */
+.inv-card {
+    background:#fff; border:1px solid #d1d5db; border-radius:.75rem;
+    box-shadow:0 2px 16px rgba(0,0,0,.08); overflow:hidden;
+    font-family:'Segoe UI', Arial, sans-serif;
 }
-.header-title h1 {
-    margin-bottom: 0.5rem;
+
+/* ── Header ── */
+.inv-hdr {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding:1.5rem 2rem 1.2rem; border-bottom:3px solid #1e3a5f; gap:1rem; flex-wrap:wrap;
 }
-.header-badges {
-    display: flex;
-    gap: 0.5rem;
+.inv-hdr-left { display:flex; align-items:center; gap:1rem; }
+.inv-hdr-left img { height:72px; width:auto; object-fit:contain; }
+.inv-company-name { font-size:1.15rem; font-weight:900; color:#1e3a5f; letter-spacing:.02em; margin-bottom:.15rem; }
+.inv-company-sub  { font-size:.72rem; color:#64748b; text-transform:uppercase; letter-spacing:.06em; }
+.inv-company-info { font-size:.73rem; color:#64748b; margin-top:.4rem; line-height:1.6; }
+
+.inv-hdr-right { text-align:right; }
+.inv-title { font-size:2rem; font-weight:900; color:#1e3a5f; letter-spacing:.05em; text-transform:uppercase; }
+.inv-number { font-size:.88rem; font-weight:700; color:#64748b; margin-top:.25rem; }
+.inv-date   { font-size:.8rem; color:#94a3b8; margin-top:.1rem; }
+
+/* ── Info band (client + meta) ── */
+.inv-info-band {
+    display:grid; grid-template-columns:1fr 1fr;
+    border-bottom:1px solid #e5e7eb; background:#f8fafc;
 }
-.header-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+.inv-info-block { padding:1rem 1.5rem; }
+.inv-info-block:first-child { border-right:1px solid #e5e7eb; }
+.inv-info-title {
+    font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em;
+    color:#1e3a5f; border-bottom:2px solid #1e3a5f; padding-bottom:.3rem; margin-bottom:.65rem;
+    display:inline-block;
 }
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-    font-weight: 600;
-    font-size: 0.85rem;
+.inv-info-row { display:flex; gap:.5rem; font-size:.78rem; margin-bottom:.3rem; }
+.inv-info-row .lbl { color:#94a3b8; font-weight:600; min-width:70px; }
+.inv-info-row .val { color:#1e293b; font-weight:700; flex:1; }
+
+/* ── Period banner ── */
+.inv-period {
+    background:#1e3a5f; color:#fff; padding:.55rem 2rem;
+    display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
 }
-.status-draft {
-    background: rgba(100, 116, 139, 0.2);
-    color: #64748b;
+.inv-period .lbl { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.65); }
+.inv-period .val { font-size:.88rem; font-weight:700; }
+
+/* ── Table ── */
+.inv-table-wrap { overflow-x:auto; }
+table.inv-tbl { width:100%; border-collapse:collapse; }
+table.inv-tbl thead tr { background:#f1f5f9; }
+table.inv-tbl thead th {
+    padding:.75rem 1.25rem; font-size:.68rem; font-weight:800; text-transform:uppercase;
+    letter-spacing:.07em; color:#1e3a5f; white-space:nowrap; border-bottom:2px solid #1e3a5f;
+    border-top:2px solid #1e3a5f;
 }
-.status-pending {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fbbf24;
+table.inv-tbl tbody tr { border-bottom:1px solid #f1f5f9; }
+table.inv-tbl tbody tr:last-child { border-bottom:2px solid #e5e7eb; }
+table.inv-tbl tbody td { padding:.8rem 1.25rem; font-size:.83rem; color:#1e293b; vertical-align:middle; }
+table.inv-tbl td.prestation { font-weight:700; color:#0f172a; }
+table.inv-tbl td.r { text-align:right; }
+table.inv-tbl td.total-cell { font-weight:800; color:#1e3a5f; }
+table.inv-tbl tbody tr:nth-child(even) { background:#fafbfc; }
+
+.badge-forfait {
+    display:inline-block; background:#059669; color:#fff;
+    font-size:.68rem; font-weight:800; padding:.2em .6em; border-radius:.3rem; letter-spacing:.04em;
 }
-.status-validated {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
+
+/* ── Totaux ── */
+.inv-totals-wrap { padding:1.25rem 2rem 1rem; display:flex; justify-content:flex-end; border-bottom:1px solid #e5e7eb; }
+.inv-totals { min-width:320px; }
+.inv-total-line { display:flex; justify-content:space-between; padding:.45rem 0; border-bottom:1px dashed #e5e7eb; font-size:.84rem; }
+.inv-total-line:last-child { border-bottom:none; }
+.inv-total-line .tl { color:#64748b; }
+.inv-total-line .tv { font-weight:700; color:#0f172a; }
+.inv-total-ht {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:.6rem; padding:.75rem 1rem;
+    background:#f8fafc; border:2px solid #1e3a5f; border-radius:.5rem;
 }
-.status-sent {
-    background: rgba(14, 165, 233, 0.2);
-    color: #38bdf8;
+.inv-total-ht .tl { color:#1e3a5f; font-size:.8rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+.inv-total-ht .tv { color:#1e3a5f; font-size:1.1rem; font-weight:900; }
+
+/* ── Footer ── */
+.inv-footer-info { padding:.8rem 2rem; background:#f8fafc; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; }
+.inv-footer-info .fl { font-size:.74rem; color:#94a3b8; }
+.inv-footer-info .fr { font-size:.74rem; color:#94a3b8; text-align:right; }
+
+/* ── Signatures ── */
+.inv-signatures {
+    padding:1.5rem 2rem; display:grid; grid-template-columns:1fr 1fr;
+    gap:2rem; border-top:1px solid #e5e7eb;
 }
-.invoice-container {
-    max-width: 1000px;
+.inv-sig-block { text-align:center; }
+.inv-sig-label { font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:#1e3a5f; margin-bottom:.5rem; }
+.inv-sig-box {
+    border:1.5px dashed #cbd5e1; border-radius:.5rem;
+    background:#fafbfc;
 }
-.invoice-header-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: var(--glass-bg);
-    border-radius: var(--radius);
-    border: 1px solid var(--glass-border);
+.inv-sig-note { font-size:.7rem; color:#94a3b8; margin-top:.4rem; }
+
+@media print {
+    .inv-actions, .sidebar, .main-header { display:none !important; }
+    .inv-card { box-shadow:none !important; border:1px solid #ccc !important; }
+    body { background:#fff !important; }
 }
-.party-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-}
-.party-name {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 0.5rem;
-}
-.party-details {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    line-height: 1.6;
-}
-.invoice-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-.meta-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--glass-border);
-}
-.meta-label {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-}
-.meta-value {
-    color: var(--text);
-    font-weight: 500;
-}
-.product-name {
-    font-weight: 500;
-    color: var(--text);
-}
-.amount {
-    font-weight: 600;
-    color: var(--primary-light);
-}
-.invoice-totals {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 2rem;
-}
-.totals-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    min-width: 300px;
-}
-.total-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--glass-border);
-}
-.total-row:last-child {
-    border-bottom: none;
-}
-.total-label {
-    color: var(--text-muted);
-}
-.total-value {
-    font-weight: 600;
-    color: var(--text);
-}
-.total-final {
-    margin-top: 0.5rem;
-    padding-top: 1rem;
-    border-top: 2px solid var(--primary);
-}
-.total-final .total-label,
-.total-final .total-value {
-    font-size: 1.2rem;
-    color: var(--primary-light);
-}
-@media (max-width: 768px) {
-    .invoice-header-section {
-        grid-template-columns: 1fr;
-    }
-    .header-content {
-        flex-direction: column;
-    }
+@media(max-width:640px) {
+    .inv-info-band { grid-template-columns:1fr; }
+    .inv-info-block:first-child { border-right:none; border-bottom:1px solid #e5e7eb; }
+    .inv-hdr { flex-direction:column; }
+    .inv-hdr-right { text-align:left; }
+    .inv-signatures { grid-template-columns:1fr; }
 }
 </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 px-4">
+<div class="inv-wrap">
+
+    {# ── Flash messages ── #}
+    {% for msg in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show mb-3 rounded-3">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+    {% for msg in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show mb-3 rounded-3">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+
+    {# ── Barre d'actions ── #}
+    <div class="inv-actions">
+        <a href="{{ path('app_invoice_index') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+
+        {% if invoice.status.value == 'draft' %}
+            <span class="inv-status s-draft"><i class="bi bi-pencil"></i> Brouillon</span>
+        {% elseif invoice.status.value == 'pending_validation' %}
+            <span class="inv-status s-pending"><i class="bi bi-hourglass-split"></i> En attente de validation</span>
+        {% elseif invoice.status.value == 'validated' %}
+            <span class="inv-status s-valid"><i class="bi bi-check-circle-fill"></i> Validée</span>
+        {% else %}
+            <span class="inv-status s-sent"><i class="bi bi-send-fill"></i> Envoyée</span>
+        {% endif %}
+
+        <div class="sep"></div>
+
+        {% if invoice.status.value == 'draft' and is_granted('INVOICE_SEND') %}
+        <form id="formSend" action="{{ path('app_invoice_send', {id: invoice.id}) }}" method="post" class="d-inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('send' ~ invoice.id) }}">
+            <button type="button" class="btn btn-primary btn-sm rounded-pill"
+                    onclick="openConfirm('send','Envoyer au directeur','Confirmez-vous l\'envoi de la facture <strong>{{ invoice.invoiceNumber }}</strong> au directeur pour validation ?','bi-send','#2563eb','Envoyer')">
+                <i class="bi bi-send me-1"></i>Envoyer au directeur
+            </button>
+        </form>
+        {% endif %}
+
+        {% if invoice.status.value == 'pending_validation' and is_granted('INVOICE_VALIDATE') %}
+        <form id="formValidate" action="{{ path('app_invoice_validate', {id: invoice.id}) }}" method="post" class="d-inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ invoice.id) }}">
+            <button type="button" class="btn btn-success btn-sm rounded-pill"
+                    onclick="openConfirm('validate','Valider la facture','Confirmez-vous la validation de la facture <strong>{{ invoice.invoiceNumber }}</strong> ? Cette action est définitive.','bi-check-circle-fill','#10b981','Valider')">
+                <i class="bi bi-check-lg me-1"></i>Valider la facture
+            </button>
+        </form>
+        {% endif %}
+
+        {% if is_granted('INVOICE_EXPORT') %}
+        <a href="{{ path('app_invoice_pdf', {id: invoice.id}) }}" class="btn btn-outline-danger btn-sm rounded-pill" target="_blank">
+            <i class="bi bi-file-pdf me-1"></i>PDF / Imprimer
+        </a>
+        {% endif %}
+
+        {% if is_granted('INVOICE_DELETE') and (invoice.status.value == 'draft' or is_granted('INVOICE_VALIDATE')) %}
+        <form id="formDelete" action="{{ path('app_invoice_delete', {id: invoice.id}) }}" method="post" class="d-inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ invoice.id) }}">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill"
+                    onclick="openConfirm('delete','Supprimer la facture','Voulez-vous vraiment supprimer définitivement la facture <strong>{{ invoice.invoiceNumber }}</strong> ? Cette action est irréversible.','bi-trash-fill','#ef4444','Supprimer')">
+                <i class="bi bi-trash me-1"></i>Supprimer
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    {# ── Modal de confirmation ── #}
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+            <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg">
+                <div id="confirmModalHeader" class="p-4 d-flex align-items-center gap-3">
+                    <div id="confirmModalIconWrap"
+                         style="width:52px;height:52px;border-radius:.85rem;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <i id="confirmModalIcon" class="fs-3 text-white"></i>
+                    </div>
+                    <div>
+                        <h6 id="confirmModalTitle" class="fw-bold text-white mb-0" style="font-size:1rem"></h6>
+                        <small class="text-white" style="opacity:.75">Facture {{ invoice.invoiceNumber }}</small>
+                    </div>
+                </div>
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <p id="confirmModalBody" class="mb-0" style="font-size:.9rem;color:#374151;line-height:1.6"></p>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-2 gap-2">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Annuler
+                    </button>
+                    <button type="button" id="confirmModalBtn" class="btn rounded-pill px-4 fw-semibold"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════
+         CARTE FACTURE
+    ═══════════════════════════════════════════════ #}
+    <div class="inv-card">
+
+        {# ── En-tête : logo + titre ── #}
+        <div class="inv-hdr">
+            <div class="inv-hdr-left">
+                <img src="{{ asset('images/Logo essai.png') }}" alt="Golden Logistics" onerror="this.style.display='none'">
+                <div>
+                    <div class="inv-company-name">GOLDEN LOGISTICS</div>
+                    <div class="inv-company-sub">Entrepôt Frigorifique</div>
+                    <div class="inv-company-info">
+                        Zone Industrielle, Dakhla, Maroc<br>
+                        Tél : +212 5XX-XXXXXX
+                    </div>
+                </div>
+            </div>
+            <div class="inv-hdr-right">
+                <div class="inv-title">FACTURE</div>
+                <div class="inv-number">N° {{ invoice.invoiceNumber }}</div>
+                <div class="inv-date">Date : {{ invoice.createdAt|date('d/m/Y') }}</div>
+            </div>
+        </div>
+
+        {# ── Bande info : client + méta ── #}
+        <div class="inv-info-band">
+
+            {# Client #}
+            <div class="inv-info-block">
+                <div class="inv-info-title">Facturé à</div>
+                <div class="inv-info-row">
+                    <span class="lbl">Client</span>
+                    <span class="val" style="font-size:.85rem">{{ invoice.client.officialName }}</span>
+                </div>
+                <div class="inv-info-row">
+                    <span class="lbl">Adresse</span>
+                    <span class="val">{{ invoice.client.address }}</span>
+                </div>
+                {% if invoice.client.ice %}
+                <div class="inv-info-row">
+                    <span class="lbl">ICE</span>
+                    <span class="val">{{ invoice.client.ice }}</span>
+                </div>
+                {% endif %}
+                {% if invoice.client.rc %}
+                <div class="inv-info-row">
+                    <span class="lbl">RC</span>
+                    <span class="val">{{ invoice.client.rc }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            {# Méta facture #}
+            <div class="inv-info-block">
+                <div class="inv-info-title">Détails de la facture</div>
+                <div class="inv-info-row">
+                    <span class="lbl">N° Facture</span>
+                    <span class="val">{{ invoice.invoiceNumber }}</span>
+                </div>
+                <div class="inv-info-row">
+                    <span class="lbl">Date</span>
+                    <span class="val">{{ invoice.createdAt|date('d/m/Y') }}</span>
+                </div>
+                <div class="inv-info-row">
+                    <span class="lbl">Période</span>
+                    <span class="val">{{ invoice.periodStart|date('d/m/Y') }} – {{ invoice.periodEnd|date('d/m/Y') }}</span>
+                </div>
+            </div>
+        </div>
+
+        {# ── Tableau des prestations ── #}
+        <div class="inv-table-wrap">
+            <table class="inv-tbl">
+                <thead>
+                    <tr>
+                        <th style="width:36%;text-align:left">Désignation des prestations</th>
+                        <th class="r" style="width:16%">Quantité (Kg)</th>
+                        <th class="r" style="width:12%">Durée (J)</th>
+                        <th class="r" style="width:18%">Prix unitaire</th>
+                        <th class="r" style="width:18%">Montant (MAD)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in invoice.lines %}
+                    <tr>
+                        <td class="prestation">{{ line.designation }}</td>
+                        <td class="r">{{ line.quantity|number_format(2, ',', ' ') }}</td>
+                        <td class="r" style="color:#64748b;font-weight:600">
+                            {{ line.quantityJours is not null ? line.quantityJours ~ ' j' : '—' }}
+                        </td>
+                        <td class="r">
+                            {% if line.unitPriceDisplay == 'FORFAIT' %}
+                                <span class="badge-forfait">FORFAIT</span>
+                            {% else %}
+                                {{ line.unitPrice|number_format(5, ',', ' ') }}
+                            {% endif %}
+                        </td>
+                        <td class="r total-cell">{{ line.lineTotal|number_format(2, ',', ' ') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-secondary">
+                            <i class="bi bi-inbox" style="font-size:1.8rem;opacity:.35;display:block;margin-bottom:.5rem"></i>
+                            Aucune prestation à facturer pour cette période
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# ── Totaux ── #}
+        <div class="inv-totals-wrap">
+            <div class="inv-totals">
+                <div class="inv-total-ht">
+                    <span class="tl">Total HT (MAD)</span>
+                    <span class="tv">{{ invoice.totalHt|number_format(2, ',', ' ') }}</span>
+                </div>
+            </div>
+        </div>
+
+        {# ── Zone de signature ── #}
+        <div style="padding:1.5rem 2rem 2rem;display:flex;justify-content:flex-end">
+            <div style="width:260px;text-align:center">
+                <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#1e3a5f;margin-bottom:.75rem">La direction :</div>
+                <div style="height:85px;border:1.5px dashed #cbd5e1;border-radius:.5rem;background:#fafbfc"></div>
+            </div>
+        </div>
+
+    </div>{# /.inv-card #}
+</div>{# /.inv-wrap #}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+let pendingFormId = null;
+
+function openConfirm(formId, title, body, icon, color, btnLabel) {
+    pendingFormId = formId;
+    const header = document.getElementById('confirmModalHeader');
+    header.style.background = `linear-gradient(135deg, ${color}dd, ${color})`;
+    document.getElementById('confirmModalIcon').className = `bi ${icon} fs-3 text-white`;
+    document.getElementById('confirmModalTitle').innerHTML = title;
+    document.getElementById('confirmModalBody').innerHTML  = body;
+    const btn = document.getElementById('confirmModalBtn');
+    btn.innerHTML = `<i class="bi ${icon} me-1"></i>${btnLabel}`;
+    btn.style.background = color;
+    btn.style.color      = '#fff';
+    btn.style.border     = 'none';
+    new bootstrap.Modal(document.getElementById('confirmModal')).show();
+}
+
+document.getElementById('confirmModalBtn').addEventListener('click', function () {
+    if (pendingFormId) {
+        bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+        const key = pendingFormId.charAt(0).toUpperCase() + pendingFormId.slice(1);
+        document.getElementById('form' + key).submit();
+    }
+});
+</script>
 {% endblock %}

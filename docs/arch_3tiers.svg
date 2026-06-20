@@ -1,0 +1,212 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="800" viewBox="0 0 920 800">
+  <defs>
+    <marker id="ad" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L10,3.5 L0,7 Z" fill="#64748b"/>
+    </marker>
+    <marker id="au" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+      <path d="M10,0 L0,3.5 L10,7 Z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <!-- Fond -->
+  <rect width="920" height="800" fill="#f8fafc"/>
+  <rect x="6" y="6" width="908" height="788" rx="10" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Titre -->
+  <text x="460" y="38" text-anchor="middle" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#0f172a">Architecture 3 Tiers</text>
+  <text x="460" y="58" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#64748b">Système de Gestion de Chambre Froide · Symfony 7 · PHP 8.2 · MariaDB</text>
+  <line x1="22" y1="68" x2="898" y2="68" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Navigateur -->
+  <rect x="325" y="76" width="270" height="52" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="460" y="98" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#334155">Navigateur Web (Client)</text>
+  <text x="460" y="116" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#64748b">Requête HTTP · Affichage HTML / CSS / JS</text>
+
+  <!-- Flèche Browser → Tier1 -->
+  <line x1="448" y1="128" x2="448" y2="156" stroke="#64748b" stroke-width="1.5" marker-end="url(#ad)"/>
+  <line x1="472" y1="156" x2="472" y2="128" stroke="#64748b" stroke-width="1.5" marker-end="url(#au)"/>
+  <rect x="348" y="134" width="124" height="14" rx="3" fill="#f1f5f9"/>
+  <text x="410" y="144" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#475569">HTTP Request / Response</text>
+
+  <!-- ── TIER 1 PRÉSENTATION ── -->
+  <rect x="16" y="158" width="888" height="196" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+  <rect x="16" y="158" width="888" height="44" rx="12" fill="#2563eb"/>
+  <rect x="16" y="190" width="888" height="12" fill="#2563eb"/>
+  <text x="56" y="182" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#ffffff">COUCHE PRÉSENTATION</text>
+  <text x="56" y="197" font-family="Arial,sans-serif" font-size="9" fill="#bfdbfe">Interface utilisateur · Traitement des requêtes HTTP · Routage</text>
+  <text x="896" y="191" text-anchor="end" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#bfdbfe">Controllers + Twig</text>
+
+  <!-- Bloc Contrôleurs -->
+  <rect x="26" y="210" width="275" height="136" rx="8" fill="rgba(255,255,255,0.72)" stroke="#bfdbfe" stroke-width="1"/>
+  <rect x="26" y="210" width="275" height="22" rx="8" fill="#dbeafe"/>
+  <rect x="26" y="222" width="275" height="10" fill="#dbeafe"/>
+  <text x="163" y="226" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1d4ed8">Contrôleurs (22)</text>
+  <text x="38" y="246" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  AuthController – Authentification</text>
+  <text x="38" y="259" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  DashboardController (6 rôles)</text>
+  <text x="38" y="272" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  StockEntryController</text>
+  <text x="38" y="285" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  StockExitController</text>
+  <text x="38" y="298" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  InvoiceController</text>
+  <text x="38" y="311" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  ClientController · ColdRoomController</text>
+  <text x="38" y="324" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  AlertController · ChatbotController</text>
+  <text x="38" y="337" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  + 14 autres contrôleurs</text>
+
+  <!-- Bloc Vues -->
+  <rect x="320" y="210" width="280" height="136" rx="8" fill="rgba(255,255,255,0.72)" stroke="#bfdbfe" stroke-width="1"/>
+  <rect x="320" y="210" width="280" height="22" rx="8" fill="#dbeafe"/>
+  <rect x="320" y="222" width="280" height="10" fill="#dbeafe"/>
+  <text x="460" y="226" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1d4ed8">Vues Twig (22 dossiers)</text>
+  <text x="332" y="246" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  base.html.twig – Layout principal</text>
+  <text x="332" y="259" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  auth/ – Login · Inscription</text>
+  <text x="332" y="272" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  dashboard/ – 6 tableaux de bord</text>
+  <text x="332" y="285" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  stock/ · stock_entry/ · stock_exit/</text>
+  <text x="332" y="298" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  invoice/ · cold_room/ · client/</text>
+  <text x="332" y="311" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  fiche/ · alerts/ · chatbot/</text>
+  <text x="332" y="324" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  shelf_plan/ · history/ · profile/</text>
+  <text x="332" y="337" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  Bootstrap 5 · Stimulus JS</text>
+
+  <!-- Bloc Sécurité -->
+  <rect x="619" y="210" width="277" height="136" rx="8" fill="rgba(255,255,255,0.72)" stroke="#bfdbfe" stroke-width="1"/>
+  <rect x="619" y="210" width="277" height="22" rx="8" fill="#dbeafe"/>
+  <rect x="619" y="222" width="277" height="10" fill="#dbeafe"/>
+  <text x="757" y="226" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#1d4ed8">Sécurité &amp; Formulaires</text>
+  <text x="631" y="246" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  Firewall Symfony Security</text>
+  <text x="631" y="259" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  Hiérarchie des rôles (6 rôles)</text>
+  <text x="631" y="272" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  Voters (Client, Invoice, Stock)</text>
+  <text x="631" y="285" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  Protection CSRF</text>
+  <text x="631" y="298" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  Form Types (6 types)</text>
+  <text x="631" y="311" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  Validation des données</text>
+  <text x="631" y="324" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  Extensions Twig (Audit, Notif.)</text>
+  <text x="631" y="337" font-family="Arial,sans-serif" font-size="9" fill="#1e3a8a">▸  Remember Me · ROLE_PATRON …</text>
+
+  <!-- Flèche Tier1 → Tier2 -->
+  <line x1="448" y1="354" x2="448" y2="388" stroke="#64748b" stroke-width="1.5" marker-end="url(#ad)"/>
+  <line x1="472" y1="388" x2="472" y2="354" stroke="#64748b" stroke-width="1.5" marker-end="url(#au)"/>
+  <rect x="330" y="362" width="260" height="14" rx="3" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="460" y="372" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#475569">Injection de dépendances · Appels de services</text>
+
+  <!-- ── TIER 2 MÉTIER ── -->
+  <rect x="16" y="392" width="888" height="170" rx="12" fill="#faf5ff" stroke="#8b5cf6" stroke-width="2"/>
+  <rect x="16" y="392" width="888" height="44" rx="12" fill="#7c3aed"/>
+  <rect x="16" y="424" width="888" height="12" fill="#7c3aed"/>
+  <text x="56" y="416" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#ffffff">COUCHE LOGIQUE MÉTIER</text>
+  <text x="56" y="431" font-family="Arial,sans-serif" font-size="9" fill="#ddd6fe">Règles de gestion · Traitement des données · Orchestration</text>
+  <text x="896" y="424" text-anchor="end" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#ddd6fe">Services PHP</text>
+
+  <!-- 5 blocs service -->
+  <rect x="26" y="444" width="162" height="110" rx="7" fill="rgba(255,255,255,0.72)" stroke="#ddd6fe" stroke-width="1"/>
+  <rect x="26" y="444" width="162" height="20" rx="7" fill="#ede9fe"/>
+  <rect x="26" y="454" width="162" height="10" fill="#ede9fe"/>
+  <text x="107" y="459" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#5b21b6">StockService</text>
+  <text x="36" y="475" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Validation entrées/sorties</text>
+  <text x="36" y="488" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Vérif. des capacités</text>
+  <text x="36" y="501" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Calcul des stocks</text>
+  <text x="36" y="514" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Gestion des palettes</text>
+  <text x="36" y="527" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Déduction automatique</text>
+  <text x="36" y="540" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Allocation chambres</text>
+
+  <rect x="203" y="444" width="162" height="110" rx="7" fill="rgba(255,255,255,0.72)" stroke="#ddd6fe" stroke-width="1"/>
+  <rect x="203" y="444" width="162" height="20" rx="7" fill="#ede9fe"/>
+  <rect x="203" y="454" width="162" height="10" fill="#ede9fe"/>
+  <text x="284" y="459" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#5b21b6">InvoiceService</text>
+  <text x="213" y="475" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Génération automatique</text>
+  <text x="213" y="488" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Application tarifs clients</text>
+  <text x="213" y="501" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Calcul des montants</text>
+  <text x="213" y="514" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Gestion des statuts</text>
+  <text x="213" y="527" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Export PDF</text>
+
+  <rect x="380" y="444" width="162" height="110" rx="7" fill="rgba(255,255,255,0.72)" stroke="#ddd6fe" stroke-width="1"/>
+  <rect x="380" y="444" width="162" height="20" rx="7" fill="#ede9fe"/>
+  <rect x="380" y="454" width="162" height="10" fill="#ede9fe"/>
+  <text x="461" y="459" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#5b21b6">AuditService</text>
+  <text x="390" y="475" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Traçabilité complète</text>
+  <text x="390" y="488" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Journal des actions</text>
+  <text x="390" y="501" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  AuditListener (événements)</text>
+  <text x="390" y="514" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Historique modifications</text>
+  <text x="390" y="527" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Trail d'audit</text>
+
+  <rect x="557" y="444" width="162" height="110" rx="7" fill="rgba(255,255,255,0.72)" stroke="#ddd6fe" stroke-width="1"/>
+  <rect x="557" y="444" width="162" height="20" rx="7" fill="#ede9fe"/>
+  <rect x="557" y="454" width="162" height="10" fill="#ede9fe"/>
+  <text x="638" y="459" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#5b21b6">AlertService</text>
+  <text x="567" y="475" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Détection des seuils</text>
+  <text x="567" y="488" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Création des alertes</text>
+  <text x="567" y="501" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Notifications temps réel</text>
+  <text x="567" y="514" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Alertes stock critique</text>
+  <text x="567" y="527" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Seuils personnalisables</text>
+
+  <rect x="734" y="444" width="162" height="110" rx="7" fill="rgba(255,255,255,0.72)" stroke="#ddd6fe" stroke-width="1"/>
+  <rect x="734" y="444" width="162" height="20" rx="7" fill="#ede9fe"/>
+  <rect x="734" y="454" width="162" height="10" fill="#ede9fe"/>
+  <text x="815" y="459" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#5b21b6">OccupancyService</text>
+  <text x="744" y="475" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Taux d'occupation</text>
+  <text x="744" y="488" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Allocation des espaces</text>
+  <text x="744" y="501" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Stats remplissage</text>
+  <text x="744" y="514" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Capacité maximale</text>
+  <text x="744" y="527" font-family="Arial,sans-serif" font-size="8.5" fill="#3b0764">▸  Température par chambre</text>
+
+  <!-- Flèche Tier2 → Tier3 -->
+  <line x1="448" y1="562" x2="448" y2="596" stroke="#64748b" stroke-width="1.5" marker-end="url(#ad)"/>
+  <line x1="472" y1="596" x2="472" y2="562" stroke="#64748b" stroke-width="1.5" marker-end="url(#au)"/>
+  <rect x="310" y="570" width="280" height="14" rx="3" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="460" y="580" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#475569">Doctrine ORM · Requêtes QueryBuilder · Mapping O/R</text>
+
+  <!-- ── TIER 3 DONNÉES ── -->
+  <rect x="16" y="600" width="888" height="182" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <rect x="16" y="600" width="888" height="44" rx="12" fill="#15803d"/>
+  <rect x="16" y="632" width="888" height="12" fill="#15803d"/>
+  <text x="56" y="624" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#ffffff">COUCHE DONNÉES</text>
+  <text x="56" y="639" font-family="Arial,sans-serif" font-size="9" fill="#bbf7d0">Persistance · Accès aux données · Base de données relationnelle</text>
+  <text x="896" y="632" text-anchor="end" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#bbf7d0">Doctrine ORM + MariaDB</text>
+
+  <!-- Bloc Entités -->
+  <rect x="26" y="652" width="205" height="122" rx="7" fill="rgba(255,255,255,0.72)" stroke="#bbf7d0" stroke-width="1"/>
+  <rect x="26" y="652" width="205" height="20" rx="7" fill="#dcfce7"/>
+  <rect x="26" y="662" width="205" height="10" fill="#dcfce7"/>
+  <text x="128" y="667" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#166534">Entités Doctrine (15)</text>
+  <text x="38" y="684" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  User · Client · ColdRoom</text>
+  <text x="38" y="697" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  StockEntry · StockExit · StockItem</text>
+  <text x="38" y="710" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Invoice · InvoiceLine</text>
+  <text x="38" y="723" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Palette · PaletteTransfer</text>
+  <text x="38" y="736" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  FicheDecharge · AuditLog</text>
+  <text x="38" y="749" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  TarifClient · StockOperation</text>
+  <text x="38" y="762" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  7 Énumérations (PHP Enums)</text>
+
+  <!-- Bloc Repositories -->
+  <rect x="248" y="652" width="205" height="122" rx="7" fill="rgba(255,255,255,0.72)" stroke="#bbf7d0" stroke-width="1"/>
+  <rect x="248" y="652" width="205" height="20" rx="7" fill="#dcfce7"/>
+  <rect x="248" y="662" width="205" height="10" fill="#dcfce7"/>
+  <text x="350" y="667" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#166534">Repositories (14)</text>
+  <text x="260" y="684" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  UserRepository</text>
+  <text x="260" y="697" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  ClientRepository</text>
+  <text x="260" y="710" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  StockItemRepository</text>
+  <text x="260" y="723" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  InvoiceRepository</text>
+  <text x="260" y="736" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  PaletteRepository</text>
+  <text x="260" y="749" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  AuditLogRepository</text>
+  <text x="260" y="762" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  + 8 autres repositories</text>
+
+  <!-- Bloc ORM -->
+  <rect x="470" y="652" width="205" height="122" rx="7" fill="rgba(255,255,255,0.72)" stroke="#bbf7d0" stroke-width="1"/>
+  <rect x="470" y="652" width="205" height="20" rx="7" fill="#dcfce7"/>
+  <rect x="470" y="662" width="205" height="10" fill="#dcfce7"/>
+  <text x="572" y="667" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#166534">Doctrine ORM</text>
+  <text x="482" y="684" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Mapping objet-relationnel</text>
+  <text x="482" y="697" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Migrations versionnées</text>
+  <text x="482" y="710" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Transactions ACID</text>
+  <text x="482" y="723" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Relations (1:N · N:M)</text>
+  <text x="482" y="736" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Cache de requêtes (prod)</text>
+  <text x="482" y="749" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Attributs PHP 8.x</text>
+  <text x="482" y="762" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Eager / Lazy loading</text>
+
+  <!-- Bloc BDD -->
+  <rect x="692" y="652" width="204" height="122" rx="7" fill="rgba(255,255,255,0.72)" stroke="#bbf7d0" stroke-width="1"/>
+  <rect x="692" y="652" width="204" height="20" rx="7" fill="#dcfce7"/>
+  <rect x="692" y="662" width="204" height="10" fill="#dcfce7"/>
+  <text x="794" y="667" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#166534">Base de Données</text>
+  <text x="704" y="684" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  MariaDB 10.4.32</text>
+  <text x="704" y="697" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  UTC+1 (Africa/Casablanca)</text>
+  <text x="704" y="710" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  15+ tables</text>
+  <text x="704" y="723" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Clés étrangères (FK)</text>
+  <text x="704" y="736" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Index optimisés</text>
+  <text x="704" y="749" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Contraintes d'intégrité</text>
+  <text x="704" y="762" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Sauvegarde automatisée</text>
+</svg>

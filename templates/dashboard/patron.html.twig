@@ -3,18 +3,17 @@
 {% block title %}Vue Stratégique — Patron{% endblock %}
 
 {% block stylesheets %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
     :root { --c1:#6366f1;--c2:#0ea5e9;--c3:#10b981;--c4:#f59e0b;--c5:#ef4444;--c6:#8b5cf6; }
-    body { background: var(--bg, #f1f5f9); color: var(--text, #1e293b); }
-    .glass { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
-    .kpi-card { transition: transform .2s; }
-    .kpi-card:hover { transform: translateY(-4px); }
-    .kpi-icon { width:48px;height:48px;border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem; }
-    .badge-role { font-size:.75rem;padding:.35em .75em;border-radius:2rem; }
+    .glass { background:#fff;border:1px solid #e2e8f0;border-radius:1rem;box-shadow:0 4px 24px rgba(0,0,0,.06); }
+    .kpi-card { transition:transform .2s,box-shadow .2s; }
+    .kpi-card:hover { transform:translateY(-4px);box-shadow:0 8px 32px rgba(0,0,0,.1); }
+    .kpi-icon { width:48px;height:48px;border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0; }
     .btn-action { border-radius:.75rem;padding:.75rem 1.25rem;font-weight:500;transition:all .2s; }
-    .btn-action:hover { transform:translateY(-2px); }
-    canvas { max-height: 300px; }
+    .btn-action:hover { transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08); }
+    .chart-container { position:relative;height:240px; }
+    .occupancy-bar { height:8px;border-radius:4px;background:#e2e8f0;overflow:hidden; }
+    .occupancy-fill { height:100%;border-radius:4px;transition:width .6s ease; }
 </style>
 {% endblock %}
 
@@ -22,99 +21,299 @@
 <div class="container-fluid py-4 px-4">
 
     {# ── Header ── #}
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
         <div>
+            <p class="text-secondary mb-1 small">
+                <i class="bi bi-calendar3 me-1"></i>{{ 'now'|date('d/m/Y') }}
+                &nbsp;·&nbsp;
+                <i class="bi bi-clock me-1"></i>{{ 'now'|date('H:i') }}
+            </p>
             <h2 class="mb-1 fw-bold">Vue Stratégique</h2>
-            <span class="badge badge-role bg-warning bg-opacity-25 text-warning"><i class="bi bi-star me-1"></i>Patron</span>
+            <span class="badge bg-warning bg-opacity-15 text-warning border border-warning border-opacity-25 rounded-pill px-3">
+                <i class="bi bi-star me-1"></i>Patron
+            </span>
         </div>
-        <div class="d-flex gap-2">
-            <select class="form-select form-select-sm" style="width:auto">
-                <option>Ce mois</option><option>Ce trimestre</option><option>Cette année</option>
-            </select>
-        </div>
+        <a href="{{ path('app_reports') }}" class="btn btn-primary d-flex align-items-center gap-2 align-self-start">
+            <i class="bi bi-file-earmark-bar-graph"></i>Rapports complets
+        </a>
     </div>
 
     {# ── KPI Cards ── #}
-    {% set kpis = [
-        { icon:'bi-cash-stack',     color:'var(--c1)', label:'CA mensuel',         value: revenueThisMonth|number_format(2,'.',',')|default('0') ~ ' DH' },
-        { icon:'bi-calendar-range', color:'var(--c2)', label:'CA annuel',          value: revenueThisYear|number_format(2,'.',',')|default('0') ~ ' DH' },
-        { icon:'bi-speedometer2',   color:'var(--c3)', label:'Taux occupation',    value: avgOccupancy|round(1) ~ ' %' },
-        { icon:'bi-box-seam',       color:'var(--c4)', label:'Capacité utilisée',  value: usedCapacity ~ ' / ' ~ totalCapacity ~ ' T' },
-        { icon:'bi-snow2',          color:'var(--c6)', label:'Chambres actives',   value: coldRooms|length }
-    ] %}
     <div class="row g-3 mb-4">
-        {% for k in kpis %}
-        <div class="col-xl col-md-4 col-6">
+
+        <div class="col-xl col-md-4 col-sm-6">
             <div class="glass p-3 kpi-card h-100">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="kpi-icon" style="background:{{ k.color }}22;color:{{ k.color }}"><i class="bi {{ k.icon }}"></i></div>
+                    <div class="kpi-icon" style="background:#6366f122;color:#6366f1"><i class="bi bi-cash-stack"></i></div>
                     <div>
-                        <small class="text-secondary">{{ k.label }}</small>
-                        <h5 class="mb-0 fw-bold">{{ k.value }}</h5>
+                        <small class="text-secondary d-block">CA mensuel</small>
+                        <h5 class="mb-0 fw-bold">{{ revenueThisMonth|number_format(2,'.',',') }} DH</h5>
                     </div>
                 </div>
             </div>
         </div>
-        {% endfor %}
+
+        <div class="col-xl col-md-4 col-sm-6">
+            <div class="glass p-3 kpi-card h-100">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#0ea5e922;color:#0ea5e9"><i class="bi bi-calendar-range"></i></div>
+                    <div>
+                        <small class="text-secondary d-block">CA annuel</small>
+                        <h5 class="mb-0 fw-bold">{{ revenueThisYear|number_format(2,'.',',') }} DH</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl col-md-4 col-sm-6">
+            <div class="glass p-3 kpi-card h-100">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:{{ avgOccupancy > 85 ? '#ef444422' : avgOccupancy > 60 ? '#f59e0b22' : '#10b98122' }};color:{{ avgOccupancy > 85 ? '#ef4444' : avgOccupancy > 60 ? '#f59e0b' : '#10b981' }}">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <div>
+                        <small class="text-secondary d-block">Taux occupation moyen</small>
+                        <h5 class="mb-0 fw-bold">{{ avgOccupancy|round(1) }} %</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl col-md-4 col-sm-6">
+            <div class="glass p-3 kpi-card h-100">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#f59e0b22;color:#f59e0b"><i class="bi bi-box-seam"></i></div>
+                    <div>
+                        <small class="text-secondary d-block">Capacité utilisée</small>
+                        <h5 class="mb-0 fw-bold">
+                            {{ usedCapacity|number_format(1, '.', ' ') }} T
+                            <span class="fw-normal text-secondary" style="font-size:.8rem">/ {{ totalCapacity|number_format(1, '.', ' ') }} T</span>
+                        </h5>
+                        <div class="mt-1" style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden">
+                            <div style="height:100%;width:{{ min(usedCapacityPct, 100) }}%;background:{{ usedCapacityPct > 90 ? '#ef4444' : usedCapacityPct > 70 ? '#f59e0b' : '#10b981' }};border-radius:3px;transition:width .4s"></div>
+                        </div>
+                        <small class="text-secondary" style="font-size:.7rem">{{ usedCapacityPct|number_format(1, '.') }}% d'utilisation</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl col-md-4 col-sm-6">
+            <div class="glass p-3 kpi-card h-100">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#8b5cf622;color:#8b5cf6"><i class="bi bi-snow2"></i></div>
+                    <div>
+                        <small class="text-secondary d-block">Chambres actives</small>
+                        <h5 class="mb-0 fw-bold">{{ coldRooms|length }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     {# ── Charts ── #}
     <div class="row g-3 mb-4">
-        <div class="col-lg-8"><div class="glass p-3"><h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Entrées vs Sorties par mois</h6><canvas id="chartBar"></canvas></div></div>
-        <div class="col-lg-4"><div class="glass p-3"><h6 class="mb-3"><i class="bi bi-pie-chart me-2"></i>Répartition stock par client</h6><canvas id="chartPie"></canvas></div></div>
-        <div class="col-lg-6"><div class="glass p-3"><h6 class="mb-3"><i class="bi bi-graph-up me-2"></i>Évolution du stock</h6><canvas id="chartLine"></canvas></div></div>
-        <div class="col-lg-6"><div class="glass p-3"><h6 class="mb-3"><i class="bi bi-building me-2"></i>Occupation chambres froides</h6><canvas id="chartOccupancy"></canvas></div></div>
+
+        <div class="col-lg-8">
+            <div class="glass p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-bar-chart me-2 text-primary"></i>Entrées vs Sorties (6 mois)</h6>
+                    <span class="badge bg-light text-secondary border small">Aperçu</span>
+                </div>
+                <div class="chart-container"><canvas id="chartBar"></canvas></div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass p-3 h-100">
+                <h6 class="mb-3 fw-semibold"><i class="bi bi-graph-up me-2 text-success"></i>Évolution du CA</h6>
+                <div class="chart-container"><canvas id="chartLine"></canvas></div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="glass p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-thermometer-snow me-2 text-primary"></i>Occupation des chambres froides</h6>
+                    <small class="text-secondary">{{ coldRooms|length }} chambre{{ coldRooms|length > 1 ? 's' : '' }}</small>
+                </div>
+                {% if coldRooms is not empty %}
+                    <div class="row g-3">
+                        {% for room in coldRooms %}
+                        {% set roomStats = statsByRoomId[room.id] ?? {occupancyRate: 0, usedCapacity: 0} %}
+                        {% set rate = roomStats.occupancyRate|round(1) %}
+                        {% set color = rate > 90 ? '#ef4444' : rate > 70 ? '#f59e0b' : '#10b981' %}
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded-3 border">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold small">{{ room.name }}</span>
+                                    <span class="fw-bold small" style="color:{{ color }}">{{ rate }} %</span>
+                                </div>
+                                <div class="occupancy-bar">
+                                    <div class="occupancy-fill" style="width:{{ rate > 100 ? 100 : rate }}%;background:{{ color }}"></div>
+                                </div>
+                                <small class="text-secondary mt-1 d-block">
+                                    {{ roomStats.usedCapacity|number_format(1, '.', ' ') }} T
+                                    / {{ (room.maxCapacityTons * 1)|number_format(1, '.', ' ') }} T
+                                    {% if roomStats.usedCapacity > room.maxCapacityTons * 1 %}
+                                    <span class="text-danger fw-bold ms-1" title="Capacité dépassée !">⚠</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-snow display-6 d-block mb-2 opacity-50"></i>
+                        Aucune chambre active
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="glass p-3 h-100">
+                <h6 class="mb-3 fw-semibold"><i class="bi bi-people-fill me-2" style="color:#6366f1"></i>Occupation du stock par client</h6>
+                {% if stockByClient is not empty %}
+                    {% set totalQty = 0 %}
+                    {% for s in stockByClient %}{% set totalQty = totalQty + s.quantity %}{% endfor %}
+                    <div style="position:relative;max-width:200px;margin:0 auto 1rem">
+                        <canvas id="chartClientPie"></canvas>
+                        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+                            <span style="font-size:1.3rem;font-weight:800;color:#0f172a;line-height:1">{{ totalQty|number_format(1) }}</span>
+                            <span style="font-size:.68rem;color:#64748b;font-weight:600">T en stock</span>
+                        </div>
+                    </div>
+                    <div style="max-height:200px;overflow-y:auto">
+                        {% set patronColors = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#f97316'] %}
+                        {% for s in stockByClient %}
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span style="width:10px;height:10px;border-radius:50%;background:{{ patronColors[loop.index0 % 8] }};flex-shrink:0"></span>
+                            <span class="flex-1 small fw-semibold text-truncate" style="max-width:130px">{{ s.name }}</span>
+                            <span class="small text-secondary fw-semibold">{{ s.quantity|number_format(1) }} T</span>
+                            <span class="rounded-pill px-2" style="background:#f1f5f9;color:#475569;font-size:.66rem;font-weight:700;white-space:nowrap">{{ totalQty > 0 ? ((s.quantity / totalQty) * 100)|round(1) : 0 }}%</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-people display-6 d-block mb-2 opacity-50"></i>
+                        Aucun client en stock
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
     </div>
 
     {# ── Quick Actions ── #}
-    <div class="row g-3 mb-4">
+    <div class="row g-3">
         {% set actions = [
-            { route:'app_reports',       icon:'bi-file-earmark-bar-graph', label:'Rapports',   color:'var(--c2)' },
-            { route:'app_invoice_index', icon:'bi-receipt',    label:'Factures',   color:'var(--c1)' },
-            { route:'app_history_index', icon:'bi-clock-history',label:'Historique', color:'var(--c4)' }
+            { route:'app_reports', icon:'bi-file-earmark-bar-graph', label:'Rapports', color:'var(--c2)', desc:'Analyses & exports' }
         ] %}
         {% for a in actions %}
-        <div class="col-md-4 col-6">
-            <a href="{{ path(a.route) }}" class="glass p-3 d-flex align-items-center gap-3 text-decoration-none text-dark btn-action">
+        <div class="col-md-4 col-sm-6">
+            <a href="{{ path(a.route) }}" class="glass p-3 d-flex align-items-center gap-3 text-decoration-none text-dark btn-action h-100">
                 <div class="kpi-icon" style="background:{{ a.color }}22;color:{{ a.color }}"><i class="bi {{ a.icon }}"></i></div>
-                <span class="fw-semibold">{{ a.label }}</span>
+                <div>
+                    <div class="fw-semibold">{{ a.label }}</div>
+                    <small class="text-secondary">{{ a.desc }}</small>
+                </div>
             </a>
         </div>
         {% endfor %}
     </div>
 
-    {# ── Export ── #}
-    <div class="glass p-3">
-        <h6 class="mb-3"><i class="bi bi-download me-2"></i>Exporter</h6>
-        <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i>Excel</button>
-            <button class="btn btn-outline-danger btn-sm"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
-            <button class="btn btn-outline-info btn-sm"><i class="bi bi-bar-chart me-1"></i>Graphiques</button>
-        </div>
-    </div>
 </div>
 {% endblock %}
 
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
-const C=['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6'];
-const dOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b'}}}};
-const scaleOpts={x:{ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.06)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.06)'}}};
-const months=['Jan','Fév','Mar','Avr','Mai','Jun'];
+const C = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6'];
+const dOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#64748b', font: { size: 12 } } } }
+};
+const scaleOpts = {
+    x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(0,0,0,.04)' } },
+    y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(0,0,0,.04)' } }
+};
+const monthlyStats = {{ monthlyStats|json_encode|raw }};
+const months    = monthlyStats.map(m => m.label);
+const entryData = monthlyStats.map(m => m.entries);
+const exitData  = monthlyStats.map(m => m.exits);
+const caData    = monthlyStats.map(m => m.ca);
 
-new Chart(document.getElementById('chartBar'),{type:'bar',data:{labels:months,datasets:[
-    {label:'Entrées',data:[120,150,180,140,200,170],backgroundColor:C[0]+'cc'},
-    {label:'Sorties',data:[80,110,130,100,160,140],backgroundColor:C[1]+'cc'}
-]},options:{...dOpts,scales:scaleOpts}});
+new Chart(document.getElementById('chartBar'), {
+    type: 'bar',
+    data: { labels: months, datasets: [
+        { label: 'Entrées (T)', data: entryData, backgroundColor: C[0]+'cc', borderRadius: 4 },
+        { label: 'Sorties (T)', data: exitData,  backgroundColor: C[1]+'cc', borderRadius: 4 }
+    ]},
+    options: { ...dOpts, scales: scaleOpts }
+});
 
-new Chart(document.getElementById('chartPie'),{type:'pie',data:{labels:['Client A','Client B','Client C','Client D'],datasets:[{data:[35,25,22,18],backgroundColor:[C[0],C[1],C[2],C[3]]}]},options:dOpts});
+new Chart(document.getElementById('chartLine'), {
+    type: 'line',
+    data: { labels: months, datasets: [{
+        label: 'CA (MAD)',
+        data: caData,
+        borderColor: C[2],
+        backgroundColor: C[2] + '22',
+        fill: true,
+        tension: .4,
+        pointBackgroundColor: caData.map((v, i) => i === caData.length - 1 ? '#059669' : C[2]),
+        pointRadius: caData.map((v, i) => i === caData.length - 1 ? 6 : 4),
+    }]},
+    options: {
+        ...dOpts,
+        scales: {
+            ...scaleOpts,
+            y: { ...scaleOpts.y, beginAtZero: true, ticks: { ...scaleOpts.y?.ticks, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v } }
+        }
+    }
+});
 
-new Chart(document.getElementById('chartLine'),{type:'line',data:{labels:months,datasets:[{label:'Stock (T)',data:[500,520,480,530,510,540],borderColor:C[2],backgroundColor:C[2]+'22',fill:true,tension:.4}]},options:{...dOpts,scales:scaleOpts}});
+{% if stockByClient is not empty %}
+(function() {
+    const pNames   = [{% for s in stockByClient %}'{{ s.name|e('js') }}'{{ not loop.last ? ',' }}{% endfor %}];
+    const pWeights = [{% for s in stockByClient %}{{ s.quantity }}{{ not loop.last ? ',' }}{% endfor %}];
+    const pTotal   = pWeights.reduce((a, b) => a + b, 0);
 
-// Occupancy chart uses real coldRooms data from controller
-const roomLabels=[{% for room in coldRooms %}'{{ room.name }}'{{ not loop.last ? ',' }}{% endfor %}];
-const roomData=[{% for room in coldRooms %}{{ room.occupancyRate }}{{ not loop.last ? ',' }}{% endfor %}];
-new Chart(document.getElementById('chartOccupancy'),{type:'bar',data:{labels:roomLabels,datasets:[{label:'Occupation %',data:roomData,backgroundColor:roomLabels.map((_,i)=>C[i%C.length])}]},options:{...dOpts,indexAxis:'y',scales:{x:{max:100,ticks:{color:'#64748b',callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.06)'}}}}});
+    new Chart(document.getElementById('chartClientPie'), {
+        type: 'doughnut',
+        data: {
+            labels: pNames,
+            datasets: [{
+                data: pWeights.map(v => v || 0.001),
+                backgroundColor: C,
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '68%',
+            animation: { duration: 1200, easing: 'easeOutQuart' },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: ctx => ` ${pNames[ctx.dataIndex]} — ${pWeights[ctx.dataIndex].toFixed(2)} T (${pTotal > 0 ? ((pWeights[ctx.dataIndex] / pTotal) * 100).toFixed(1) : 0}%)`
+                    }
+                }
+            }
+        }
+    });
+})();
+{% endif %}
 </script>
 {% endblock %}

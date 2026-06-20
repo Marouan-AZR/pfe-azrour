@@ -159,4 +159,171 @@ class OperationRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function findAwaitingValidation(OperationType $type, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('o')
+            ->where('o.type = :type')
+            ->andWhere('o.status = :status')
+            ->setParameter('type', $type)
+            ->setParameter('status', StockStatus::EN_ATTENTE_VALIDATION)
+            ->orderBy('o.createdAt', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+    }
+
+    public function countAwaitingValidation(OperationType $type): int
+    {
+        return (int) $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.type = :type')
+            ->andWhere('o.status = :status')
+            ->setParameter('type', $type)
+            ->setParameter('status', StockStatus::EN_ATTENTE_VALIDATION)
+            ->getQuery()->getSingleScalarResult();
+    }
+
+    public function findAssignedAwaitingControl(User $controleur, OperationType $type, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('o')
+            ->where('o.type = :type')
+            ->andWhere('o.controleur = :controleur')
+            ->andWhere('o.status IN (:statuses)')
+            ->setParameter('type', $type)
+            ->setParameter('controleur', $controleur)
+            ->setParameter('statuses', [StockStatus::PENDING, StockStatus::EN_ATTENTE_CONTROLE])
+            ->orderBy('o.createdAt', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+    }
+
+    public function countAssignedAwaitingControl(User $controleur, OperationType $type): int
+    {
+        return (int) $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.type = :type')
+            ->andWhere('o.controleur = :controleur')
+            ->andWhere('o.status IN (:statuses)')
+            ->setParameter('type', $type)
+            ->setParameter('controleur', $controleur)
+            ->setParameter('statuses', [StockStatus::PENDING, StockStatus::EN_ATTENTE_CONTROLE])
+            ->getQuery()->getSingleScalarResult();
+    }
+
+    public function findForNotifications(OperationType $type, array $statuses, int $limit = 20): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->leftJoin('o.client', 'c')
+            ->where('o.type = :type')
+            ->setParameter('type', $type)
+            ->orderBy('o.createdAt', 'DESC')
+            ->setMaxResults($limit);
+
+        if (count($statuses) === 1) {
+            $qb->andWhere('o.status = :status0')->setParameter('status0', $statuses[0]);
+        } else {
+            $orX = $qb->expr()->orX();
+            foreach ($statuses as $i => $status) {
+                $orX->add("o.status = :status$i");
+                $qb->setParameter("status$i", $status);
+            }
+            $qb->andWhere($orX);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function getTotalWeightValidatedInRange(
+        OperationType $type,
+        \DateTimeInterface $from,
+        \DateTimeInterface $to
+    ): float {
+        $result = $this->createQueryBuilder('o')
+            ->select('SUM(p.poidsTotal)')
+            ->join('o.palettes', 'p')
+            ->where('o.type = :type')
+            ->andWhere('o.status = :status')
+            ->andWhere('o.validatedAt >= :from')
+            ->andWhere('o.validatedAt <= :to')
+            ->setParameter('type', $type)
+            ->setParameter('status', StockStatus::VALIDATED)
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->getQuery()->getSingleScalarResult();
+
+        return round((float)($result ?? 0) / 1000, 2);
+    }
+
+    public function findValidatedInRange(
+        OperationType $type,
+        \DateTimeInterface $from,
+        \DateTimeInterface $to,
+        int $limit = 10
+    ): array {
+        return $this->createQueryBuilder('o')
+            ->where('o.type = :type')
+            ->andWhere('o.status = :status')
+            ->andWhere('o.validatedAt >= :from')
+            ->andWhere('o.validatedAt <= :to')
+            ->setParameter('type', $type)
+            ->setParameter('status', StockStatus::VALIDATED)
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->orderBy('o.validatedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+    }
+
+    public function findRejectedOperations(int $limit = 15): array
+    {
+        $since = (new \DateTime())->modify('-7 days');
+
+        return $this->createQueryBuilder('o')
+            ->where('o.status = :status')
+            ->andWhere('o.updatedAt >= :since')
+            ->setParameter('status', StockStatus::REJECTED)
+            ->setParameter('since', $since)
+            ->orderBy('o.updatedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+    }
+
+    public function countByTypeAndStatuses(OperationType $type, array $statuses): int
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.type = :type')
+            ->setParameter('type', $type);
+
+        if (count($statuses) === 1) {
+            $qb->andWhere('o.status = :s0')->setParameter('s0', $statuses[0]);
+        } else {
+            $orX = $qb->expr()->orX();
+            foreach ($statuses as $i => $s) {
+                $orX->add("o.status = :s$i");
+                $qb->setParameter("s$i", $s);
+            }
+            $qb->andWhere($orX);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function countTodayByType(OperationType $type): int
+    {
+        $today    = new \DateTime('today');
+        $tomorrow = new \DateTime('tomorrow');
+
+        return (int) $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.type = :type')
+            ->andWhere('o.status = :validated')
+            ->andWhere('o.validatedAt >= :today')
+            ->andWhere('o.validatedAt < :tomorrow')
+            ->setParameter('type', $type)
+            ->setParameter('validated', StockStatus::VALIDATED)
+            ->setParameter('today', $today)
+            ->setParameter('tomorrow', $tomorrow)
+            ->getQuery()->getSingleScalarResult();
+    }
 }

@@ -1,0 +1,547 @@
+{% extends 'base.html.twig' %}
+{% block title %}Stock — {{ espece }} · {{ client ? client.companyName : '—' }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+
+/* Hero */
+.hero-bar  { height:4px; border-radius:1rem 1rem 0 0; background:linear-gradient(90deg,#6366f1,#8b5cf6,#3b82f6); }
+.hero-body { padding:1.25rem 1.75rem; background:#fff; border:1px solid #e2e8f0; border-top:0; border-radius:0 0 1rem 1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+.ctx-chip  { display:inline-flex; align-items:center; gap:.4rem; padding:.28rem .7rem; border-radius:50px; font-size:.75rem; font-weight:700; }
+
+/* KPI cards */
+.kpi-card       { border-radius:.85rem; padding:1rem 1.2rem; position:relative; overflow:hidden; transition:transform .15s,box-shadow .15s; }
+.kpi-card:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,0,0,.1); }
+.kpi-icon       { position:absolute; right:.8rem; top:50%; transform:translateY(-50%); font-size:2.4rem; opacity:.08; }
+.kpi-val        { font-size:1.75rem; font-weight:800; line-height:1; }
+.kpi-lbl        { font-size:.65rem; text-transform:uppercase; letter-spacing:.05em; margin-top:.25rem; opacity:.8; font-weight:700; }
+.kpi-sub        { font-size:.68rem; margin-top:.15rem; opacity:.65; }
+.prog-wrap { background:rgba(0,0,0,.08); border-radius:6px; height:6px; overflow:hidden; margin-top:.5rem; }
+.prog-fill { height:100%; border-radius:6px; }
+
+/* Table — compact */
+.tbl { border-collapse:separate; border-spacing:0; table-layout:fixed; width:100%; }
+.tbl thead th {
+  font-size:.63rem; text-transform:uppercase; letter-spacing:.05em;
+  color:#64748b; font-weight:700; padding:.55rem .65rem; white-space:nowrap;
+  background:#f8fafc; border-bottom:2px solid #e2e8f0;
+  cursor:pointer; user-select:none; transition:background .1s; overflow:hidden;
+}
+.tbl thead th:hover { background:#f1f5f9; }
+.sort-icon { margin-left:.25rem; opacity:.35; font-size:.55rem; }
+.tbl tbody tr { transition:background .08s; }
+.tbl tbody tr:hover td { background:#f8fafc; }
+.tbl tbody td { font-size:.78rem; padding:.5rem .65rem; vertical-align:middle; border-bottom:1px solid #f1f5f9; overflow:hidden; }
+.tbl tfoot td  { font-size:.75rem; padding:.55rem .65rem; }
+
+/* Row tints */
+.row-low   td { background:rgba(245,158,11,.04) !important; }
+.row-empty td { background:rgba(239,68,68,.04)  !important; }
+.row-low:hover   td { background:rgba(245,158,11,.09) !important; }
+.row-empty:hover td { background:rgba(239,68,68,.09)  !important; }
+
+/* Status pill */
+.s-pill { display:inline-flex; align-items:center; gap:.25rem; font-size:.67rem; font-weight:700; padding:.25em .6em; border-radius:50px; white-space:nowrap; }
+
+/* Mini progress in table */
+.mini-prog      { height:5px; border-radius:3px; background:#e2e8f0; overflow:hidden; }
+.mini-prog-fill { height:100%; border-radius:3px; }
+
+/* Movement badge */
+.mv { display:inline-flex; align-items:center; gap:.15rem; font-size:.72rem; font-weight:700; padding:.18em .45em; border-radius:.3rem; }
+
+/* Action buttons */
+.act { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .5rem; border-radius:.4rem; font-size:.72rem; font-weight:600; text-decoration:none; border:1.5px solid; transition:all .12s; white-space:nowrap; }
+.act:hover { transform:translateY(-1px); box-shadow:0 2px 6px rgba(0,0,0,.1); }
+
+/* Palette code monospace */
+.pal-code { font-family:monospace; font-size:.73rem; font-weight:700; color:#4f46e5; background:rgba(99,102,241,.1); padding:.15em .45em; border-radius:.3rem; display:inline-block; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Filter bar */
+.fbar { background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:.65rem 1rem; gap:.5rem; }
+.fbar .form-control, .fbar .form-select {
+  font-size:.78rem; border-color:#e2e8f0; border-radius:.45rem; padding:.3rem .6rem; background:#fff;
+}
+.fbar .form-control:focus, .fbar .form-select:focus {
+  border-color:#6366f1; box-shadow:0 0 0 2px rgba(99,102,241,.12);
+}
+
+/* Empty state */
+.empty-state { padding:3rem 2rem; text-align:center; }
+.empty-icon  { font-size:3rem; opacity:.12; display:block; margin-bottom:.75rem; }
+
+/* Column widths */
+.col-num  { width:36px; }
+.col-code { width:155px; }
+.col-bon  { width:120px; }
+.col-date { width:92px; }
+.col-loc  { width:120px; }
+.col-qm   { width:90px; }
+.col-cnt  { width:68px; }
+.col-rest { width:115px; }
+.col-poids{ width:90px; }
+.col-stat { width:100px; }
+.col-act  { width:120px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-3 px-3">
+
+  {# ── Calculs globaux ── #}
+  {% set totInit      = 0 %}
+  {% set totSortis    = 0 %}
+  {% set totRest      = 0 %}
+  {% set totPoids     = 0.0 %}
+  {% set nbDispo      = 0 %}
+  {% set nbFaible     = 0 %}
+  {% set nbEpuise     = 0 %}
+  {% for p in palettes %}
+    {% set totInit   = totInit   + p.nombreCartons %}
+    {% set s         = p.nombreCartons - p.cartonsRestants %}
+    {% set totSortis = totSortis + (s > 0 ? s : 0) %}
+    {% set totRest   = totRest   + p.cartonsRestants %}
+    {% set totPoids  = totPoids  + p.poidsRestant %}
+    {% if p.cartonsRestants <= 0 %}
+      {% set nbEpuise = nbEpuise + 1 %}
+    {% elseif p.cartonsRestants < (p.nombreCartons * 0.2) %}
+      {% set nbFaible = nbFaible + 1 %}
+    {% else %}
+      {% set nbDispo = nbDispo + 1 %}
+    {% endif %}
+  {% endfor %}
+  {% set totPalettes = palettes|length %}
+  {% set pctRest    = totInit > 0 ? ((totRest   / totInit) * 100)|round : 0 %}
+  {% set pctSortie  = totInit > 0 ? ((totSortis / totInit) * 100)|round : 0 %}
+
+  {# ── Hero Header ── #}
+  <div class="mb-3">
+    <div class="hero-bar"></div>
+    <div class="hero-body">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+
+        <div>
+          <nav aria-label="breadcrumb" class="mb-1">
+            <ol class="breadcrumb mb-0" style="font-size:.75rem">
+              <li class="breadcrumb-item">
+                <a href="{{ path('app_stock_index') }}" class="text-primary text-decoration-none fw-semibold">
+                  <i class="bi bi-box-seam me-1"></i>État du Stock
+                </a>
+              </li>
+              <li class="breadcrumb-item active text-secondary">{{ espece }}</li>
+            </ol>
+          </nav>
+          <h4 class="fw-bold mb-2" style="color:#0f172a">
+            <i class="bi bi-fish me-2" style="color:#6366f1"></i>{{ espece }}
+          </h4>
+          <div class="d-flex flex-wrap gap-2">
+            {% if client %}
+            <span class="ctx-chip" style="background:rgba(99,102,241,.1);color:#4f46e5;border:1px solid rgba(99,102,241,.2)">
+              <i class="bi bi-building"></i>{{ client.companyName }}
+            </span>
+            {% endif %}
+            {% if coldRoom %}
+            <span class="ctx-chip" style="background:rgba(14,165,233,.1);color:#0369a1;border:1px solid rgba(14,165,233,.2)">
+              <i class="bi bi-snow2"></i>{{ coldRoom.name }}
+            </span>
+            {% endif %}
+            {% if rayon %}
+            <span class="ctx-chip" style="background:rgba(100,116,139,.1);color:#334155;border:1px solid rgba(100,116,139,.2)">
+              <i class="bi bi-grid-3x3-gap"></i>Rayon {{ rayon }}
+            </span>
+            {% endif %}
+            {% if pctRest <= 0 %}
+            <span class="ctx-chip" style="background:rgba(239,68,68,.1);color:#991b1b;border:1px solid rgba(239,68,68,.2)">
+              <i class="bi bi-x-circle-fill"></i>Épuisé
+            </span>
+            {% elseif pctRest < 20 %}
+            <span class="ctx-chip" style="background:rgba(245,158,11,.1);color:#92400e;border:1px solid rgba(245,158,11,.2)">
+              <i class="bi bi-exclamation-triangle-fill"></i>Stock faible ({{ pctRest }}%)
+            </span>
+            {% else %}
+            <span class="ctx-chip" style="background:rgba(16,185,129,.1);color:#065f46;border:1px solid rgba(16,185,129,.2)">
+              <i class="bi bi-check-circle-fill"></i>Disponible ({{ pctRest }}%)
+            </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 align-self-start">
+          <a href="{{ path('app_stock_index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  {# ── KPI Cards ── #}
+  <div class="row g-2 mb-3">
+
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="kpi-card" style="background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(99,102,241,.06));color:#4338ca;border:1px solid rgba(99,102,241,.2)">
+        <i class="bi bi-boxes kpi-icon"></i>
+        <div class="kpi-val">{{ totPalettes }}</div>
+        <div class="kpi-lbl">Palettes</div>
+        <div class="kpi-sub">
+          <span style="color:#10b981">{{ nbDispo }}✓</span>
+          {% if nbFaible > 0 %} <span style="color:#f59e0b">{{ nbFaible }}⚠</span>{% endif %}
+          {% if nbEpuise > 0 %} <span style="color:#ef4444">{{ nbEpuise }}✗</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="kpi-card" style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.06));color:#065f46;border:1px solid rgba(16,185,129,.2)">
+        <i class="bi bi-box-arrow-in-down kpi-icon"></i>
+        <div class="kpi-val">{{ totInit }}</div>
+        <div class="kpi-lbl">Cartons entrés</div>
+        <div class="kpi-sub">{{ totPalettes }} palette{{ totPalettes > 1 ? 's' : '' }}</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="kpi-card" style="background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.06));color:#991b1b;border:1px solid rgba(239,68,68,.2)">
+        <i class="bi bi-box-arrow-up kpi-icon"></i>
+        <div class="kpi-val">{{ totSortis }}</div>
+        <div class="kpi-lbl">Cartons sortis</div>
+        <div class="kpi-sub">{{ pctSortie }}% des entrées</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-sm-4 col-lg">
+      <div class="kpi-card" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));color:#92400e;border:1px solid rgba(245,158,11,.2)">
+        <i class="bi bi-inboxes kpi-icon"></i>
+        <div class="kpi-val">{{ totRest }}</div>
+        <div class="kpi-lbl">Cartons restants</div>
+        <div class="kpi-sub">{{ pctRest }}% restants</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-4 col-lg">
+      <div class="kpi-card" style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(139,92,246,.06));color:#6d28d9;border:1px solid rgba(139,92,246,.2)">
+        <i class="bi bi-weight kpi-icon"></i>
+        <div class="kpi-val" style="font-size:1.4rem">{{ totPoids|number_format(1, ',', ' ') }} <span style="font-size:.8rem">T</span></div>
+        <div class="kpi-lbl">Poids restant</div>
+        <div class="kpi-sub">{{ (totPoids * 1000)|number_format(0, ',', ' ') }} kg</div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ── Tableau ── #}
+  <div class="glass overflow-hidden">
+
+    {# En-tête du tableau #}
+    <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #e2e8f0;background:#fafbfc">
+      <div>
+        <span class="fw-bold" style="color:#0f172a;font-size:.88rem">
+          <i class="bi bi-table me-1" style="color:#6366f1"></i>Détail des palettes
+        </span>
+        <span class="badge rounded-pill ms-2" style="background:rgba(99,102,241,.1);color:#4f46e5;font-size:.65rem">{{ totPalettes }}</span>
+      </div>
+      <div class="d-none d-md-flex gap-3" style="font-size:.7rem;color:#64748b">
+        <span><i class="bi bi-circle-fill me-1" style="color:#10b981;font-size:.45rem"></i>Disponible</span>
+        <span><i class="bi bi-circle-fill me-1" style="color:#f59e0b;font-size:.45rem"></i>Faible</span>
+        <span><i class="bi bi-circle-fill me-1" style="color:#ef4444;font-size:.45rem"></i>Épuisé</span>
+      </div>
+    </div>
+
+    {# Filtre bar #}
+    <div class="d-flex flex-wrap align-items-center fbar">
+      <div style="min-width:180px;max-width:240px">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text" style="background:#fff;border-color:#e2e8f0;padding:.3rem .55rem">
+            <i class="bi bi-search" style="color:#94a3b8;font-size:.75rem"></i>
+          </span>
+          <input type="text" id="searchInput" class="form-control" placeholder="Palette…">
+        </div>
+      </div>
+
+      <select id="filterStatut" class="form-select form-select-sm" style="max-width:140px">
+        <option value="">Tous statuts</option>
+        <option value="Disponible">✅ Disponible</option>
+        <option value="Faible">⚠️ Faible</option>
+        <option value="Épuisé">❌ Épuisé</option>
+      </select>
+
+      <select id="filterRayon" class="form-select form-select-sm" style="max-width:130px">
+        <option value="">Tous rayons</option>
+        {% set rayons = [] %}
+        {% for p in palettes %}
+          {% if p.rayon and p.rayon not in rayons %}
+            {% set rayons = rayons|merge([p.rayon]) %}
+            <option value="{{ p.rayon }}">Rayon {{ p.rayon }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+
+      <select id="filterChambre" class="form-select form-select-sm" style="max-width:150px">
+        <option value="">Toutes chambres</option>
+        {% set chambres = [] %}
+        {% for p in palettes %}
+          {% if p.coldRoom and p.coldRoom.name not in chambres %}
+            {% set chambres = chambres|merge([p.coldRoom.name]) %}
+            <option value="{{ p.coldRoom.name }}">{{ p.coldRoom.name }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+
+      <button id="resetFilters" class="btn btn-sm btn-outline-secondary py-1">
+        <i class="bi bi-x me-1"></i>Reset
+      </button>
+
+      <span id="filterCount" class="text-secondary" style="font-size:.72rem"></span>
+    </div>
+
+    {# Table #}
+    <div style="overflow-x:auto">
+      <table class="table tbl mb-0" id="paletteTable" style="min-width:860px">
+        <thead>
+          <tr>
+            <th class="col-num text-center">#</th>
+            <th class="col-code" data-col="code">N° Palette <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th class="col-date" data-col="date">Date <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th class="col-loc"  data-col="rayon">Localisation <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th class="col-qm">Qualité · Moule</th>
+            <th class="col-cnt text-center" data-col="entres">Entrés <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th class="col-cnt text-center" data-col="sortis">Sortis <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th class="col-rest text-center" data-col="restants">Restants <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th class="col-poids text-end" data-col="poids">Poids (T) <i class="bi bi-chevron-expand sort-icon"></i></th>
+            <th class="col-stat text-center">Statut</th>
+            <th class="col-act text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          {% set totI = 0 %}{% set totS = 0 %}{% set totR = 0 %}{% set totP = 0.0 %}
+          {% set idx = 0 %}
+
+          {% for p in palettes %}
+            {% set idx  = idx + 1 %}
+            {% set cs   = p.nombreCartons - p.cartonsRestants %}
+            {% set cs   = cs > 0 ? cs : 0 %}
+            {% set pct  = p.nombreCartons > 0 ? ((p.cartonsRestants / p.nombreCartons) * 100)|round : 0 %}
+            {% set totI = totI + p.nombreCartons %}
+            {% set totS = totS + cs %}
+            {% set totR = totR + p.cartonsRestants %}
+            {% set totP = totP + p.poidsRestant %}
+
+            {% if p.cartonsRestants <= 0 %}
+              {% set st='Épuisé'    %}{% set bg='rgba(239,68,68,.1)'    %}{% set fg='#991b1b' %}{% set bd='rgba(239,68,68,.25)'   %}{% set ic='bi-x-circle-fill'             %}{% set bar='#ef4444' %}{% set rc='row-empty' %}
+            {% elseif p.cartonsRestants < (p.nombreCartons * 0.2) %}
+              {% set st='Faible'    %}{% set bg='rgba(245,158,11,.1)'   %}{% set fg='#92400e' %}{% set bd='rgba(245,158,11,.25)'  %}{% set ic='bi-exclamation-triangle-fill'  %}{% set bar='#f59e0b' %}{% set rc='row-low'   %}
+            {% else %}
+              {% set st='Disponible'%}{% set bg='rgba(16,185,129,.1)'  %}{% set fg='#065f46' %}{% set bd='rgba(16,185,129,.25)'  %}{% set ic='bi-check-circle-fill'          %}{% set bar='#10b981' %}{% set rc=''          %}
+            {% endif %}
+
+            <tr class="{{ rc }}"
+                data-code="{{ p.codePalette|lower }}"
+                data-statut="{{ st }}"
+                data-rayon="{{ p.rayon ?? '' }}"
+                data-chambre="{{ p.coldRoom ? p.coldRoom.name : '' }}"
+                data-entres="{{ p.nombreCartons }}"
+                data-sortis="{{ cs }}"
+                data-restants="{{ p.cartonsRestants }}"
+                data-poids="{{ p.poidsRestant }}"
+                data-date="{{ p.createdAt|date('Y-m-d') }}">
+
+              {# # #}
+              <td class="text-center text-muted" style="font-size:.68rem;color:#cbd5e1 !important">{{ idx }}</td>
+
+              {# Code palette #}
+              <td>
+                <span class="pal-code" title="{{ p.codePalette }}">{{ p.codePalette }}</span>
+              </td>
+
+              {# Date #}
+              <td style="color:#475569;white-space:nowrap">{{ p.createdAt|date('d/m/Y') }}</td>
+
+              {# Localisation = chambre + rayon #}
+              <td>
+                <div class="d-flex align-items-center gap-1 flex-wrap">
+                  {% if p.coldRoom %}
+                  <span style="background:rgba(14,165,233,.1);color:#0369a1;padding:.15em .45em;border-radius:.3rem;font-size:.7rem;font-weight:700;white-space:nowrap">
+                    <i class="bi bi-snow2"></i> {{ p.coldRoom.name }}
+                  </span>
+                  {% endif %}
+                  {% if p.rayon %}
+                  <span style="background:rgba(100,116,139,.1);color:#334155;padding:.15em .4em;border-radius:.3rem;font-size:.7rem;font-weight:700">
+                    {{ p.rayon }}
+                  </span>
+                  {% endif %}
+                </div>
+              </td>
+
+              {# Qualité · Moule #}
+              <td style="color:#475569;font-size:.76rem">
+                {{ p.qualite ?? '—' }}{% if p.moule %}<span style="color:#94a3b8"> · {{ p.moule }}</span>{% endif %}
+              </td>
+
+              {# Entrés #}
+              <td class="text-center">
+                <span class="mv" style="background:rgba(16,185,129,.1);color:#065f46">
+                  <i class="bi bi-arrow-down-short"></i>{{ p.nombreCartons }}
+                </span>
+              </td>
+
+              {# Sortis #}
+              <td class="text-center">
+                {% if cs > 0 %}
+                <span class="mv" style="background:rgba(239,68,68,.1);color:#991b1b">
+                  <i class="bi bi-arrow-up-short"></i>{{ cs }}
+                </span>
+                {% else %}
+                <span style="color:#d1d5db;font-size:.72rem">—</span>
+                {% endif %}
+              </td>
+
+              {# Restants + barre #}
+              <td class="text-center">
+                <div style="font-weight:700;color:{{ p.cartonsRestants <= 0 ? '#ef4444' : '#0f172a' }}">
+                  {{ p.cartonsRestants }}<span class="text-secondary fw-normal" style="font-size:.65rem"> /{{ p.nombreCartons }}</span>
+                </div>
+                <div class="mini-prog mt-1 mx-auto" style="max-width:70px">
+                  <div class="mini-prog-fill" style="width:{{ pct }}%;background:{{ bar }}"></div>
+                </div>
+                <div style="font-size:.62rem;color:#94a3b8">{{ pct }}%</div>
+              </td>
+
+              {# Poids #}
+              <td class="text-end" style="color:#0f172a;font-weight:600;white-space:nowrap">
+                {{ p.poidsRestant|number_format(2, ',', ' ') }}
+                <span class="text-secondary fw-normal" style="font-size:.65rem">T</span>
+              </td>
+
+              {# Statut #}
+              <td class="text-center">
+                <span class="s-pill" style="background:{{ bg }};color:{{ fg }};border:1px solid {{ bd }}">
+                  <i class="bi {{ ic }}"></i>{{ st }}
+                </span>
+              </td>
+
+              {# Action #}
+              <td class="text-center">
+                <div class="d-flex gap-1 justify-content-center">
+                  <a href="{{ path('app_stock_palette_details', {id: p.id}) }}"
+                     class="act" style="color:#4f46e5;border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.05)"
+                     title="Historique de la palette">
+                    <i class="bi bi-clock-history"></i>Détails
+                  </a>
+                  <a href="{{ path('app_operation_show', {id: p.operation.id}) }}"
+                     class="act" style="color:#0369a1;border-color:rgba(3,105,161,.25);background:rgba(3,105,161,.05)"
+                     title="Bon d'entrée {{ p.operation.code }}">
+                    <i class="bi bi-file-text"></i>
+                  </a>
+                </div>
+              </td>
+
+            </tr>
+          {% else %}
+          <tr>
+            <td colspan="11">
+              <div class="empty-state">
+                <i class="bi bi-inbox empty-icon"></i>
+                <div class="fw-semibold mb-1" style="color:#475569">Aucune palette</div>
+                <a href="{{ path('app_stock_index') }}" class="btn btn-sm btn-outline-secondary mt-1">
+                  <i class="bi bi-arrow-left me-1"></i>Retour
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+        {% if totPalettes > 1 %}
+        <tfoot>
+          <tr style="background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff">
+            <td></td>
+            <td colspan="4" style="font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;font-weight:700">
+              <i class="bi bi-sigma me-1"></i>TOTAL — {{ totPalettes }} palettes
+            </td>
+            <td class="text-center">
+              <span class="mv" style="background:rgba(16,185,129,.2);color:#6ee7b7"><i class="bi bi-arrow-down-short"></i>{{ totI }}</span>
+            </td>
+            <td class="text-center">
+              {% if totS > 0 %}<span class="mv" style="background:rgba(239,68,68,.2);color:#fca5a5"><i class="bi bi-arrow-up-short"></i>{{ totS }}</span>
+              {% else %}<span style="color:#64748b">—</span>{% endif %}
+            </td>
+            <td class="text-center fw-bold" style="color:#6ee7b7">{{ totR }}</td>
+            <td class="text-end fw-bold" style="color:#c4b5fd;white-space:nowrap">{{ totP|number_format(2, ',', ' ') }} T</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+        {% endif %}
+
+      </table>
+    </div>
+
+    {# Aucun résultat filtre #}
+    <div id="noResults" class="empty-state d-none">
+      <i class="bi bi-funnel empty-icon"></i>
+      <div class="fw-semibold mb-1" style="color:#475569">Aucun résultat</div>
+      <button onclick="document.getElementById('resetFilters').click()" class="btn btn-sm btn-outline-secondary mt-1">
+        <i class="bi bi-x me-1"></i>Réinitialiser
+      </button>
+    </div>
+
+  </div>{# /glass #}
+
+</div>
+
+<script>
+(function () {
+  const s   = document.getElementById('searchInput');
+  const fSt = document.getElementById('filterStatut');
+  const fRy = document.getElementById('filterRayon');
+  const fCh = document.getElementById('filterChambre');
+  const rst = document.getElementById('resetFilters');
+  const cnt = document.getElementById('filterCount');
+  const nr  = document.getElementById('noResults');
+  const tb  = document.getElementById('tableBody');
+
+  function run() {
+    const q  = s.value.toLowerCase().trim();
+    const st = fSt.value;
+    const ry = fRy.value;
+    const ch = fCh.value;
+    const rows = tb.querySelectorAll('tr[data-code]');
+    let v = 0;
+    rows.forEach(r => {
+      const ok = (!q || r.dataset.code.includes(q))
+              && (!st || r.dataset.statut === st)
+              && (!ry || r.dataset.rayon === ry)
+              && (!ch || r.dataset.chambre === ch);
+      r.style.display = ok ? '' : 'none';
+      if (ok) v++;
+    });
+    nr.classList.toggle('d-none', v > 0);
+    cnt.textContent = (q || st || ry) ? v + ' / ' + rows.length : '';
+  }
+
+  /* Tri colonnes */
+  let col = null, asc = true;
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const c = th.dataset.col;
+      if (col === c) asc = !asc; else { col = c; asc = true; }
+      document.querySelectorAll('th[data-col] .sort-icon').forEach(i => i.className = 'bi bi-chevron-expand sort-icon');
+      const ic = th.querySelector('.sort-icon');
+      if (ic) ic.className = 'bi ' + (asc ? 'bi-chevron-up' : 'bi-chevron-down') + ' sort-icon';
+      const rows = [...tb.querySelectorAll('tr[data-code]')];
+      rows.sort((a, b) => {
+        const va = a.dataset[c] ?? '', vb = b.dataset[c] ?? '';
+        const na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na - nb : nb - na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tb.appendChild(r));
+    });
+  });
+
+  [s, fSt, fRy, fCh].forEach(el => el.addEventListener('input', run));
+  rst.addEventListener('click', () => { s.value = ''; fSt.value = ''; fRy.value = ''; fCh.value = ''; run(); });
+})();
+</script>
+{% endblock %}

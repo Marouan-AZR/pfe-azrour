@@ -1,0 +1,1152 @@
+{% extends 'base.html.twig' %}
+{% block title %}Documentation — Aide{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* ── Layout ── */
+.help-layout { display:flex; gap:2rem; align-items:flex-start; }
+
+/* ── Sticky nav ── */
+.help-nav {
+    width:230px; flex-shrink:0; position:sticky; top:1.5rem;
+    background:#fff; border:1px solid #e2e8f0; border-radius:1rem;
+    box-shadow:0 4px 20px rgba(0,0,0,.05); overflow:hidden;
+}
+.help-nav-header {
+    padding:.85rem 1.1rem; background:linear-gradient(135deg,#6366f1,#4f46e5);
+    color:#fff; font-weight:700; font-size:.82rem; letter-spacing:.06em;
+    text-transform:uppercase; display:flex; align-items:center; gap:.5rem;
+}
+.help-nav ul { list-style:none; margin:0; padding:.5rem 0; }
+.help-nav li a {
+    display:flex; align-items:center; gap:.6rem;
+    padding:.55rem 1.1rem; font-size:.82rem; font-weight:500;
+    color:#475569; text-decoration:none; transition:all .15s;
+    border-left:3px solid transparent;
+}
+.help-nav li a:hover, .help-nav li a.active {
+    background:#eff6ff; color:#2563eb; border-left-color:#2563eb;
+}
+.help-nav li a i { font-size:.85rem; flex-shrink:0; width:16px; text-align:center; }
+.help-nav .nav-section {
+    padding:.45rem 1.1rem .2rem;
+    font-size:.66rem; font-weight:700; color:#94a3b8;
+    text-transform:uppercase; letter-spacing:.07em;
+}
+
+/* ── Main content ── */
+.help-content { flex:1; min-width:0; }
+.help-section { margin-bottom:3rem; scroll-margin-top:1.5rem; }
+.help-section-title {
+    display:flex; align-items:center; gap:.75rem;
+    font-size:1.15rem; font-weight:800; color:#0f172a;
+    margin-bottom:1.25rem; padding-bottom:.75rem;
+    border-bottom:2px solid #e2e8f0;
+}
+.help-section-title .s-icon {
+    width:38px; height:38px; border-radius:.7rem;
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+}
+
+/* ── Cards ── */
+.help-card {
+    background:#fff; border:1px solid #e2e8f0; border-radius:.9rem;
+    box-shadow:0 2px 12px rgba(0,0,0,.04); margin-bottom:1rem; overflow:hidden;
+}
+.help-card-header {
+    padding:.7rem 1.1rem; background:#f8fafc; border-bottom:1px solid #f1f5f9;
+    font-weight:700; font-size:.82rem; color:#334155;
+    display:flex; align-items:center; gap:.5rem;
+}
+
+/* ── Steps ── */
+.steps { display:flex; flex-direction:column; gap:0; }
+.step {
+    display:flex; gap:1rem; padding:1rem 1.1rem;
+    border-bottom:1px solid #f8fafc; position:relative;
+}
+.step:last-child { border-bottom:none; }
+.step-num {
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.78rem; font-weight:800; color:#fff;
+}
+.step-body { flex:1; }
+.step-title { font-weight:700; font-size:.88rem; color:#0f172a; margin-bottom:.2rem; }
+.step-desc { font-size:.82rem; color:#64748b; line-height:1.5; }
+
+/* ── Role badges ── */
+.role-badge {
+    display:inline-flex; align-items:center; gap:.3rem;
+    padding:.25em .7em; border-radius:50px; font-size:.72rem; font-weight:700;
+}
+
+/* ── Permissions table ── */
+.perm-table { width:100%; border-collapse:collapse; font-size:.8rem; }
+.perm-table th {
+    padding:.5rem .75rem; background:#f8fafc; font-weight:700;
+    color:#64748b; font-size:.72rem; text-transform:uppercase;
+    border-bottom:2px solid #e2e8f0; white-space:nowrap;
+}
+.perm-table td { padding:.55rem .75rem; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+.perm-table tr:last-child td { border-bottom:none; }
+.perm-table tr:hover td { background:#fafbfc; }
+.perm-check { color:#10b981; font-size:1.05rem; }
+.perm-cross { color:#e2e8f0; font-size:1.05rem; }
+
+/* ── Status pills ── */
+.status-pill {
+    display:inline-flex; align-items:center; gap:.3rem;
+    padding:.25em .8em; border-radius:50px; font-size:.75rem; font-weight:700;
+}
+
+/* ── Alert box ── */
+.help-alert {
+    display:flex; align-items:flex-start; gap:.75rem;
+    padding:.85rem 1.1rem; border-radius:.75rem; margin-bottom:1rem; font-size:.83rem;
+}
+
+/* ── FAQ ── */
+.faq-item { border:1px solid #e2e8f0; border-radius:.75rem; margin-bottom:.6rem; overflow:hidden; }
+.faq-q {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:.85rem 1.1rem; font-weight:600; font-size:.87rem; color:#0f172a;
+    cursor:pointer; background:#fff; transition:background .15s;
+    user-select:none;
+}
+.faq-q:hover { background:#f8fafc; }
+.faq-q i.toggle { transition:transform .25s; color:#94a3b8; }
+.faq-q.open i.toggle { transform:rotate(180deg); color:#6366f1; }
+.faq-a {
+    display:none; padding:.8rem 1.1rem 1rem; font-size:.83rem;
+    color:#64748b; line-height:1.6; border-top:1px solid #f1f5f9;
+    background:#fafbfc;
+}
+
+/* ── Color indicators ── */
+.color-dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 px-4">
+
+    {# ── Header ── #}
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-book-half me-2" style="color:#6366f1"></i>Documentation & Aide
+        </h2>
+        <p class="text-secondary mb-0" style="font-size:.9rem">
+            Guide complet d'utilisation de l'application de gestion de stock frigorifique Golden Logistics.
+        </p>
+    </div>
+
+    <div class="help-layout">
+
+        {# ══════════════════════════════════════
+           NAVIGATION LATÉRALE
+        ══════════════════════════════════════ #}
+        <aside class="help-nav">
+            <div class="help-nav-header">
+                <i class="bi bi-compass"></i> Navigation
+            </div>
+            <ul>
+                <li class="nav-section">Démarrage</li>
+                <li><a href="#overview"   class="help-link"><i class="bi bi-house"></i>Vue d'ensemble</a></li>
+                <li><a href="#roles"      class="help-link"><i class="bi bi-people"></i>Rôles & accès</a></li>
+                <li class="nav-section">Opérations</li>
+                <li><a href="#entries"    class="help-link"><i class="bi bi-box-arrow-in-down"></i>Entrées</a></li>
+                <li><a href="#exits"      class="help-link"><i class="bi bi-box-arrow-up"></i>Sorties</a></li>
+                <li class="nav-section">Stock</li>
+                <li><a href="#stock"      class="help-link"><i class="bi bi-clipboard-data"></i>Stock & palettes</a></li>
+                <li><a href="#coldrooms"  class="help-link"><i class="bi bi-thermometer-snow"></i>Chambres froides</a></li>
+                <li class="nav-section">Administration</li>
+                <li><a href="#invoices"   class="help-link"><i class="bi bi-receipt"></i>Factures</a></li>
+                <li><a href="#alerts"     class="help-link"><i class="bi bi-bell"></i>Alertes</a></li>
+                <li><a href="#dashboard"  class="help-link"><i class="bi bi-speedometer2"></i>Tableau de bord</a></li>
+                <li class="nav-section">Support</li>
+                <li><a href="#faq"        class="help-link"><i class="bi bi-question-circle"></i>FAQ</a></li>
+            </ul>
+        </aside>
+
+        {# ══════════════════════════════════════
+           CONTENU PRINCIPAL
+        ══════════════════════════════════════ #}
+        <div class="help-content">
+
+            {# ── 1. Vue d'ensemble ── #}
+            <section class="help-section" id="overview">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#eff6ff;color:#2563eb"><i class="bi bi-house-fill"></i></div>
+                    Vue d'ensemble
+                </div>
+
+                <div class="help-alert" style="background:#eff6ff;border:1px solid #bfdbfe">
+                    <i class="bi bi-info-circle-fill" style="color:#2563eb;font-size:1.1rem;flex-shrink:0;margin-top:.1rem"></i>
+                    <div>
+                        <strong style="color:#1d4ed8">Bienvenue sur Golden Logistics</strong><br>
+                        <span style="color:#3b82f6">Application de gestion d'un entrepôt frigorifique : suivi des entrées/sorties de stock, gestion des chambres froides, facturation clients et contrôle qualité.</span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="help-card h-100">
+                            <div class="p-3">
+                                <div class="mb-2" style="font-size:1.6rem">📦</div>
+                                <div class="fw-bold mb-1" style="font-size:.9rem">Gestion du stock</div>
+                                <div class="text-secondary" style="font-size:.8rem">Enregistrez les entrées et sorties de marchandises, suivez les palettes par chambre froide et par rayon.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="help-card h-100">
+                            <div class="p-3">
+                                <div class="mb-2" style="font-size:1.6rem">🌡️</div>
+                                <div class="fw-bold mb-1" style="font-size:.9rem">Chambres froides</div>
+                                <div class="text-secondary" style="font-size:.8rem">Surveillez le taux d'occupation de chaque chambre, recevez des alertes si la capacité dépasse 90%.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="help-card h-100">
+                            <div class="p-3">
+                                <div class="mb-2" style="font-size:1.6rem">🧾</div>
+                                <div class="fw-bold mb-1" style="font-size:.9rem">Facturation</div>
+                                <div class="text-secondary" style="font-size:.8rem">Générez automatiquement les factures mensuelles par client basées sur les opérations validées.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-card mt-3">
+                    <div class="help-card-header"><i class="bi bi-diagram-3 text-primary"></i> Cycle de vie d'une marchandise</div>
+                    <div class="p-3">
+                        <div class="d-flex align-items-center gap-2 flex-wrap" style="font-size:.82rem">
+                            <span class="status-pill" style="background:#eff6ff;color:#2563eb"><i class="bi bi-box-arrow-in-down"></i> Entrée créée</span>
+                            <i class="bi bi-arrow-right text-secondary"></i>
+                            <span class="status-pill" style="background:#fef3c7;color:#92400e"><i class="bi bi-clipboard-check"></i> Contrôle terrain</span>
+                            <i class="bi bi-arrow-right text-secondary"></i>
+                            <span class="status-pill" style="background:#ecfdf5;color:#065f46"><i class="bi bi-check-circle"></i> Validée → En stock</span>
+                            <i class="bi bi-arrow-right text-secondary"></i>
+                            <span class="status-pill" style="background:#f5f3ff;color:#5b21b6"><i class="bi bi-box-arrow-up"></i> Sortie demandée</span>
+                            <i class="bi bi-arrow-right text-secondary"></i>
+                            <span class="status-pill" style="background:#fef2f2;color:#991b1b"><i class="bi bi-check2-all"></i> Sortie validée</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {# ── 2. Rôles & accès ── #}
+            <section class="help-section" id="roles">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#f5f3ff;color:#6366f1"><i class="bi bi-people-fill"></i></div>
+                    Rôles & Accès
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="help-card h-100">
+                            <div class="help-card-header" style="background:#fef3c7"><i class="bi bi-star-fill text-warning"></i> Patron</div>
+                            <div class="p-3 text-secondary" style="font-size:.82rem">
+                                Vue stratégique uniquement. Consulte les revenus, taux d'occupation globaux et chambres froides. Accès en lecture seule sur la plupart des données.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="help-card h-100">
+                            <div class="help-card-header" style="background:#eef2ff"><i class="bi bi-shield-check" style="color:#6366f1"></i> Directeur</div>
+                            <div class="p-3 text-secondary" style="font-size:.82rem">
+                                Valide les factures, consulte les rapports financiers, gère les clients. Voit le stock par client et les performances mensuelles.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="help-card h-100">
+                            <div class="help-card-header" style="background:#eff6ff"><i class="bi bi-person-badge" style="color:#2563eb"></i> Chef de Stock</div>
+                            <div class="p-3 text-secondary" style="font-size:.82rem">
+                                Crée et valide les entrées/sorties, gère les palettes, transfère entre rayons, génère les factures, gère les utilisateurs et clients.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="help-card h-100">
+                            <div class="help-card-header" style="background:#f0fdf4"><i class="bi bi-clipboard-check" style="color:#10b981"></i> Contrôleur</div>
+                            <div class="p-3 text-secondary" style="font-size:.82rem">
+                                Peut <strong>créer des opérations d'entrée</strong>, effectuer le contrôle terrain puis les <strong>transmettre au chef de stock</strong> pour validation finale. Contrôle également les sorties qui lui sont assignées. Peut transférer des palettes.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="help-card h-100">
+                            <div class="help-card-header" style="background:#fdf4ff"><i class="bi bi-building" style="color:#a855f7"></i> Client</div>
+                            <div class="p-3 text-secondary" style="font-size:.82rem">
+                                Consulte uniquement son propre stock et ses opérations en cours. N'a pas accès aux données des autres clients.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-card">
+                    <div class="help-card-header"><i class="bi bi-table text-primary"></i> Matrice des permissions</div>
+                    <div class="table-responsive">
+                        <table class="perm-table">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th class="text-center">Patron</th>
+                                    <th class="text-center">Directeur</th>
+                                    <th class="text-center">Chef Stock</th>
+                                    <th class="text-center">Contrôleur</th>
+                                    <th class="text-center">Client</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set rows = [
+                                    ['Tableau de bord',         true,  true,  true,  true,  true],
+                                                    ['Créer une entrée',               false, false, true,  true,  false],
+                                    ['Contrôler & transmettre entrée', false, false, false, true,  false],
+                                    ['Valider une entrée (finale)',     false, false, true,  false, false],
+                                    ['Créer une sortie',               false, false, true,  false, false],
+                                    ['Contrôle terrain sortie',        false, false, false, true,  false],
+                                    ['Valider une sortie (finale)',     false, false, true,  false, false],
+                                    ['Voir état du stock',      false, true,  true,  true,  true],
+                                                    ['Transférer des palettes',     false, false, false, true,  false],
+                                    ['Consulter les transferts',    false, false, true,  true,  false],
+                                    ['Gérer les clients',           false, true,  true,  false, false],
+                                    ['Gérer les utilisateurs',      false, false, true,  false, false],
+                                    ['Générer des factures',        false, false, true,  false, false],
+                                    ['Valider des factures',        false, true,  false, false, false],
+                                    ['Rapports & statistiques',     true,  true,  false, false, false],
+                                    ['Alertes système',             false, true,  true,  false, false],
+                                    ['Journal d\'audit',            false, false, true,  false, false],
+                                    ['Plan des rayons',             false, true,  true,  true,  false],
+                                ] %}
+                                {% for row in rows %}
+                                <tr>
+                                    <td class="fw-semibold" style="font-size:.82rem">{{ row[0] }}</td>
+                                    {% for i in 1..5 %}
+                                    <td class="text-center">
+                                        {% if row[i] %}
+                                            <i class="bi bi-check-circle-fill perm-check"></i>
+                                        {% else %}
+                                            <i class="bi bi-dash perm-cross"></i>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            {# ── 3. Entrées ── #}
+            <section class="help-section" id="entries">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#eff6ff;color:#2563eb"><i class="bi bi-box-arrow-in-down"></i></div>
+                    Opérations — Entrées
+                </div>
+
+                <div class="help-alert" style="background:#f0fdf4;border:1px solid #bbf7d0">
+                    <i class="bi bi-info-circle-fill" style="color:#10b981;font-size:1.1rem;flex-shrink:0;margin-top:.1rem"></i>
+                    <span style="color:#065f46">Une entrée représente l'arrivée de marchandises dans l'entrepôt. Elle peut être créée par le <strong>chef de stock</strong> ou par un <strong>contrôleur</strong>. Dans le cas du contrôleur, elle est transmise au chef de stock pour validation finale.</span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="help-card h-100">
+                            <div class="help-card-header" style="background:#eff6ff"><i class="bi bi-person-badge text-primary"></i> Entrée créée par le Chef de Stock</div>
+                            <div class="steps">
+                                <div class="step">
+                                    <div class="step-num" style="background:#2563eb">1</div>
+                                    <div class="step-body">
+                                        <div class="step-title">Créer l'opération</div>
+                                        <div class="step-desc"><strong>Entrées → Nouvelle entrée</strong> : saisir le client, la date, le code lot et les palettes (espèce, qualité, moule, poids, cartons, rayon, chambre froide).</div>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-num" style="background:#10b981">2</div>
+                                    <div class="step-body">
+                                        <div class="step-title">Valider directement</div>
+                                        <div class="step-desc">Le chef valide l'opération immédiatement. Le stock est mis à jour et la fiche de charge est générée.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="help-card h-100">
+                            <div class="help-card-header" style="background:#f0fdf4"><i class="bi bi-clipboard-check text-success"></i> Entrée créée par le Contrôleur</div>
+                            <div class="steps">
+                                <div class="step">
+                                    <div class="step-num" style="background:#10b981">1</div>
+                                    <div class="step-body">
+                                        <div class="step-title">Créer l'opération</div>
+                                        <div class="step-desc"><strong>Entrées → Nouvelle entrée</strong> : le contrôleur saisit les mêmes informations (client, date, palettes, chambre froide).</div>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-num" style="background:#06b6d4">2</div>
+                                    <div class="step-body">
+                                        <div class="step-title">Contrôle terrain</div>
+                                        <div class="step-desc">Le contrôleur vérifie physiquement les palettes et complète les informations de contrôle.</div>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-num" style="background:#8b5cf6">3</div>
+                                    <div class="step-body">
+                                        <div class="step-title">Transmettre au Chef de Stock</div>
+                                        <div class="step-desc">Le contrôleur clique sur <strong>"Transmettre"</strong>. Une liste des chefs de stock présents dans le système s'affiche. Il sélectionne le chef responsable et envoie l'opération.</div>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-num" style="background:#f59e0b">4</div>
+                                    <div class="step-body">
+                                        <div class="step-title">Validation par le Chef</div>
+                                        <div class="step-desc">Le chef de stock reçoit l'opération dans son tableau de bord, la vérifie et la valide. Le stock est mis à jour et la fiche de charge est générée.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-card">
+                    <div class="help-card-header"><i class="bi bi-info-circle text-warning"></i> Fiche de charge</div>
+                    <div class="p-3 text-secondary" style="font-size:.82rem">
+                        Après validation (par le chef), une <strong>fiche de charge</strong> récapitulative est disponible avec tous les détails des palettes, horodatée et signée. Elle peut être imprimée ou téléchargée en PDF depuis la page de détail de l'opération.
+                    </div>
+                </div>
+
+                <div class="help-card mt-3">
+                    <div class="help-card-header"><i class="bi bi-info-circle text-warning"></i> Statuts d'une entrée</div>
+                    <div class="p-3">
+                        <div class="d-flex flex-column gap-2" style="font-size:.82rem">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-pill" style="background:#ede9fe;color:#5b21b6">Att. contrôle</span>
+                                <span class="text-secondary">— Assignée au contrôleur, en attente de son contrôle terrain</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-pill" style="background:#e0f2fe;color:#075985">Att. validation</span>
+                                <span class="text-secondary">— Contrôle effectué par le contrôleur, transmise au chef de stock</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-pill" style="background:#ecfdf5;color:#065f46">Validée</span>
+                                <span class="text-secondary">— Validée par le chef de stock, stock mis à jour, fiche de charge générée</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-pill" style="background:#fef2f2;color:#991b1b">Rejetée</span>
+                                <span class="text-secondary">— Refusée, ne compte pas dans le stock</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {# ── 4. Sorties ── #}
+            <section class="help-section" id="exits">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#fef2f2;color:#ef4444"><i class="bi bi-box-arrow-up"></i></div>
+                    Opérations — Sorties
+                </div>
+
+                <div class="help-alert" style="background:#fef2f2;border:1px solid #fecaca">
+                    <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;font-size:1.1rem;flex-shrink:0;margin-top:.1rem"></i>
+                    <span style="color:#991b1b">Une sortie implique plusieurs étapes de contrôle avant d'être validée. Elle nécessite l'intervention d'un contrôleur de terrain.</span>
+                </div>
+
+                <div class="help-card">
+                    <div class="help-card-header"><i class="bi bi-list-ol text-danger"></i> Processus de sortie — étape par étape</div>
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-num" style="background:#2563eb">1</div>
+                            <div class="step-body">
+                                <div class="step-title">Préparer la sortie</div>
+                                <div class="step-desc">Le chef de stock va dans <strong>Sorties → Nouvelle sortie</strong>, sélectionne le client, puis choisit les palettes à sortir (totalement ou partiellement) depuis le stock disponible.</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background:#f59e0b">2</div>
+                            <div class="step-body">
+                                <div class="step-title">Assignation du contrôleur</div>
+                                <div class="step-desc">Le chef assigne un contrôleur à l'opération. Le contrôleur reçoit une notification et voit la sortie dans son tableau de bord.</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background:#8b5cf6">3</div>
+                            <div class="step-body">
+                                <div class="step-title">Contrôle terrain</div>
+                                <div class="step-desc">Le contrôleur effectue la vérification physique des palettes sur le terrain (<strong>Contrôle terrain</strong>). Il peut valider ou rejeter chaque palette individuellement, et saisir les quantités réellement sorties.</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background:#10b981">4</div>
+                            <div class="step-body">
+                                <div class="step-title">Validation finale</div>
+                                <div class="step-desc">Le chef de stock valide définitivement la sortie après contrôle. Le stock est décompté automatiquement. Une fiche de décharge est générée.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-card mt-3">
+                    <div class="help-card-header"><i class="bi bi-info-circle text-warning"></i> Statuts d'une sortie</div>
+                    <div class="p-3">
+                        <div class="d-flex flex-column gap-2" style="font-size:.82rem">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-pill" style="background:#ede9fe;color:#5b21b6">Att. contrôle</span>
+                                <span class="text-secondary">— Assignée au contrôleur, en attente de son contrôle terrain</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-pill" style="background:#e0f2fe;color:#075985">Att. validation</span>
+                                <span class="text-secondary">— Contrôle terrain effectué, en attente de validation par le chef de stock</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-pill" style="background:#ecfdf5;color:#065f46">Validée</span>
+                                <span class="text-secondary">— Stock déduit, fiche de décharge générée</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-pill" style="background:#fef2f2;color:#991b1b">Rejetée</span>
+                                <span class="text-secondary">— Refusée lors du contrôle, stock non modifié</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {# ── 5. Stock & Palettes ── #}
+            <section class="help-section" id="stock">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#ecfdf5;color:#10b981"><i class="bi bi-clipboard-data"></i></div>
+                    Stock & Palettes
+                </div>
+
+                <div class="help-card">
+                    <div class="help-card-header"><i class="bi bi-tag text-success"></i> Statuts des palettes</div>
+                    <div class="p-3">
+                        <div class="row g-3" style="font-size:.82rem">
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-start gap-2 p-2 rounded-2" style="background:#f0fdf4;border:1px solid #bbf7d0">
+                                    <span class="status-pill mt-1" style="background:#dcfce7;color:#065f46">En stock</span>
+                                    <span class="text-secondary">Palette active, totalité des cartons encore présents en entrepôt.</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-start gap-2 p-2 rounded-2" style="background:#fffbeb;border:1px solid #fde68a">
+                                    <span class="status-pill mt-1" style="background:#fef3c7;color:#92400e">Sortie partielle</span>
+                                    <span class="text-secondary">Une partie des cartons a été sortie, des cartons restants sont encore en stock.</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-start gap-2 p-2 rounded-2" style="background:#f8fafc;border:1px solid #e2e8f0">
+                                    <span class="status-pill mt-1" style="background:#f1f5f9;color:#475569">Sortie complète</span>
+                                    <span class="text-secondary">Tous les cartons ont été sortis. La palette n'est plus comptabilisée dans le stock actif.</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-start gap-2 p-2 rounded-2" style="background:#fef2f2;border:1px solid #fecaca">
+                                    <span class="status-pill mt-1" style="background:#fef2f2;color:#991b1b">Rejetée</span>
+                                    <span class="text-secondary">Palette refusée lors du contrôle. Exclue du stock.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-card mt-3">
+                    <div class="help-card-header"><i class="bi bi-funnel text-primary"></i> Filtres du stock</div>
+                    <div class="p-3" style="font-size:.82rem;color:#475569">
+                        La page <strong>État du stock</strong> permet de filtrer les palettes par :
+                        <ul class="mt-2 mb-0" style="line-height:2">
+                            <li><strong>Client</strong> — Voir uniquement les palettes d'un client spécifique</li>
+                            <li><strong>Espèce</strong> — Type de poisson (ex: sardine, anchois...)</li>
+                            <li><strong>Qualité / Moule / Famille</strong> — Attributs du produit</li>
+                            <li><strong>Chambre froide</strong> — Palettes d'une chambre spécifique</li>
+                            <li><strong>Rayon</strong> — Emplacement précis (G1, D1...)</li>
+                            <li><strong>Date de réception</strong> — Période d'entrée en stock</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-card mt-3">
+                    <div class="help-card-header"><i class="bi bi-arrow-left-right text-warning"></i> Transferts de palettes</div>
+                    <div class="p-3" style="font-size:.82rem;color:#475569">
+                        Un transfert permet de déplacer une palette d'un rayon ou d'une chambre froide vers un autre emplacement, sans créer de sortie.
+                        <br><br>
+                        <strong>Qui peut initier un transfert ?</strong> Uniquement le <strong>contrôleur</strong> — via le menu <strong>Transferts</strong> dans la sidebar.<br>
+                        <strong>Chef de stock ?</strong> Il consulte uniquement le <strong>suivi des transferts</strong> (menu <strong>Suivi Transferts</strong>), sans pouvoir en créer.
+                    </div>
+                </div>
+            </section>
+
+            {# ── 6. Chambres froides ── #}
+            <section class="help-section" id="coldrooms">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#e0f2fe;color:#0284c7"><i class="bi bi-thermometer-snow"></i></div>
+                    Chambres froides
+                </div>
+
+                <div class="help-card">
+                    <div class="help-card-header"><i class="bi bi-palette text-primary"></i> Code couleur d'occupation</div>
+                    <div class="p-3">
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:50px;height:12px;background:#10b981;border-radius:50px;flex-shrink:0"></div>
+                                <div>
+                                    <span class="fw-bold" style="color:#065f46">Vert — moins de 70%</span>
+                                    <span class="text-secondary ms-2" style="font-size:.8rem">Capacité normale, aucune action requise.</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:50px;height:12px;background:#f59e0b;border-radius:50px;flex-shrink:0"></div>
+                                <div>
+                                    <span class="fw-bold" style="color:#92400e">Orange — entre 70% et 90%</span>
+                                    <span class="text-secondary ms-2" style="font-size:.8rem">Presque plein, à surveiller. Évitez de nouvelles entrées importantes.</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:50px;height:12px;background:#ef4444;border-radius:50px;flex-shrink:0"></div>
+                                <div>
+                                    <span class="fw-bold" style="color:#991b1b">Rouge — plus de 90%</span>
+                                    <span class="text-secondary ms-2" style="font-size:.8rem">Capacité critique. Une alerte est déclenchée automatiquement.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-card mt-3">
+                    <div class="help-card-header"><i class="bi bi-grid-3x3-gap text-primary"></i> Plan des rayons</div>
+                    <div class="p-3" style="font-size:.82rem;color:#475569">
+                        Chaque chambre froide est divisée en <strong>rayons</strong> (G1, G2... à gauche et D1, D2... à droite).
+                        Le <strong>Plan des rayons</strong> (accessible depuis le dashboard directeur) affiche une vue visuelle de l'occupation de chaque emplacement en temps réel.
+                        <br><br>
+                        Les palettes sont placées dans un rayon lors de l'entrée, et libèrent l'emplacement lors de la sortie complète.
+                    </div>
+                </div>
+            </section>
+
+            {# ── 7. Factures ── #}
+            {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
+            <section class="help-section" id="invoices">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#fef3c7;color:#f59e0b"><i class="bi bi-receipt"></i></div>
+                    Factures
+                </div>
+
+                <div class="help-card">
+                    <div class="help-card-header"><i class="bi bi-list-ol text-warning"></i> Cycle de facturation</div>
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-num" style="background:#6366f1">1</div>
+                            <div class="step-body">
+                                <div class="step-title">Génération (Chef de Stock)</div>
+                                <div class="step-desc">Dans <strong>Factures → Générer</strong>, sélectionnez le client et la période. L'application calcule automatiquement les frais de stockage basés sur les opérations validées.</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-num" style="background:#f59e0b">2</div>
+                            <div class="step-body">
+                                <div class="step-title">Validation (Directeur)</div>
+                                <div class="step-desc">Le directeur reçoit une notification, consulte la facture et la valide. Une fois validée, elle est verrouillée et ne peut plus être modifiée.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-card mt-3">
+                    <div class="help-card-header"><i class="bi bi-calculator text-success"></i> Calcul des frais</div>
+                    <div class="p-3" style="font-size:.82rem;color:#475569">
+                        Les frais de stockage sont calculés automatiquement en fonction :
+                        <ul class="mt-2 mb-0" style="line-height:2">
+                            <li>Du <strong>poids</strong> des marchandises stockées</li>
+                            <li>De la <strong>durée de stockage</strong> (jours)</li>
+                            <li>Du <strong>tarif client</strong> configuré dans la fiche client</li>
+                            <li>De la <strong>TVA</strong> applicable</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {# ── 8. Alertes ── #}
+            {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
+            <section class="help-section" id="alerts">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#fef2f2;color:#ef4444"><i class="bi bi-bell-fill"></i></div>
+                    Alertes
+                </div>
+
+                <div class="help-card">
+                    <div class="help-card-header"><i class="bi bi-exclamation-triangle text-danger"></i> Types d'alertes</div>
+                    <div class="p-3">
+                        <div class="d-flex flex-column gap-3">
+
+                            <div class="help-alert" style="background:#fef2f2;border:1px solid #fecaca;margin-bottom:0">
+                                <i class="bi bi-thermometer-high" style="color:#ef4444;font-size:1.1rem;flex-shrink:0;margin-top:.1rem"></i>
+                                <div>
+                                    <strong style="color:#991b1b;display:block;margin-bottom:.2rem">Capacité critique — Chambre froide</strong>
+                                    <span style="color:#64748b;font-size:.8rem">Déclenchée automatiquement quand une chambre dépasse <strong>90% de sa capacité</strong>. Visible dans le dashboard, la barre de navigation (cloche) et la page Alertes. Action recommandée : planifier des sorties pour libérer de l'espace.</span>
+                                </div>
+                            </div>
+
+                            <div class="help-alert" style="background:#fffbeb;border:1px solid #fde68a;margin-bottom:0">
+                                <i class="bi bi-graph-down-arrow" style="color:#f59e0b;font-size:1.1rem;flex-shrink:0;margin-top:.1rem"></i>
+                                <div>
+                                    <strong style="color:#92400e;display:block;margin-bottom:.2rem">Stock critique client</strong>
+                                    <span style="color:#64748b;font-size:.8rem">Visible par le directeur. Signale les clients dont les cartons restants sont inférieurs à <strong>20% du stock initial</strong>. Permet d'anticiper les demandes de réapprovisionnement.</span>
+                                </div>
+                            </div>
+
+                            <div class="help-alert" style="background:#fef3c7;border:1px solid #fde68a;margin-bottom:0">
+                                <i class="bi bi-hourglass-split" style="color:#f59e0b;font-size:1.1rem;flex-shrink:0;margin-top:.1rem"></i>
+                                <div>
+                                    <strong style="color:#92400e;display:block;margin-bottom:.2rem">Opérations en attente</strong>
+                                    <span style="color:#64748b;font-size:.8rem">Rappel des entrées/sorties en attente de validation visible dans la cloche de notifications de la barre supérieure.</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {# ── 9. Tableau de bord ── #}
+            <section class="help-section" id="dashboard">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#eff6ff;color:#6366f1"><i class="bi bi-speedometer2"></i></div>
+                    Tableau de bord
+                </div>
+
+                <div class="row g-3">
+                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                    <div class="col-12">
+                        <div class="help-card">
+                            <div class="help-card-header" style="background:#eff6ff"><i class="bi bi-person-badge text-primary"></i> Dashboard Chef de Stock — Ce que vous pouvez faire</div>
+                            <div class="p-3">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#eff6ff;border:1px solid #bfdbfe">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#1d4ed8"><i class="bi bi-box-arrow-in-down me-1"></i> Entrées</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Créer et saisir les opérations d'entrée</li>
+                                                <li>Affecter les palettes aux chambres froides et rayons</li>
+                                                <li>Valider les entrées transmises par les contrôleurs</li>
+                                                <li>Rejeter une opération non conforme</li>
+                                                <li>Imprimer la fiche de charge après validation</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#fef2f2;border:1px solid #fecaca">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#991b1b"><i class="bi bi-box-arrow-up me-1"></i> Sorties</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Préparer une sortie et sélectionner les palettes à sortir</li>
+                                                <li>Assigner un contrôleur pour le contrôle terrain</li>
+                                                <li>Valider définitivement la sortie après contrôle</li>
+                                                <li>Imprimer la fiche de décharge après validation</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#ecfdf5;border:1px solid #bbf7d0">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#065f46"><i class="bi bi-clipboard-data me-1"></i> Stock & Palettes</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Consulter l'état du stock par client, espèce, chambre, rayon</li>
+                                                <li>Consulter le suivi des transferts de palettes</li>
+                                                <li>Voir les palettes par chambre froide et par rayon</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#fef3c7;border:1px solid #fde68a">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#92400e"><i class="bi bi-receipt me-1"></i> Facturation & Gestion</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Générer les factures mensuelles par client</li>
+                                                <li>Gérer les clients (créer, modifier, activer/désactiver)</li>
+                                                <li>Gérer les utilisateurs et leurs rôles</li>
+                                                <li>Consulter le journal d'audit complet</li>
+                                                <li>Voir et gérer les alertes système</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="p-3 rounded-2" style="background:#f8fafc;border:1px solid #e2e8f0">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#334155"><i class="bi bi-speedometer2 me-1"></i> Ce que vous voyez sur votre tableau de bord</div>
+                                            <div class="row g-2" style="font-size:.81rem;color:#64748b">
+                                                <div class="col-sm-6">
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> Nombre d'entrées/sorties à valider</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> Stock total (T), palettes en stock, entrées/sorties du jour</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> Donut d'occupation des chambres froides</span>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> Jauge de capacité globale</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> Bar chart occupation du stock par client + KPIs clients</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> Liste des opérations en attente de traitement</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_DIRECTEUR') %}
+                    <div class="col-12">
+                        <div class="help-card">
+                            <div class="help-card-header" style="background:#eef2ff"><i class="bi bi-shield-check" style="color:#6366f1"></i> Dashboard Directeur — Ce que vous pouvez faire</div>
+                            <div class="p-3">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#f0fdf4;border:1px solid #bbf7d0">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#065f46"><i class="bi bi-people me-1"></i> Clients & Stock</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Gérer les clients (consulter, modifier les informations)</li>
+                                                <li>Consulter l'état du stock de chaque client</li>
+                                                <li>Voir les alertes de stock critique par client</li>
+                                                <li>Accéder au plan des rayons</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#fef3c7;border:1px solid #fde68a">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#92400e"><i class="bi bi-graph-up me-1"></i> Rapports & Analyses</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Consulter les rapports financiers (CA mensuel, annuel)</li>
+                                                <li>Voir les performances : entrées vs sorties sur 6 mois</li>
+                                                <li>Analyser l'occupation des chambres froides</li>
+                                                <li>Voir les alertes système</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#f8fafc;border:1px solid #e2e8f0">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#334155"><i class="bi bi-speedometer2 me-1"></i> Ce que vous voyez sur votre tableau de bord</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#64748b;line-height:2">
+                                                <li>CA ce mois / mois précédent / variation</li>
+                                                <li>Nombre de factures en attente de validation</li>
+                                                <li>Graphique stock par client (donut + légende avec %)</li>
+                                                <li>Évolution du CA et occupation des chambres</li>
+                                                <li>Liste des factures à valider avec action directe</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_PATRON') %}
+                    <div class="col-12">
+                        <div class="help-card">
+                            <div class="help-card-header" style="background:#fef3c7"><i class="bi bi-star-fill text-warning"></i> Dashboard Patron — Ce que vous pouvez voir</div>
+                            <div class="p-3">
+                                <div class="help-alert" style="background:#fffbeb;border:1px solid #fde68a;margin-bottom:1rem">
+                                    <i class="bi bi-eye-fill" style="color:#f59e0b;font-size:1rem;flex-shrink:0;margin-top:.1rem"></i>
+                                    <span style="color:#92400e;font-size:.82rem">Le rôle Patron est un rôle de <strong>consultation stratégique uniquement</strong>. Il n'effectue aucune action opérationnelle (pas de création, pas de validation).</span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#fef3c7;border:1px solid #fde68a">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#92400e"><i class="bi bi-cash-stack me-1"></i> Données financières</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>CA mensuel et CA annuel</li>
+                                                <li>Évolution du chiffre d'affaires</li>
+                                                <li>Accès aux rapports complets</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#e0f2fe;border:1px solid #bae6fd">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#075985"><i class="bi bi-thermometer-snow me-1"></i> Occupation & Stock</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Taux d'occupation moyen des chambres froides</li>
+                                                <li>Capacité utilisée vs capacité totale (T)</li>
+                                                <li>Répartition du stock par client (donut + %)</li>
+                                                <li>Nombre de chambres froides actives</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="p-3 rounded-2" style="background:#f8fafc;border:1px solid #e2e8f0">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#334155"><i class="bi bi-speedometer2 me-1"></i> Ce que vous voyez sur votre tableau de bord</div>
+                                            <div class="row g-2" style="font-size:.81rem;color:#64748b">
+                                                <div class="col-sm-6">
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> CA mensuel et annuel</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> Taux d'occupation moyen et capacité utilisée</span>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> Graphique entrées vs sorties (6 mois)</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-warning"></i> Répartition stock par client + occupation chambres</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_CLIENT') %}
+                    <div class="col-12">
+                        <div class="help-card">
+                            <div class="help-card-header" style="background:#fdf4ff"><i class="bi bi-building" style="color:#a855f7"></i> Dashboard Client — Ce que vous pouvez voir</div>
+                            <div class="p-3">
+                                <div class="help-alert" style="background:#fdf4ff;border:1px solid #e9d5ff;margin-bottom:1rem">
+                                    <i class="bi bi-eye-fill" style="color:#a855f7;font-size:1rem;flex-shrink:0;margin-top:.1rem"></i>
+                                    <span style="color:#6b21a8;font-size:.82rem">Votre espace est <strong>personnel et isolé</strong> : vous ne voyez que vos propres marchandises. Les données des autres clients sont inaccessibles.</span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#fdf4ff;border:1px solid #e9d5ff">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#7e22ce"><i class="bi bi-clipboard-data me-1"></i> Mon stock actuel</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Stock groupé par <strong>espèce</strong> (sardine, anchois, etc.)</li>
+                                                <li>Nombre de <strong>palettes</strong> et de <strong>cartons</strong> par espèce</li>
+                                                <li>Poids total par espèce en <strong>tonnes</strong></li>
+                                                <li>Date de la <strong>dernière entrée</strong> enregistrée</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#eff6ff;border:1px solid #bfdbfe">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#1d4ed8"><i class="bi bi-bar-chart me-1"></i> Mouvements mensuels</div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Graphique <strong>entrées vs sorties</strong> sur les 6 derniers mois</li>
+                                                <li>Nombre de cartons entrés et sortis chaque mois</li>
+                                                <li>Visualisation de l'évolution de votre stock</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="p-3 rounded-2" style="background:#f8fafc;border:1px solid #e2e8f0">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#334155"><i class="bi bi-speedometer2 me-1"></i> Ce que vous voyez sur votre tableau de bord</div>
+                                            <div class="row g-2" style="font-size:.81rem;color:#64748b">
+                                                <div class="col-sm-6">
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill" style="color:#a855f7"></i> Total palettes en stock</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill" style="color:#a855f7"></i> Total cartons et poids (T)</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill" style="color:#a855f7"></i> Nombre d'espèces stockées</span>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill" style="color:#a855f7"></i> Tableau détaillé par espèce</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill" style="color:#a855f7"></i> Graphique entrées/sorties 6 mois</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill" style="color:#a855f7"></i> Date de la dernière entrée</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_CONTROLEUR') and not is_granted('ROLE_CHEF_STOCK') %}
+                    <div class="col-12">
+                        <div class="help-card">
+                            <div class="help-card-header" style="background:#f0fdf4"><i class="bi bi-clipboard-check text-success"></i> Dashboard Contrôleur — Ce que vous pouvez faire</div>
+                            <div class="p-3">
+                                <div class="row g-3">
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#eff6ff;border:1px solid #bfdbfe">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#1d4ed8">
+                                                <i class="bi bi-box-arrow-in-down me-1"></i> Gestion des Entrées
+                                            </div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li><strong>Créer</strong> une nouvelle opération d'entrée (<em>Entrées → Nouvelle entrée</em>)</li>
+                                                <li><strong>Saisir</strong> les informations : client, date de réception, code lot, palettes (espèce, qualité, moule, poids, cartons, chambre froide, rayon)</li>
+                                                <li><strong>Effectuer le contrôle terrain</strong> : vérifier physiquement chaque palette</li>
+                                                <li><strong>Transmettre au Chef de Stock</strong> : sélectionner le chef dans la liste des chefs disponibles dans le système pour validation finale</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#fef2f2;border:1px solid #fecaca">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#991b1b">
+                                                <i class="bi bi-box-arrow-up me-1"></i> Gestion des Sorties
+                                            </div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Voir les sorties qui vous sont <strong>assignées</strong> par le chef de stock</li>
+                                                <li><strong>Effectuer le contrôle terrain</strong> des palettes à sortir</li>
+                                                <li><strong>Valider ou rejeter</strong> chaque palette individuellement</li>
+                                                <li><strong>Saisir les quantités réelles</strong> sorties lors du contrôle</li>
+                                                <li>Soumettre le résultat au chef de stock pour <strong>validation finale</strong></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#f5f3ff;border:1px solid #ddd6fe">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#5b21b6">
+                                                <i class="bi bi-arrow-left-right me-1"></i> Transferts de palettes
+                                            </div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li><strong>Initier un transfert</strong> : déplacer une palette d'un rayon ou d'une chambre froide vers un autre emplacement</li>
+                                                <li>Accès via le menu <strong>Transferts</strong> dans la sidebar</li>
+                                                <li>Le transfert ne crée pas de sortie, il met à jour uniquement la position de la palette</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-2" style="background:#f0fdf4;border:1px solid #bbf7d0">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#065f46">
+                                                <i class="bi bi-journal-text me-1"></i> Mon historique
+                                            </div>
+                                            <ul class="mb-0 ps-3" style="font-size:.81rem;color:#374151;line-height:2">
+                                                <li>Consulter toutes les <strong>opérations que vous avez traitées</strong> (entrées créées, sorties contrôlées, transferts effectués)</li>
+                                                <li>Voir le <strong>statut actuel</strong> de chaque opération</li>
+                                                <li>Accès via le menu <strong>Mon historique</strong> dans la sidebar</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="p-3 rounded-2" style="background:#f8fafc;border:1px solid #e2e8f0">
+                                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#334155">
+                                                <i class="bi bi-speedometer2 me-1"></i> Ce que vous voyez sur votre tableau de bord
+                                            </div>
+                                            <div class="row g-2" style="font-size:.81rem;color:#64748b">
+                                                <div class="col-sm-6">
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> Entrées en attente de votre contrôle</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> Sorties assignées en attente de contrôle terrain</span>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> Chambres froides et leur taux d'occupation</span>
+                                                    <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-primary"></i> État du stock (lecture seule)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            {# ── 10. FAQ ── #}
+            <section class="help-section" id="faq">
+                <div class="help-section-title">
+                    <div class="s-icon" style="background:#f5f3ff;color:#8b5cf6"><i class="bi bi-question-circle-fill"></i></div>
+                    Foire Aux Questions (FAQ)
+                </div>
+
+                {% set faqs = [
+                    {
+                        q: 'Comment savoir si une chambre froide est disponible pour une nouvelle entrée ?',
+                        a: 'Consultez la page Chambres froides ou le tableau de bord. Le taux d\'occupation est affiché en temps réel avec un code couleur : vert (<70%) = disponible, orange (70-90%) = presque plein, rouge (>90%) = critique. Choisissez une chambre verte ou orange pour les nouvelles entrées.'
+                    },
+                    {
+                        q: 'Une palette peut-elle être dans plusieurs chambres froides à la fois ?',
+                        a: 'Non. Chaque palette est affectée à une seule chambre froide et à un seul rayon. Si vous devez déplacer une palette, utilisez la fonctionnalité de Transfert (menu Suivi Transferts pour le chef, Transferts pour le contrôleur).'
+                    },
+                    {
+                        q: 'En tant que contrôleur, comment transmettre une entrée au chef de stock ?',
+                        a: 'Après avoir créé l\'entrée et effectué le contrôle terrain des palettes, ouvrez la page de détail de l\'opération. Cliquez sur le bouton "Transmettre au Chef de Stock". Une liste des chefs de stock enregistrés dans le système s\'affiche — sélectionnez le chef responsable et confirmez. L\'opération apparaîtra alors dans le tableau de bord du chef pour validation finale.'
+                    },
+                    {
+                        q: 'Comment annuler une sortie en cours ?',
+                        a: 'Une sortie peut être annulée tant qu\'elle n\'est pas encore validée définitivement. Rendez-vous dans Sorties, ouvrez l\'opération et utilisez le bouton Rejeter/Annuler. Une fois validée, la sortie ne peut plus être annulée ; une nouvelle entrée doit être créée si nécessaire.'
+                    },
+                    {
+                        q: 'Pourquoi le stock d\'un client n\'est pas mis à jour après une sortie ?',
+                        a: 'Le stock n\'est déduit que lorsque la sortie est validée définitivement par le chef de stock. Si la sortie est encore en statut "En attente" ou "Att. contrôle", le stock n\'est pas encore mis à jour. Vérifiez le statut de l\'opération.'
+                    },
+                    {
+                        q: 'Comment générer une facture pour un client ?',
+                        a: 'Allez dans Factures → Générer une facture. Sélectionnez le client et définissez la période (du... au...). L\'application calcule automatiquement les frais basés sur les opérations validées pendant cette période. La facture est ensuite soumise au directeur pour validation.'
+                    },
+                    {
+                        q: 'Un client peut-il voir les données des autres clients ?',
+                        a: 'Non. Le compte client est strictement isolé : il ne voit que son propre stock, ses opérations et ses factures. L\'accès aux données des autres clients est techniquement impossible depuis un compte client.'
+                    },
+                    {
+                        q: 'Que faire si une alerte de capacité s\'affiche pour une chambre ?',
+                        a: 'Une alerte rouge (>90%) signifie que la chambre est presque pleine. Planifiez des sorties pour libérer de l\'espace. Évitez d\'affecter de nouvelles palettes à cette chambre. Si possible, transférez des palettes vers une chambre moins occupée.'
+                    },
+                    {
+                        q: 'Comment imprimer une fiche de charge ou de décharge ?',
+                        a: 'Ouvrez l\'opération concernée (Entrées ou Sorties → Voir). Sur la page de détail, un bouton "Imprimer / PDF" permet de générer la fiche. Assurez-vous que l\'opération est validée avant d\'imprimer.'
+                    },
+                ] %}
+
+                {% for item in faqs %}
+                <div class="faq-item">
+                    <div class="faq-q" onclick="toggleFaq(this)">
+                        <span><i class="bi bi-question-circle me-2" style="color:#6366f1"></i>{{ item.q }}</span>
+                        <i class="bi bi-chevron-down toggle ms-2" style="flex-shrink:0"></i>
+                    </div>
+                    <div class="faq-a">{{ item.a }}</div>
+                </div>
+                {% endfor %}
+            </section>
+
+            {# ── Footer ── #}
+            <div class="text-center py-4" style="border-top:1px solid #e2e8f0;color:#94a3b8;font-size:.78rem">
+                <i class="bi bi-snowflake me-1"></i>
+                Documentation Golden Logistics — Entrepôt frigorifique
+                &nbsp;·&nbsp;
+                <i class="bi bi-chat-dots me-1"></i>
+                Utilisez le chatbot <span style="color:#6366f1;font-weight:600">Assistant</span> en bas à droite pour toute question contextuelle.
+            </div>
+
+        </div>{# /.help-content #}
+    </div>{# /.help-layout #}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+// ── Sticky active nav ──
+const sections = document.querySelectorAll('.help-section');
+const links    = document.querySelectorAll('.help-link');
+
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            links.forEach(l => l.classList.remove('active'));
+            const active = document.querySelector(`.help-link[href="#${entry.target.id}"]`);
+            if (active) active.classList.add('active');
+        }
+    });
+}, { rootMargin: '-30% 0px -60% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+// ── Smooth scroll ──
+links.forEach(link => {
+    link.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
+
+// ── FAQ toggle ──
+function toggleFaq(el) {
+    const answer = el.nextElementSibling;
+    const isOpen = el.classList.contains('open');
+    // close all
+    document.querySelectorAll('.faq-q.open').forEach(q => {
+        q.classList.remove('open');
+        q.nextElementSibling.style.display = 'none';
+    });
+    if (!isOpen) {
+        el.classList.add('open');
+        answer.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

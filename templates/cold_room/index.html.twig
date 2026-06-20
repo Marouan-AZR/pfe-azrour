@@ -34,7 +34,7 @@
             {% if room.isActive %}
                 {% set activeRooms = activeRooms + 1 %}
                 {% set totalCapacity = totalCapacity + room.maxCapacityTons %}
-                {% set totalUsed = totalUsed + room.usedCapacity %}
+                {% set totalUsed = totalUsed + (occupancyStats[room.id].usedCapacity ?? 0) %}
             {% endif %}
         {% endfor %}
         <div class="col-sm-6 col-xl-3">
@@ -86,8 +86,9 @@
 
     <div class="row g-4">
         {% for room in coldRooms %}
+        {% set stats = occupancyStats[room.id] ?? {usedCapacity: 0, availableCapacity: 0, occupancyRate: 0} %}
         <div class="col-md-6 col-lg-4">
-            <div class="cold-room-card {{ not room.isActive ? 'inactive' : '' }} {{ room.occupancyRate > 90 ? 'critical' : (room.occupancyRate > 70 ? 'warning' : '') }}">
+            <div class="cold-room-card {{ not room.isActive ? 'inactive' : '' }} {{ stats.occupancyRate > 90 ? 'critical' : (stats.occupancyRate > 70 ? 'warning' : '') }}">
                 <div class="cold-room-header">
                     <div class="cold-room-title">
                         <i class="bi bi-snow2 me-2"></i>{{ room.name }}
@@ -95,7 +96,7 @@
                     <div class="cold-room-badges">
                         {% if not room.isActive %}
                             <span class="badge bg-secondary">Inactive</span>
-                        {% elseif room.occupancyRate > 90 %}
+                        {% elseif stats.occupancyRate > 90 %}
                             <span class="badge bg-danger">Critique</span>
                         {% endif %}
                     </div>
@@ -105,17 +106,17 @@
                         <i class="bi bi-thermometer-half"></i>
                         <span>{{ room.targetTemperature }}°C</span>
                     </div>
-                    
+
                     <div class="cold-room-capacity">
-                        {% set occupancy = room.occupancyRate %}
+                        {% set occupancy = stats.occupancyRate %}
                         <div class="capacity-bar">
-                            <div class="capacity-fill {{ occupancy > 90 ? 'critical' : (occupancy > 70 ? 'warning' : 'normal') }}" 
-                                 style="width: {{ occupancy }}%"></div>
+                            <div class="capacity-fill {{ occupancy > 90 ? 'critical' : (occupancy > 70 ? 'warning' : 'normal') }}"
+                                 style="width: {{ occupancy > 100 ? 100 : occupancy }}%"></div>
                         </div>
                         <div class="capacity-info">
-                            <span>{{ room.usedCapacity|number_format(1) }} / {{ room.maxCapacityTons }} T</span>
+                            <span>{{ stats.usedCapacity|number_format(1) }} / {{ room.maxCapacityTons }} T</span>
                             <span class="{{ occupancy > 90 ? 'text-danger' : (occupancy > 70 ? 'text-warning' : 'text-success') }}">
-                                {{ occupancy|number_format(0) }}%
+                                {{ occupancy|number_format(2) }}%
                             </span>
                         </div>
                     </div>

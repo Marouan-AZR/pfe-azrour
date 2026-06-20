@@ -22,41 +22,45 @@ class HistoryController extends AbstractController
     ) {}
 
     #[Route('', name: 'app_history_index', methods: ['GET'])]
-    #[IsGranted('ROLE_USER')]
+    #[IsGranted('ROLE_CHEF_STOCK')]
     public function index(Request $request): Response
     {
+        if ($this->isGranted('ROLE_PATRON')) {
+            throw $this->createAccessDeniedException('Accès refusé.');
+        }
+
         $userId = $request->query->get('user_id');
         $user = $userId ? $this->userRepository->find($userId) : null;
         
         $filters = [
-            'action' => $request->query->get('action'),
+            'action'     => $request->query->get('action'),
             'entityType' => $request->query->get('entity_type'),
-            'user' => $user,
-            'dateFrom' => $request->query->get('date_from'),
-            'dateTo' => $request->query->get('date_to'),
+            'user'       => $user,
+            'dateFrom'   => $request->query->get('date_from'),
+            'dateTo'     => $request->query->get('date_to'),
+            'search'     => $request->query->get('search'),
         ];
 
         $logs = $this->auditService->getHistory($filters);
 
-        // Get unique entity types for filter dropdown
-        $entityTypes = $this->repository->getDistinctEntityTypes();
-        
-        // Get all users for filter dropdown
         $users = $this->userRepository->findAll();
 
         return $this->render('history/index.html.twig', [
-            'logs' => $logs,
-            'filters' => $filters,
-            'entityTypes' => $entityTypes,
-            'users' => $users,
+            'logs'           => $logs,
+            'filters'        => $filters,
+            'users'          => $users,
             'selectedUserId' => $userId,
         ]);
     }
 
     #[Route('/export', name: 'app_history_export', methods: ['GET'])]
-    #[IsGranted('ROLE_USER')]
+    #[IsGranted('ROLE_CHEF_STOCK')]
     public function export(Request $request): StreamedResponse
     {
+        if ($this->isGranted('ROLE_PATRON')) {
+            throw $this->createAccessDeniedException('Accès refusé.');
+        }
+
         $userId = $request->query->get('user_id');
         $user = $userId ? $this->userRepository->find($userId) : null;
         

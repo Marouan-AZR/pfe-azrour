@@ -1,93 +1,399 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Nouveau Transfert{% endblock %}
+{% block title %}Transferts – Nouveau{% endblock %}
+
+{% block stylesheets %}
+<style>
+.transfer-page { max-width: 860px; margin: 0 auto; }
+
+/* Tabs */
+.transfer-nav { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+.tnav-btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .45rem 1.1rem; border-radius: 7px;
+    font-size: .84rem; font-weight: 600; text-decoration: none;
+    transition: opacity .15s;
+}
+.tnav-btn:hover { opacity: .85; }
+.tnav-active  { background: #2563eb; color: #fff; }
+.tnav-history { background: #f59e0b; color: #fff; }
+
+/* Scan drop-zone */
+.scan-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 1rem;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    background: #f8fafd;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative;
+}
+.scan-zone:hover, .scan-zone.active { border-color: #2563eb; background: #eff6ff; }
+.scan-zone .qr-icon { margin-bottom: 1rem; opacity: .45; }
+
+/* Camera preview */
+#reader { width: 100%; max-width: 480px; margin: 0 auto; border-radius: .75rem; overflow: hidden; }
+#reader video { border-radius: .75rem; width: 100% !important; }
+#reader img { display: none; }
+
+/* Info tiles */
+.info-tile { background: #f1f5f9; border-radius: .6rem; padding: .6rem .9rem; }
+.info-tile small { font-size: .65rem; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; font-weight: 700; display: block; }
+.info-tile strong { font-size: .88rem; color: #0f172a; }
+
+/* Step divider */
+.step-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #64748b; margin-bottom: .75rem; }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid py-4 transfer-page">
+
+    {# ── Header ── #}
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:44px;height:44px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="bi bi-arrow-left-right text-primary" style="font-size:1.2rem"></i>
+        </div>
         <div>
-            <h2 class="mb-1"><i class="bi bi-arrow-left-right me-2"></i>Nouveau Transfert</h2>
-            <small class="text-muted">Scanner une palette pour effectuer un transfert</small>
-        </div>
-        <a href="{{ path('app_transfer_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
-    </div>
-
-    {# Étape 1 : Scanner #}
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-upc-scan me-2"></i>Étape 1 : Identifier la palette</div>
-        <div class="card-body">
-            <form method="post" class="row g-3 align-items-end" id="scanForm">
-                <div class="col-md-6">
-                    <label class="form-label">Code palette</label>
-                    <input type="text" name="code_palette" class="form-control" placeholder="Scanner ou saisir le code palette" value="{{ palette ? palette.codePalette : '' }}" required autofocus>
-                </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-info w-100"><i class="bi bi-search"></i> Rechercher</button>
-                </div>
-            </form>
+            <h2 class="mb-0 fw-bold fs-5">Transferts</h2>
+            <small class="text-muted">Gérer les transferts internes de palettes</small>
         </div>
     </div>
 
-    {% if palette %}
-    {# Étape 2 : Informations palette (lecture seule) #}
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-info-circle me-2"></i>Étape 2 : Informations de la palette</div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3"><strong>Code :</strong> {{ palette.codePalette }}</div>
-                <div class="col-md-3"><strong>Client :</strong> {{ palette.operation.client.companyName }}</div>
-                <div class="col-md-3"><strong>Espèce :</strong> {{ palette.espece }}</div>
-                <div class="col-md-3"><strong>Qualité :</strong> {{ palette.qualite ?? '—' }}</div>
-                <div class="col-md-3"><strong>Moule :</strong> {{ palette.moule ?? '—' }}</div>
-                <div class="col-md-3"><strong>Famille :</strong> {{ palette.famille ?? '—' }}</div>
-                <div class="col-md-3"><strong>Cartons :</strong> {{ palette.cartonsRestants }}</div>
-                <div class="col-md-3"><strong>Poids :</strong> {{ (palette.poidsRestant * 1000)|number_format(0, ',', ' ') }} kg</div>
-                <div class="col-md-6 mt-3">
-                    <div class="alert alert-info mb-0">
-                        <i class="bi bi-geo-alt me-1"></i> <strong>Localisation actuelle :</strong>
-                        {{ palette.coldRoom ? palette.coldRoom.name : 'Non assignée' }} / {{ palette.rayon ?? '—' }}
-                    </div>
+    {# ── Onglets ── #}
+    <div class="transfer-nav">
+        <a href="{{ path('app_transfer_new') }}" class="tnav-btn tnav-active">
+            <i class="bi bi-arrow-left-right"></i> Nouveau Transfert
+        </a>
+        <a href="{{ path('app_transfer_index') }}" class="tnav-btn tnav-history">
+            <i class="bi bi-bookmark-fill"></i> Transferts Enregistrés
+        </a>
+    </div>
+
+    {# Flash messages #}
+    {% for label, msgs in app.flashes %}
+        {% for msg in msgs %}
+        <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# ── Carte principale ── #}
+    <div class="card border-0 shadow-sm mb-3" style="border-radius:1rem">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-4">Nouveau Transfert de Palette</h5>
+
+            {# ════ Zone de scan ════ #}
+            <div id="scanZone" class="scan-zone mb-3" onclick="startCamera()">
+
+                {# Placeholder initial #}
+                <div id="scanPlaceholder">
+                    <svg class="qr-icon" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.3">
+                        <rect x="3" y="3" width="7" height="7" rx="1.2"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1.2"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1.2"/>
+                        <path d="M14 14h2.5v2.5H14zM17.5 17.5H20V20h-2.5zM14 20h2.5M20 14v2.5" stroke-linecap="round"/>
+                    </svg>
+                    <h5 class="fw-bold mb-1">Scanner une palette</h5>
+                    <p class="text-muted mb-3" style="font-size:.88rem">
+                        Utilisez le PDA pour scanner le QR Code ou le code-barres de la palette
+                    </p>
+                    <button type="button" class="btn btn-dark px-4 py-2 fw-semibold"
+                            onclick="event.stopPropagation(); startCamera()">
+                        <i class="bi bi-qr-code-scan me-2"></i> Scanner Palette
+                    </button>
+                </div>
+
+                {# Vue caméra (masquée au départ) #}
+                <div id="cameraContainer" class="d-none" onclick="event.stopPropagation()">
+                    <div id="reader"></div>
+                    <p class="text-muted mt-2 mb-2" style="font-size:.82rem">
+                        <i class="bi bi-camera-video me-1"></i> Placez le code dans le cadre…
+                    </p>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="stopCamera()">
+                        <i class="bi bi-x-circle me-1"></i> Arrêter la caméra
+                    </button>
                 </div>
             </div>
+
+            {# Séparateur manuel #}
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <hr class="flex-grow-1 my-0">
+                <small class="text-muted px-2" style="white-space:nowrap">ou saisir manuellement</small>
+                <hr class="flex-grow-1 my-0">
+            </div>
+
+            {# Saisie manuelle (PDA, clavier) #}
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-white"><i class="bi bi-keyboard text-muted"></i></span>
+                <input type="text" id="manualInput" class="form-control"
+                       placeholder="Code palette (ex : BR-2024-01)…" autocomplete="off">
+                <button class="btn btn-outline-primary fw-semibold" type="button" id="btnManual">
+                    <i class="bi bi-search me-1"></i> Rechercher
+                </button>
+            </div>
+
+            {# Feedback #}
+            <div id="scanLoading" class="text-center py-3 d-none">
+                <div class="spinner-border text-primary spinner-border-sm me-2"></div>
+                <span class="text-muted">Recherche en cours…</span>
+            </div>
+            <div id="scanError" class="alert alert-danger d-none">
+                <i class="bi bi-exclamation-triangle me-2"></i><span id="scanErrorMsg"></span>
+            </div>
+
+            {# ════ Infos palette (masquées jusqu'au scan) ════ #}
+            <div id="paletteInfo" class="d-none">
+                <hr class="my-4">
+                <p class="step-label"><i class="bi bi-info-circle me-1"></i> Informations de la palette</p>
+                <div class="row g-2 mb-3">
+                    <div class="col-6 col-sm-4 col-md-3"><div class="info-tile"><small>Code</small><strong id="p-code" class="text-primary"></strong></div></div>
+                    <div class="col-6 col-sm-4 col-md-3"><div class="info-tile"><small>Client</small><strong id="p-client"></strong></div></div>
+                    <div class="col-6 col-sm-4 col-md-3"><div class="info-tile"><small>Espèce</small><strong id="p-espece"></strong></div></div>
+                    <div class="col-6 col-sm-4 col-md-3"><div class="info-tile"><small>Qualité</small><strong id="p-qualite"></strong></div></div>
+                    <div class="col-6 col-sm-4 col-md-3"><div class="info-tile"><small>Moule</small><strong id="p-moule"></strong></div></div>
+                    <div class="col-6 col-sm-4 col-md-3"><div class="info-tile"><small>Famille</small><strong id="p-famille"></strong></div></div>
+                    <div class="col-6 col-sm-4 col-md-3"><div class="info-tile"><small>Cartons</small><strong id="p-cartons"></strong></div></div>
+                    <div class="col-6 col-sm-4 col-md-3"><div class="info-tile"><small>Poids</small><strong id="p-poids"></strong></div></div>
+                </div>
+                <div class="alert alert-warning d-flex align-items-center gap-2 py-2">
+                    <i class="bi bi-geo-alt-fill fs-5 flex-shrink-0"></i>
+                    <div><strong>Localisation actuelle :</strong> <span id="p-location"></span></div>
+                </div>
+            </div>
+
+            {# ════ Formulaire de transfert (masqué jusqu'au scan) ════ #}
+            <div id="transferForm" class="d-none">
+                <hr class="my-4">
+                <p class="step-label"><i class="bi bi-geo-alt me-1"></i> Nouvelle localisation</p>
+                <form method="post" action="{{ path('app_transfer_new') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('transfer_confirm') }}">
+                    <input type="hidden" name="confirm" value="1">
+                    <input type="hidden" name="code_palette" id="formCodePalette">
+
+                    <div class="row g-3 align-items-end">
+                        <div class="col-sm-5">
+                            <label class="form-label fw-semibold">Nouvelle chambre <span class="text-danger">*</span></label>
+                            <select name="new_cold_room" id="newColdRoom" class="form-select" required>
+                                <option value="">— Sélectionner une chambre —</option>
+                                {% for room in coldRooms %}
+                                    <option value="{{ room.id }}">{{ room.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label fw-semibold">Nouveau rayon</label>
+                            <select name="new_rayon" id="newRayon" class="form-select" disabled>
+                                <option value="">— Chambre d'abord —</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success fw-semibold flex-grow-1">
+                                    <i class="bi bi-check-circle me-1"></i> Confirmer
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="btnReset" title="Réinitialiser">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Résumé du transfert #}
+                    <div id="transferSummary" class="alert alert-light border mt-3 py-2 d-none">
+                        <i class="bi bi-arrow-right-circle me-1 text-primary"></i>
+                        <span class="badge bg-secondary" id="sum-from"></span>
+                        <i class="bi bi-arrow-right mx-2 text-muted"></i>
+                        <span class="badge bg-success" id="sum-to"></span>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </div>
 
-    {# Étape 3 : Nouvelle localisation #}
-    <div class="card">
-        <div class="card-header"><i class="bi bi-geo-alt me-2"></i>Étape 3 : Nouvelle localisation</div>
-        <div class="card-body">
-            <form method="post">
-                <input type="hidden" name="code_palette" value="{{ palette.codePalette }}">
-                <input type="hidden" name="confirm" value="1">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label">Nouvelle chambre</label>
-                        <select name="new_cold_room" class="form-select" required>
-                            <option value="">-- Sélectionner --</option>
-                            {% for room in coldRooms %}
-                                <option value="{{ room.id }}">{{ room.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Nouveau rayon</label>
-                        <select name="new_rayon" class="form-select">
-                            <option value="">-- Sélectionner --</option>
-                            {% for i in 1..44 %}
-                                <option value="R{{ '%02d'|format(i) }}">R{{ '%02d'|format(i) }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success flex-grow-1"><i class="bi bi-check-circle"></i> Confirmer</button>
-                            <a href="{{ path('app_transfer_new') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </form>
+    {# Instructions #}
+    <div class="card border-0 shadow-sm" style="border-radius:1rem">
+        <div class="card-body px-4 py-3">
+            <strong style="font-size:.88rem">Instructions :</strong>
+            <ol class="mb-0 mt-2" style="font-size:.84rem; color:#475569; line-height:1.8">
+                <li>Cliquez sur <strong>"Scanner Palette"</strong></li>
+                <li>Scannez le QR Code ou code-barres de la palette</li>
+                <li>Le système identifiera automatiquement la palette et affichera ses informations</li>
+                <li>Sélectionnez la nouvelle chambre et le nouveau rayon</li>
+                <li>Confirmez le transfert</li>
+            </ol>
         </div>
     </div>
-    {% endif %}
+
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(function () {
+    let html5QrCode  = null;
+    let scanActive   = false;
+    let currentLoc   = '';
+
+    const scanZone        = document.getElementById('scanZone');
+    const scanPlaceholder = document.getElementById('scanPlaceholder');
+    const cameraContainer = document.getElementById('cameraContainer');
+    const scanLoading     = document.getElementById('scanLoading');
+    const scanError       = document.getElementById('scanError');
+    const scanErrorMsg    = document.getElementById('scanErrorMsg');
+    const paletteInfo     = document.getElementById('paletteInfo');
+    const transferForm    = document.getElementById('transferForm');
+    const newColdRoom     = document.getElementById('newColdRoom');
+    const newRayon        = document.getElementById('newRayon');
+    const summary         = document.getElementById('transferSummary');
+    const manualInput     = document.getElementById('manualInput');
+
+    /* ── Caméra ── */
+    window.startCamera = function () {
+        if (scanActive) return;
+        scanPlaceholder.classList.add('d-none');
+        cameraContainer.classList.remove('d-none');
+        scanZone.classList.add('active');
+        scanZone.style.cursor = 'default';
+
+        html5QrCode = new Html5Qrcode('reader');
+        html5QrCode.start(
+            { facingMode: 'environment' },
+            { fps: 12, qrbox: { width: 260, height: 180 } },
+            (decoded) => { stopCamera(); searchPalette(parseCode(decoded)); },
+            () => {}
+        ).then(() => { scanActive = true; })
+         .catch(err => {
+            stopCamera();
+            showError('Impossible d\'accéder à la caméra. Utilisez la saisie manuelle. (' + err + ')');
+        });
+    };
+
+    window.stopCamera = function () {
+        if (!html5QrCode) {
+            resetScanUI(); return;
+        }
+        html5QrCode.stop().catch(() => {}).finally(() => {
+            html5QrCode = null; scanActive = false;
+            resetScanUI();
+        });
+    };
+
+    function resetScanUI () {
+        cameraContainer.classList.add('d-none');
+        scanPlaceholder.classList.remove('d-none');
+        scanZone.classList.remove('active');
+        scanZone.style.cursor = 'pointer';
+    }
+
+    /* ── Recherche palette ── */
+    function searchPalette(code) {
+        if (!code) return;
+        hideAll();
+        scanLoading.classList.remove('d-none');
+        paletteInfo.classList.add('d-none');
+        transferForm.classList.add('d-none');
+
+        fetch('/transferts/api/scan/' + encodeURIComponent(code))
+            .then(r => r.json())
+            .then(data => {
+                scanLoading.classList.add('d-none');
+                if (data.error) { showError('Palette introuvable : ' + code); return; }
+                if (!data.hasColdRoom) {
+                    showError('Cette palette n\'a pas de localisation assignée, impossible de la transférer.');
+                    return;
+                }
+                fillPaletteInfo(data);
+                paletteInfo.classList.remove('d-none');
+                transferForm.classList.remove('d-none');
+            })
+            .catch(() => { scanLoading.classList.add('d-none'); showError('Erreur de connexion lors de la recherche.'); });
+    }
+
+    function fillPaletteInfo(d) {
+        document.getElementById('p-code').textContent    = d.code;
+        document.getElementById('p-client').textContent  = d.client;
+        document.getElementById('p-espece').textContent  = d.espece;
+        document.getElementById('p-qualite').textContent = d.qualite;
+        document.getElementById('p-moule').textContent   = d.moule;
+        document.getElementById('p-famille').textContent = d.famille;
+        document.getElementById('p-cartons').textContent = d.cartons + ' ctn';
+        document.getElementById('p-poids').textContent   = d.poids.toLocaleString('fr-FR') + ' kg';
+        currentLoc = (d.coldRoom ?? 'Non assignée') + ' / ' + (d.rayon ?? '—');
+        document.getElementById('p-location').textContent  = currentLoc;
+        document.getElementById('formCodePalette').value   = d.code;
+        newColdRoom.value = '';
+        newRayon.innerHTML = '<option value="">— Chambre d\'abord —</option>';
+        newRayon.disabled  = true;
+        summary.classList.add('d-none');
+    }
+
+    /* ── Helpers ── */
+    function showError(msg) {
+        scanErrorMsg.textContent = msg;
+        scanError.classList.remove('d-none');
+    }
+    function hideAll() {
+        scanError.classList.add('d-none');
+        scanLoading.classList.add('d-none');
+    }
+
+    /* ── Extraction du code depuis le contenu QR (format: CODE|OP:...|CLIENT:...) ── */
+    function parseCode(raw) {
+        return raw.trim().split('|')[0].trim();
+    }
+
+    /* ── Saisie manuelle (PDA + clavier) ── */
+    document.getElementById('btnManual').addEventListener('click', () => searchPalette(parseCode(manualInput.value)));
+    manualInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchPalette(parseCode(manualInput.value)); } });
+
+    /* ── Réinitialiser ── */
+    document.getElementById('btnReset').addEventListener('click', () => {
+        manualInput.value = '';
+        hideAll();
+        paletteInfo.classList.add('d-none');
+        transferForm.classList.add('d-none');
+        newColdRoom.value = '';
+        newRayon.innerHTML = '<option value="">— Chambre d\'abord —</option>';
+        newRayon.disabled  = true;
+        summary.classList.add('d-none');
+        currentLoc = '';
+        stopCamera();
+    });
+
+    /* ── Chargement dynamique des rayons ── */
+    newColdRoom.addEventListener('change', function () {
+        const id = this.value;
+        newRayon.innerHTML = '<option value="">Chargement…</option>';
+        newRayon.disabled  = true;
+        summary.classList.add('d-none');
+        if (!id) { newRayon.innerHTML = '<option value="">— Chambre d\'abord —</option>'; return; }
+        fetch('/transferts/api/rayons/' + id)
+            .then(r => r.json())
+            .then(list => {
+                newRayon.innerHTML = '<option value="">— Aucun rayon —</option>';
+                list.forEach(r => {
+                    const o = document.createElement('option');
+                    o.value = r; o.textContent = r; newRayon.appendChild(o);
+                });
+                newRayon.disabled = false;
+                updateSummary();
+            });
+    });
+    newRayon.addEventListener('change', updateSummary);
+
+    function updateSummary() {
+        const opt = newColdRoom.options[newColdRoom.selectedIndex];
+        if (!opt?.value) { summary.classList.add('d-none'); return; }
+        document.getElementById('sum-from').textContent = currentLoc || '?';
+        document.getElementById('sum-to').textContent   = opt.text + (newRayon.value ? ' / ' + newRayon.value : '');
+        summary.classList.remove('d-none');
+    }
+})();
+</script>
 {% endblock %}

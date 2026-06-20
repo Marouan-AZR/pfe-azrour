@@ -1,58 +1,191 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Rayon {{ rayon }}{% endblock %}
+{% block title %}Rayon {{ rayon }} — Plan des Rayons{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .glass { background:#fff;border:1px solid #e2e8f0;border-radius:1rem;box-shadow:0 4px 24px rgba(0,0,0,.06); }
+    .kpi-icon { width:44px;height:44px;border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0; }
+    .filter-card { background:#f8fafc;border:1px solid #e2e8f0;border-radius:.75rem; }
+
+    .pal-table thead th {
+        font-size:.73rem;
+        text-transform:uppercase;
+        letter-spacing:.05em;
+        color:#64748b;
+        font-weight:700;
+        background:#f8fafc;
+        border-bottom:2px solid #e2e8f0;
+        padding:.55rem .75rem;
+        white-space:nowrap;
+    }
+    .pal-table tbody td { font-size:.855rem; padding:.55rem .75rem; vertical-align:middle; }
+    .pal-table tbody tr:hover { background:#f0f7ff; }
+
+    /* badges */
+    .chip { display:inline-flex;align-items:center;gap:.25rem;font-size:.72rem;padding:.28em .6em;border-radius:.5rem;font-weight:700;white-space:nowrap; }
+    .chip-cartons { background:#1e40af;color:#fff; border-radius:50%;min-width:1.9rem;height:1.9rem;justify-content:center;font-size:.78rem; }
+    .chip-rayon   { background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe; }
+    .chip-chambre { background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd; }
+    .chip-stock   { background:#dcfce7;color:#166534;border:1px solid #bbf7d0; }
+    .chip-partial { background:#fef9c3;color:#854d0e;border:1px solid #fde68a; }
+    .chip-wait    { background:#e0f2fe;color:#075985;border:1px solid #bae6fd; }
+    .chip-reject  { background:#fee2e2;color:#991b1b;border:1px solid #fecaca; }
+    .chip-other   { background:#f1f5f9;color:#475569;border:1px solid #e2e8f0; }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-box-seam"></i> Rayon {{ rayon }}</h2>
-        <a href="{{ path('app_shelf_plan') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+<div class="container-fluid py-4 px-4">
+
+    {# ── Header ── #}
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1" style="font-size:.85rem">
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('app_shelf_plan') }}" class="text-primary text-decoration-none">
+                            <i class="bi bi-grid-3x3-gap me-1"></i>Plan des Rayons
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active text-secondary">{{ rayon }}</li>
+                </ol>
+            </nav>
+            <h2 class="mb-1 fw-bold">
+                <i class="bi bi-box-seam me-2 text-primary"></i>Rayon {{ rayon }}
+            </h2>
+            <small class="text-secondary">
+                <i class="bi bi-calendar3 me-1"></i>{{ 'now'|date('d/m/Y') }}
+                &nbsp;&middot;&nbsp;
+                {% if palettes|length > 0 %}
+                    <span class="fw-semibold" style="color:#ef4444;"><i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>Occupé</span>
+                {% else %}
+                    <span class="fw-semibold" style="color:#10b981;"><i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>Disponible</span>
+                {% endif %}
+            </small>
+        </div>
+        <a href="{{ path('app_shelf_plan') }}" class="btn btn-outline-secondary align-self-start">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body d-flex justify-content-around text-center">
-                    <div><h4 class="mb-0">{{ palettes|length }}</h4><small class="text-muted">Palettes</small></div>
-                    <div><h4 class="mb-0">{{ totalWeight|number_format(2, ',', ' ') }} kg</h4><small class="text-muted">Poids total</small></div>
+    {# ── KPI Cards ── #}
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="glass p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#6366f122;color:#6366f1"><i class="bi bi-boxes"></i></div>
+                    <div>
+                        <small class="text-secondary d-block">Palettes présentes</small>
+                        <h5 class="mb-0 fw-bold" style="color:#1e293b;">{{ palettes|length }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="glass p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#0ea5e922;color:#0ea5e9"><i class="bi bi-inboxes"></i></div>
+                    <div>
+                        <small class="text-secondary d-block">Total cartons</small>
+                        <h5 class="mb-0 fw-bold" style="color:#1e293b;">{{ totalCartons }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="glass p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#10b98122;color:#10b981"><i class="bi bi-box-seam"></i></div>
+                    <div>
+                        <small class="text-secondary d-block">Poids total stocké</small>
+                        <h5 class="mb-0 fw-bold" style="color:#1e293b;">{{ totalWeight|number_format(1, ',', ' ') }} kg</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="glass p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#f59e0b22;color:#f59e0b"><i class="bi bi-people"></i></div>
+                    <div>
+                        <small class="text-secondary d-block">Clients présents</small>
+                        <h5 class="mb-0 fw-bold" style="color:#1e293b;">{{ clientCount }}</h5>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ filters.search }}">
+    {# ── Filtres ── #}
+    <div class="filter-card p-3 mb-4">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1" style="color:#374151;">Recherche</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-secondary"></i></span>
+                    <input type="text" name="search" class="form-control border-start-0 ps-0"
+                           placeholder="Code palette, espèce…" value="{{ filters.search }}">
                 </div>
-                <div class="col-md-3">
-                    <select name="client" class="form-select">
-                        <option value="">-- Client --</option>
-                        {% for client in clients %}
-                            <option value="{{ client.id }}" {{ filters.client == client.id ~ '' ? 'selected' : '' }}>{{ client.raisonSociale }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select name="espece" class="form-select">
-                        <option value="">-- Espèce --</option>
-                        {% for esp in especes %}
-                            <option value="{{ esp }}" {{ filters.espece == esp ? 'selected' : '' }}>{{ esp }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrer</button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1" style="color:#374151;">Client</label>
+                <select name="client" class="form-select form-select-sm">
+                    <option value="">Tous les clients</option>
+                    {% for client in clients %}
+                        <option value="{{ client.id }}" {{ filters.client == client.id ~ '' ? 'selected' : '' }}>
+                            {{ client.companyName }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1" style="color:#374151;">Espèce</label>
+                <select name="espece" class="form-select form-select-sm">
+                    <option value="">Toutes</option>
+                    {% for esp in especes %}
+                        <option value="{{ esp }}" {{ filters.espece == esp ? 'selected' : '' }}>{{ esp }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1" style="color:#374151;">Qualité</label>
+                <select name="qualite" class="form-select form-select-sm">
+                    <option value="">Toutes</option>
+                    {% for qual in qualites %}
+                        <option value="{{ qual }}" {{ filters.qualite == qual ? 'selected' : '' }}>{{ qual }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                    <i class="bi bi-funnel me-1"></i>Filtrer
+                </button>
+                {% if filters.search or filters.client or filters.espece or filters.qualite %}
+                <a href="{{ path('app_shelf_plan_detail', {rayon: rayon}) }}" class="btn btn-outline-secondary btn-sm" title="Effacer les filtres">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    {# ── Tableau ── #}
+    <div class="glass overflow-hidden">
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+            <h6 class="mb-0 fw-semibold" style="color:#1e293b;">
+                <i class="bi bi-table me-2 text-primary"></i>Palettes stockées
+                <span style="background:#1e40af;color:#fff;font-size:.72rem;padding:.2em .6em;border-radius:50px;font-weight:700;margin-left:.4rem;">{{ palettes|length }}</span>
+            </h6>
+            {% if filters.search or filters.client or filters.espece or filters.qualite %}
+            <small style="color:#d97706;font-weight:600;">
+                <i class="bi bi-funnel-fill me-1"></i>Filtres actifs
+            </small>
+            {% endif %}
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table pal-table table-hover align-middle mb-0">
+                <thead>
                     <tr>
                         <th>Code Palette</th>
                         <th>Client</th>
@@ -60,36 +193,89 @@
                         <th>Qualité</th>
                         <th>Moule</th>
                         <th>Famille</th>
-                        <th>Cartons</th>
-                        <th>Poids Restant</th>
-                        <th>Chambre</th>
-                        <th>Rayon</th>
-                        <th>Date d'entrée</th>
-                        <th>Statut</th>
+                        <th class="text-center">Cartons restants</th>
+                        <th class="text-end">Poids (kg)</th>
+                        <th>Chambre froide</th>
+                        <th class="text-center">Rayon</th>
+                        <th>Date entrée</th>
+                        <th class="text-center">Statut</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for palette in palettes %}
                     <tr>
-                        <td><strong>{{ palette.codePalette }}</strong></td>
-                        <td>{{ palette.operation.client.raisonSociale }}</td>
-                        <td>{{ palette.espece }}</td>
-                        <td>{{ palette.qualite }}</td>
-                        <td>{{ palette.moule }}</td>
-                        <td>{{ palette.famille }}</td>
-                        <td>{{ palette.nombreCartons }}</td>
-                        <td>{{ palette.poidsRestant|number_format(2, ',', ' ') }} kg</td>
-                        <td>{{ palette.coldRoom ? palette.coldRoom.name : '-' }}</td>
-                        <td>{{ palette.rayon }}</td>
-                        <td>{{ palette.createdAt|date('d/m/Y') }}</td>
-                        <td><span class="badge bg-{{ palette.status.value == 'en_stock' ? 'success' : (palette.status.value == 'sortie_complete' ? 'secondary' : 'warning') }}">{{ palette.status.value|replace({'_': ' '})|capitalize }}</span></td>
+                        <td>
+                            <code style="font-weight:700;color:#1e40af;font-size:.82rem;">{{ palette.codePalette }}</code>
+                        </td>
+                        <td style="font-weight:600;color:#1e293b;">{{ palette.operation.client.companyName }}</td>
+                        <td style="color:#334155;">{{ palette.espece }}</td>
+                        <td style="color:#475569;">{{ palette.qualite is not null ? palette.qualite : '—' }}</td>
+                        <td style="color:#475569;">{{ palette.moule is not null ? palette.moule : '—' }}</td>
+                        <td style="color:#475569;">{{ palette.famille is not null ? palette.famille : '—' }}</td>
+                        <td class="text-center">
+                            <span class="chip chip-cartons">{{ palette.cartonsRestants }}</span>
+                        </td>
+                        <td class="text-end" style="font-weight:600;color:#1e293b;">
+                            {{ palette.poidsRestant|number_format(2, ',', ' ') }}
+                        </td>
+                        <td>
+                            {% if palette.coldRoom %}
+                                <span class="chip chip-chambre">
+                                    <i class="bi bi-snow2"></i>{{ palette.coldRoom.name }}
+                                </span>
+                            {% else %}
+                                <span style="color:#94a3b8;">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="chip chip-rayon">{{ palette.rayon is not null ? palette.rayon : '—' }}</span>
+                        </td>
+                        <td style="color:#475569;font-size:.83rem;white-space:nowrap;">{{ palette.createdAt|date('d/m/Y') }}</td>
+                        <td class="text-center">
+                            {% if palette.status.value == 'validee' %}
+                                <span class="chip chip-stock">En stock</span>
+                            {% elseif palette.status.value == 'sortie_partielle' %}
+                                <span class="chip chip-partial">Sortie partielle</span>
+                            {% elseif palette.status.value == 'en_attente' %}
+                                <span class="chip chip-wait">En attente</span>
+                            {% elseif palette.status.value == 'rejetee' %}
+                                <span class="chip chip-reject">Rejetée</span>
+                            {% else %}
+                                <span class="chip chip-other">
+                                    {{ palette.status.value|replace({'_': ' '})|capitalize }}
+                                </span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="12" class="text-center text-muted py-4">Aucune palette dans ce rayon</td></tr>
+                    <tr>
+                        <td colspan="12" class="text-center py-5" style="color:#94a3b8;">
+                            <i class="bi bi-inbox" style="font-size:3rem;display:block;margin-bottom:1rem;opacity:.3;"></i>
+                            <span class="fw-semibold" style="color:#64748b;">Aucune palette dans ce rayon</span>
+                            {% if filters.search or filters.client or filters.espece or filters.qualite %}
+                            <br><small style="color:#94a3b8;">Essayez de modifier ou d'effacer vos filtres</small>
+                            {% endif %}
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
+                {% if palettes|length > 0 %}
+                <tfoot style="background:#f8fafc;">
+                    <tr>
+                        <td colspan="6" class="text-end" style="font-size:.8rem;color:#64748b;font-weight:600;padding:.6rem .75rem;">Totaux</td>
+                        <td class="text-center" style="padding:.6rem .75rem;">
+                            <span class="chip chip-cartons">{{ totalCartons }}</span>
+                        </td>
+                        <td class="text-end" style="font-weight:700;color:#1e293b;padding:.6rem .75rem;">
+                            {{ totalWeight|number_format(2, ',', ' ') }}
+                        </td>
+                        <td colspan="4"></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
             </table>
         </div>
     </div>
+
 </div>
 {% endblock %}

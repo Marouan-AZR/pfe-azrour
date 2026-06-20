@@ -1,284 +1,545 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Fiche {{ fiche.operation.type.value == 'exit' ? 'de Charge' : 'de Décharge' }} {{ fiche.numero }}{% endblock %}
+{% block title %}Fiche {{ fiche.operation.type.value == 'exit' ? 'de Charge' : 'de D&eacute;charge' }} {{ fiche.numero }}{% endblock %}
 
 {% block body %}
+<style>
+/* ════════════════════════════════
+   STYLES &Eacute;CRAN
+   ════════════════════════════════ */
+.fiche-header-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.fiche-header-cell {
+    padding: 8px 12px;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+.fiche-header-cell:nth-child(4n) { border-right: none; }
+.fiche-header-cell:nth-last-child(-n+4) { border-bottom: none; }
+.fiche-lbl {
+    font-size: .7rem; text-transform: uppercase; letter-spacing: .05em;
+    color: #64748b; font-weight: 600; margin-bottom: 2px;
+}
+.fiche-val { font-size: .9rem; font-weight: 600; color: #0f172a; }
+
+/* Table palettes */
+.palette-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.palette-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .82rem;
+}
+.palette-table thead th {
+    background: #f1f5f9;
+    padding: 7px 8px;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #475569;
+    font-weight: 700;
+    border-bottom: 2px solid #cbd5e1;
+    white-space: nowrap;
+}
+.palette-table tbody td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+    color: #1e293b;
+}
+.palette-table tbody tr:last-child td { border-bottom: none; }
+.palette-table tbody tr:nth-child(even) { background: #f8fafc; }
+.palette-table tbody tr:hover { background: #eff6ff; }
+.palette-table tfoot td {
+    padding: 7px 8px;
+    background: #f1f5f9;
+    font-weight: 700;
+    border-top: 2px solid #cbd5e1;
+    font-size: .82rem;
+}
+code.palette-code {
+    font-size: .75rem; color: #1d4ed8; background: #eff6ff;
+    padding: 1px 5px; border-radius: 4px; font-family: monospace;
+}
+
+/* Sommaire */
+.sommaire-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .83rem;
+}
+.sommaire-table th {
+    background: #f1f5f9;
+    padding: 6px 10px;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #475569;
+    font-weight: 700;
+    border: 1px solid #e2e8f0;
+}
+.sommaire-table td {
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+}
+.sommaire-table tbody tr:nth-child(even) { background: #f8fafc; }
+.sommaire-table tfoot td {
+    font-weight: 700;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+}
+
+/* ════════════════════════════════
+   IMPRESSION
+   ════════════════════════════════ */
+@page { size: A4 portrait; margin: 0; }
+
+@media print {
+    /* Cacher interface app */
+    .sidebar, .main-header, .sidebar-overlay,
+    .no-print, .modal, .modal-backdrop { display: none !important; }
+
+    /* R&eacute;initialiser layout */
+    .app-wrapper    { display: block !important; }
+    .main-content   { margin-left: 0 !important; padding: 0 !important; }
+    .main-body      { padding: 0 !important; }
+    .container-fluid{ padding: 0 !important; }
+
+    body {
+        margin: 0 !important;
+        padding: .8cm 1.2cm !important;
+        font-size: 8pt !important;
+        font-family: Arial, sans-serif !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color: #000 !important;
+    }
+
+    /* Titre */
+    .fiche-print-title { font-size: 11pt !important; font-weight: bold; margin-bottom: .25cm !important; }
+
+    /* En-t&ecirc;te */
+    .fiche-header-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        border: 1px solid #999 !important;
+        margin-bottom: .2cm !important;
+    }
+    .fiche-header-cell { padding: 4px 6px !important; border-color: #bbb !important; }
+    .fiche-lbl { font-size: 6.5pt !important; color: #555 !important; }
+    .fiche-val { font-size: 8pt !important; }
+
+    /* Titres sections */
+    .section-title-print {
+        font-size: 8pt !important; font-weight: bold;
+        background: #eee !important; padding: 2px 6px !important;
+        margin-bottom: .1cm !important; border: 1px solid #aaa !important;
+        border-bottom: none !important;
+    }
+
+    /* Tableau palettes */
+    .palette-table-wrap { border: 1px solid #aaa !important; border-radius: 0 !important; margin-bottom: .2cm !important; }
+    .palette-table { font-size: 7pt !important; border-collapse: collapse !important; }
+    .palette-table thead th {
+        background: #ddd !important; padding: 2px 3px !important;
+        font-size: 6.5pt !important; border-bottom: 1px solid #999 !important;
+        border-right: 1px solid #ccc !important;
+        white-space: normal !important;
+    }
+    .palette-table tbody td {
+        padding: 2px 3px !important; border-bottom: 1px solid #ddd !important;
+        border-right: 1px solid #ddd !important; font-size: 7pt !important;
+    }
+    .palette-table tbody tr:nth-child(even) { background: #f5f5f5 !important; }
+    .palette-table tfoot td {
+        padding: 2px 3px !important; font-size: 7.5pt !important;
+        background: #e0e0e0 !important; border-top: 1px solid #999 !important;
+    }
+    code.palette-code { background: none !important; color: #000 !important; font-size: 6.5pt !important; padding: 0 !important; }
+
+    /* Sommaire */
+    .sommaire-table { font-size: 7pt !important; border-collapse: collapse !important; }
+    .sommaire-table th, .sommaire-table td { padding: 2px 4px !important; border-color: #ccc !important; }
+    .sommaire-table th { background: #ddd !important; font-size: 6.5pt !important; }
+    .sommaire-table tfoot td { background: #e0e0e0 !important; border-color: #999 !important; }
+
+    /* Badges */
+    .badge { padding: 1px 3px !important; font-size: 6.5pt !important; border-radius: 2px !important; }
+
+    /* Obs rejet */
+    .alert { padding: 3px 6px !important; font-size: 7.5pt !important; margin-top: .2cm !important; }
+
+    /* Signatures */
+    .signature-block { margin-top: .4cm !important; }
+
+    .mb-3, .mb-4 { margin-bottom: .15cm !important; }
+}
+</style>
+
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-<h1><i class="bi bi-file-earmark-text me-2"></i>Fiche de {{ fiche.operation.type.value == 'exit' ? 'Charge' : 'Décharge' }} N° {{ fiche.numero }}</h1>
+
+    {# ── Titre + boutons ── #}
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-file-earmark-text me-2 text-primary"></i>
+            Fiche de {{ fiche.operation.type.value == 'exit' ? 'Charge' : 'D&eacute;charge' }}
+            &mdash; N&deg; {{ fiche.numero }}
+        </h5>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-primary no-print" onclick="window.print()"><i class="bi bi-printer"></i> Imprimer</button>
-            <a href="{{ path('app_fiche_index') }}" class="btn btn-outline-secondary no-print"><i class="bi bi-arrow-left"></i> Retour</a>
+            <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i>Imprimer
+            </button>
+            <a href="{{ path('app_operation_show', {id: fiche.operation.id}) }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Retour
+            </a>
         </div>
-
-
     </div>
 
-    {# Le bouton imprimer doit imprimer aussi les tableaux. #}
-    <style>
-        @media print {
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    {# Titre visible uniquement &agrave; l'impression #}
+    <div class="fiche-print-title" style="display:none">
+        Fiche de {{ fiche.operation.type.value == 'exit' ? 'Charge' : 'D&eacute;charge' }} &mdash; N&deg; {{ fiche.numero }}
+    </div>
 
-            /* Afficher tout le contenu au print */
-            .modal, .modal-backdrop { display: none !important; }
-            .table-responsive { overflow: visible !important; }
-            .table { width: 100% !important; }
-        }
-    </style>
-
-
-
-    {# En-tête fiche #}
-    <div class="card mb-4">
-        <div class="card-header">En-tête</div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3"><small class="text-muted">Fiche N°</small><br><strong>{{ fiche.numero }}</strong></div>
-                <div class="col-md-3"><small class="text-muted">Date</small><br><strong>{{ fiche.createdAt|date('d/m/Y') }}</strong></div>
-                <div class="col-md-3"><small class="text-muted">Client</small><br><strong>{{ fiche.client.companyName }}</strong></div>
-                <div class="col-md-3"><small class="text-muted">Statut</small><br><span class="badge bg-{{ fiche.status.cssClass }} fs-6">{{ fiche.status.label }}</span></div>
-                <div class="col-md-3"><small class="text-muted">Contrôleur</small><br><strong>{{ fiche.controleur.fullName }}</strong></div>
-                <div class="col-md-3"><small class="text-muted">Température</small><br><strong>{{ fiche.temperature ?? '—' }}</strong></div>
-                <div class="col-md-3"><small class="text-muted">Total Cartons</small><br><strong>{{ fiche.totalCartons }}</strong></div>
-                <div class="col-md-3"><small class="text-muted">Total Kg</small><br><strong>{{ fiche.poidsTotal|number_format(0, ',', ' ') }}</strong></div>
+    {# ════════ EN-T&Ecirc;TE ════════ #}
+    <div class="mb-3">
+        <div class="section-title-print" style="display:none">EN-T&Ecirc;TE</div>
+        <div class="fiche-header-grid">
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Fiche N&deg;</div>
+                <div class="fiche-val">{{ fiche.numero }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Date</div>
+                <div class="fiche-val">{{ fiche.createdAt|date('d/m/Y') }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Client</div>
+                <div class="fiche-val">{{ fiche.client.companyName }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Contr&ocirc;leur</div>
+                <div class="fiche-val">{{ fiche.controleur.fullName }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Temp&eacute;rature chambre</div>
+                {% set _temp = fiche.temperature ?? fiche.operation.temperature %}
+                <div class="fiche-val">{{ _temp ? _temp ~ ' °C' : '—' }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Total Cartons</div>
+                <div class="fiche-val">{{ fiche.totalCartons }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Total Kg</div>
+                <div class="fiche-val">{{ fiche.poidsTotal|number_format(0, ',', ' ') }} kg</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Matricule</div>
+                <div class="fiche-val">{{ fiche.matricule ?? fiche.operation.immatriculation ?? '—' }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">N&deg; Conteneur</div>
+                <div class="fiche-val">{{ fiche.numeroConteneur ?? fiche.operation.numeroConteneur ?? '—' }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">N&deg; Agr&eacute;ment</div>
+                <div class="fiche-val">{{ fiche.numeroAgrement ?? fiche.operation.numeroAgrement ?? fiche.client.numeroAgrement ?? '—' }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Heure d&eacute;but chargement</div>
+                <div class="fiche-val">{{ fiche.heureDebutChargement ?? fiche.operation.heureDebutChargement ?? '—' }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Heure fin chargement</div>
+                <div class="fiche-val">{{ fiche.heureFinChargement ?? fiche.operation.heureFinChargement ?? '—' }}</div>
+            </div>
+            <div class="fiche-header-cell">
+                <div class="fiche-lbl">Carliste</div>
+                <div class="fiche-val">{{ fiche.carliste ?? fiche.operation.carliste ?? '—' }}</div>
             </div>
         </div>
     </div>
 
-    {# --- EXIT CONTROL: Scan card + progress counter --- #}
+    {# ════════ CONTROLE TERRAIN (masqu&eacute; &agrave; l'impression) ════════ #}
     {% set isExitControl = fiche.operation.type.value == 'exit' and fiche.isEnCoursControle() and fiche.controleur and fiche.controleur.id == app.user.id %}
 
     {% if isExitControl %}
-    {# Progress counter #}
     {% set controlledCount = 0 %}
     {% for p in fiche.operation.palettes %}
-        {% if p.status.value != 'en_attente' %}
-            {% set controlledCount = controlledCount + 1 %}
-        {% endif %}
+        {% if p.status.value != 'en_attente' %}{% set controlledCount = controlledCount + 1 %}{% endif %}
     {% endfor %}
-    <div class="card mb-4 border-info">
-        <div class="card-body d-flex align-items-center justify-content-between">
-            <span><i class="bi bi-clipboard-check me-2"></i><strong>{{ controlledCount }} / {{ fiche.operation.palettes|length }}</strong> palettes contrôlées</span>
-            <div class="progress flex-grow-1 ms-3" style="height: 20px;">
-                <div class="progress-bar bg-info" style="width: {{ fiche.operation.palettes|length > 0 ? (controlledCount / fiche.operation.palettes|length * 100) : 0 }}%"></div>
+    <div class="card mb-3 border-info no-print">
+        <div class="card-body d-flex align-items-center justify-content-between py-2">
+            <span class="small"><i class="bi bi-clipboard-check me-2"></i>
+                <strong>{{ controlledCount }} / {{ fiche.operation.palettes|length }}</strong> palettes contr&ocirc;l&eacute;es
+            </span>
+            <div class="progress flex-grow-1 ms-3" style="height:14px">
+                <div class="progress-bar bg-info" style="width:{{ fiche.operation.palettes|length > 0 ? (controlledCount / fiche.operation.palettes|length * 100)|round : 0 }}%"></div>
             </div>
         </div>
     </div>
-
-    {# Contrôle terrain scan card #}
-    <div class="card mb-4 border-primary">
-        <div class="card-header bg-primary text-white"><i class="bi bi-qr-code-scan me-2"></i>Contrôle terrain</div>
-        <div class="card-body">
-            <label class="form-label">Scanner ou saisir le code palette :</label>
-            <input type="text" id="scanInput" class="form-control form-control-lg" placeholder="Scannez le QR code..." autofocus>
+    <div class="card mb-3 border-primary no-print">
+        <div class="card-header bg-primary text-white py-2">
+            <i class="bi bi-qr-code-scan me-2"></i>Contr&ocirc;le terrain
+        </div>
+        <div class="card-body py-2">
+            <input type="text" id="scanInput" class="form-control" placeholder="Scanner le QR code..." autofocus>
         </div>
     </div>
-
-    {# Fiche de Charge - editable info #}
-    <div class="card mb-4">
-        <div class="card-header">Informations Chargement</div>
+    <div class="card mb-3 no-print">
+        <div class="card-header py-2">Informations Chargement</div>
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Heure début chargement</label>
-                    <input type="time" class="form-control" id="heureDebut" disabled>
+            <form method="post" action="{{ path('app_fiche_save_chargement', {id: fiche.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('chargement' ~ fiche.id) }}">
+                <div class="row g-2">
+                    <div class="col-md-2">
+                        <label class="form-label small">Heure d&eacute;but</label>
+                        <input type="time" name="heure_debut" class="form-control form-control-sm" value="{{ fiche.heureDebutChargement ?? '' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Heure fin</label>
+                        <input type="time" name="heure_fin" class="form-control form-control-sm" value="{{ fiche.heureFinChargement ?? '' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Temp&eacute;rature (&deg;C)</label>
+                        <input type="number" step="0.01" name="temperature" class="form-control form-control-sm" value="{{ fiche.temperature ?? '' }}" placeholder="-18.00">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Matricule</label>
+                        <input type="text" name="matricule" class="form-control form-control-sm" value="{{ fiche.matricule ?? '' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">N&deg; Conteneur</label>
+                        <input type="text" name="numero_conteneur" class="form-control form-control-sm" value="{{ fiche.numeroConteneur ?? '' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">N&deg; Agr&eacute;ment</label>
+                        <input type="text" name="numero_agrement" class="form-control form-control-sm"
+                               value="{{ fiche.numeroAgrement ?? fiche.client.numeroAgrement ?? '' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Carliste</label>
+                        <input type="text" name="carliste" class="form-control form-control-sm"
+                               value="{{ fiche.carliste ?? fiche.operation.carliste ?? '' }}" placeholder="N° carliste...">
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Heure fin chargement</label>
-                    <input type="time" class="form-control" id="heureFin" disabled>
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Enregistrer</button>
                 </div>
-                <div class="col-md-3"><small class="text-muted">Température</small><br><strong>{{ fiche.temperature ?? '—' }}</strong></div>
-                <div class="col-md-3"><small class="text-muted">Matricule</small><br><strong>{{ fiche.matricule ?? '—' }}</strong></div>
-                <div class="col-md-3"><small class="text-muted">N° Conteneur</small><br><strong>{{ fiche.numeroConteneur ?? '—' }}</strong></div>
-                <div class="col-md-3"><small class="text-muted">N° Agrément</small><br><strong>{{ fiche.numeroAgrement ?? '—' }}</strong></div>
-            </div>
+            </form>
         </div>
     </div>
     {% endif %}
 
-    {# Tableau des palettes #}
-    <div class="card mb-4">
-        <div class="card-header">Tableau des palettes</div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0" id="palettesTable">
-                    <thead>
-                        <tr>
-                            <th>Code Palette</th>
-                            <th>Espèce</th>
-                            <th>Qualité</th>
-                            <th>Moule</th>
-                            <th>Famille</th>
-                            <th class="text-center">N° Cartons</th>
-                            <th class="text-end">Poids Carton</th>
-                            <th>CD Lot Client</th>
-                            <th>Chambre</th>
-                            <th>Rayon</th>
-                            <th>Observation</th>
-                            {% if isExitControl %}
-                            <th class="text-center">Cartons à sortir</th>
-                            <th>Statut contrôle</th>
-                            <th>Actions</th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for palette in fiche.operation.palettes %}
-                        <tr data-palette-code="{{ palette.codePalette }}">
-                            <td><code>{{ palette.codePalette }}</code></td>
-                            <td>{{ palette.espece }}</td>
-                            <td>{{ palette.qualite ?? '—' }}</td>
-                            <td>{{ palette.moule ?? '—' }}</td>
-                            <td>{{ palette.famille ?? '—' }}</td>
-                            <td class="text-center">{{ palette.nombreCartons }}</td>
-                            <td class="text-end">{{ palette.poidsCarton }} kg</td>
-                            <td>{{ fiche.operation.cdLotClient ?? '—' }}</td>
-                            <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
-                            <td>{{ palette.rayon ?? '—' }}</td>
-                            <td>{{ palette.observation ?? '' }}</td>
-                            {% if isExitControl %}
-                            <td class="text-center">
-                                <form method="post" action="{{ path('app_fiche_palette_controle', {id: fiche.id, paletteId: palette.id}) }}" class="palette-control-form">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('controle' ~ palette.id) }}">
-                                    <input type="number" name="cartons_sortis" value="{{ palette.nombreCartons }}" min="0" max="{{ palette.nombreCartons }}" class="form-control form-control-sm" style="width:80px;display:inline-block">
-                                </form>
-                            </td>
-                            <td><span class="badge bg-{{ palette.status.cssClass }}">{{ palette.status.label }}</span></td>
-                            <td>
-                                <button type="submit" form="form-ctrl-{{ palette.id }}" class="btn btn-sm btn-success" title="Valider"><i class="bi bi-check-lg"></i></button>
-                                <button type="button" class="btn btn-sm btn-danger btn-reject" data-palette-id="{{ palette.id }}" data-fiche-id="{{ fiche.id }}" title="Rejeter"><i class="bi bi-x-lg"></i></button>
-                                <form id="form-ctrl-{{ palette.id }}" method="post" action="{{ path('app_fiche_palette_controle', {id: fiche.id, paletteId: palette.id}) }}" style="display:none">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('controle' ~ palette.id) }}">
-                                    <input type="hidden" name="cartons_sortis" class="cartons-hidden" value="{{ palette.nombreCartons }}">
-                                </form>
-                                <form id="form-reject-{{ palette.id }}" method="post" action="{{ path('app_fiche_palette_controle', {id: fiche.id, paletteId: palette.id}) }}" style="display:none">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('controle' ~ palette.id) }}">
-                                    <input type="hidden" name="action" value="reject">
-                                    <input type="hidden" name="motif_rejet" class="motif-hidden" value="">
-                                </form>
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    {# Sommaire #}
-    <div class="card mb-4">
-        <div class="card-header">Sommaire (Récapitulatif)</div>
-        <div class="card-body p-0">
-            <table class="table table-bordered mb-0">
-                <thead class="table-light">
-                    <tr><th>Produit</th><th>Qualité</th><th>Moule</th><th>Famille</th><th class="text-center">Nb Cartons</th><th class="text-end">Poids Total</th></tr>
+    {# ════════ TABLEAU DES PALETTES ════════ #}
+    <div class="mb-3">
+        <div class="section-title-print" style="display:none">TABLEAU DES PALETTES</div>
+        <div class="palette-table-wrap">
+            <table class="palette-table" id="palettesTable">
+                <thead>
+                    <tr>
+                        <th class="no-print">#</th>
+                        <th class="no-print">Code Palette</th>
+                        <th>Esp&egrave;ce</th>
+                        <th>Qualit&eacute;</th>
+                        <th>Moule</th>
+                        <th>Famille</th>
+                        <th class="text-center">Cartons</th>
+                        <th class="text-end">Poids/ctn</th>
+                        <th class="text-end">Poids tot.</th>
+                        <th>Cd Lot</th>
+                        <th>Chambre</th>
+                        <th>Rayon</th>
+                        {% if isExitControl %}
+                        <th class="text-center">Sortis</th>
+                        <th>Statut</th>
+                        <th class="no-print">Actions</th>
+                        {% endif %}
+                    </tr>
                 </thead>
                 <tbody>
-                    {# Regroupement par (Espèce, Qualité, Moule, Type conditionnement)
-                       Dans ce projet: on utilise (espece, qualite, moule, famille) #}
-                    {% set grouped = {} %}
                     {% set totalC = 0 %}
                     {% set totalP = 0 %}
-
                     {% for palette in fiche.operation.palettes %}
-                        {% set esp = palette.espece|default('') %}
-                        {% set qual = palette.qualite ?? '—' %}
-                        {% set moule = palette.moule ?? '—' %}
-                        {% set cond = palette.famille ?? '—' %}
-
-                        {% set key = esp ~ '||' ~ qual ~ '||' ~ moule ~ '||' ~ cond %}
-
-                        {% set totalC = totalC + palette.nombreCartons %}
-                        {% set totalP = totalP + palette.poidsTotal %}
-
-                        {% if grouped[key] is not defined %}
-                            {% set grouped = grouped|merge({ (key): {
-                                'esp': esp,
-                                'qual': qual,
-                                'moule': moule,
-                                'cond': cond,
-                                'cartons': palette.nombreCartons,
-                                'poids': palette.poidsTotal
-                            } }) %}
-                        {% else %}
-                            {% set prev = grouped[key] %}
-                            {% set prevCartons = prev.cartons + palette.nombreCartons %}
-                            {% set prevPoids = prev.poids + palette.poidsTotal %}
-                            {% set grouped = grouped|merge({ (key): {
-                                'esp': prev.esp,
-                                'qual': prev.qual,
-                                'moule': prev.moule,
-                                'cond': prev.cond,
-                                'cartons': prevCartons,
-                                'poids': prevPoids
-                            } }) %}
+                    {% set totalC = totalC + palette.nombreCartons %}
+                    {% set totalP = totalP + palette.poidsTotal %}
+                    <tr data-palette-code="{{ palette.codePalette }}">
+                        <td class="text-muted no-print" style="font-size:.75rem">{{ loop.index }}</td>
+                        <td class="no-print"><code class="palette-code">{{ palette.codePalette }}</code></td>
+                        <td><strong>{{ palette.espece }}</strong></td>
+                        <td>{{ palette.qualite ?? '—' }}</td>
+                        <td>{{ palette.moule ?? '—' }}</td>
+                        <td>{{ palette.famille ?? '—' }}</td>
+                        <td class="text-center fw-semibold">{{ palette.nombreCartons }}</td>
+                        <td class="text-end">{{ palette.poidsCarton }}&nbsp;kg</td>
+                        <td class="text-end fw-semibold">{{ palette.poidsTotal|number_format(0,',',' ') }}&nbsp;kg</td>
+                        <td>{{ fiche.operation.cdLotClient ?? '—' }}</td>
+                        <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
+                        <td>{{ palette.rayon ?? '—' }}</td>
+                        {% if isExitControl %}
+                        <td class="text-center">
+                            <input type="number" name="cartons_sortis" value="{{ palette.nombreCartons }}"
+                                   min="0" max="{{ palette.nombreCartons }}"
+                                   class="form-control form-control-sm text-center no-print"
+                                   style="width:60px;display:inline-block"
+                                   form="palette-ctrl-{{ palette.id }}">
+                            <span class="d-none print-cartons">{{ palette.nombreCartons }}</span>
+                        </td>
+                        <td><span class="badge bg-{{ palette.status.cssClass }}">{{ palette.status.label }}</span></td>
+                        <td class="no-print">
+                            <button type="submit" form="form-ctrl-{{ palette.id }}" class="btn btn-sm btn-success" title="Valider">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger btn-reject"
+                                    data-palette-id="{{ palette.id }}" data-fiche-id="{{ fiche.id }}" title="Rejeter">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            <form id="palette-ctrl-{{ palette.id }}" method="post"
+                                  action="{{ path('app_operation_exit_palette_controle', {id: fiche.operation.id, paletteId: palette.id}) }}"
+                                  style="display:none">
+                                <input type="hidden" name="_token" value="{{ csrf_token('controle' ~ palette.id) }}">
+                                <input type="hidden" name="cartons_sortis" class="cartons-hidden" value="{{ palette.nombreCartons }}">
+                            </form>
+                            <form id="form-ctrl-{{ palette.id }}" method="post"
+                                  action="{{ path('app_operation_exit_palette_controle', {id: fiche.operation.id, paletteId: palette.id}) }}"
+                                  style="display:none">
+                                <input type="hidden" name="_token" value="{{ csrf_token('controle' ~ palette.id) }}">
+                                <input type="hidden" name="cartons_sortis" class="cartons-hidden" value="{{ palette.nombreCartons }}">
+                            </form>
+                            <form id="form-reject-{{ palette.id }}" method="post"
+                                  action="{{ path('app_operation_exit_palette_controle', {id: fiche.operation.id, paletteId: palette.id}) }}"
+                                  style="display:none">
+                                <input type="hidden" name="_token" value="{{ csrf_token('controle' ~ palette.id) }}">
+                                <input type="hidden" name="action" value="reject">
+                                <input type="hidden" name="motif_rejet" class="motif-hidden" value="">
+                            </form>
+                        </td>
                         {% endif %}
-                    {% endfor %}
-
-                    {% for item in grouped %}
-                        <tr>
-                            <td>{{ item.esp }}</td>
-                            <td>{{ item.qual }}</td>
-                            <td>{{ item.moule }}</td>
-                            <td>{{ item.cond }}</td>
-                            <td class="text-center">{{ item.cartons }}</td>
-                            <td class="text-end">{{ item.poids|number_format(0, ',', ' ') }} kg</td>
-                        </tr>
+                    </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
-                    <tr class="table-secondary fw-bold">
-                        <td colspan="4">TOTAL GÉNÉRAL</td>
-                        <td class="text-center">{{ totalC }}</td>
-                        <td class="text-end">{{ totalP|number_format(0, ',', ' ') }} kg</td>
+                    <tr>
+                        <td colspan="{{ isExitControl ? 9 : 6 }}" class="text-end fw-bold">TOTAL</td>
+                        <td class="text-center fw-bold">{{ totalC }}</td>
+                        <td colspan="{{ isExitControl ? 4 : 2 }}" class="text-end fw-bold">
+                            {{ totalP|number_format(0,',',' ') }}&nbsp;kg
+                        </td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
 
-    {# Actions workflow #}
-    {% if fiche.isEnCoursControle() and fiche.controleur and fiche.controleur.id == app.user.id %}
-    <div class="card mb-4">
+    {# ════════ SOMMAIRE ════════ #}
+    <div class="mb-3">
+        <div class="section-title-print" style="display:none">R&Eacute;CAPITULATIF</div>
+        <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
+            <div style="background:#f1f5f9;padding:6px 12px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#475569;border-bottom:1px solid #e2e8f0">
+                R&eacute;capitulatif par produit
+            </div>
+            <table class="sommaire-table">
+                <thead>
+                    <tr>
+                        <th>Esp&egrave;ce</th>
+                        <th>Qualit&eacute;</th>
+                        <th>Moule</th>
+                        <th>Famille</th>
+                        <th class="text-center">Nb Cartons</th>
+                        <th class="text-end">Poids Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set grouped = {} %}
+                    {% set gTotalC = 0 %}
+                    {% set gTotalP = 0 %}
+                    {% for palette in fiche.operation.palettes %}
+                        {% set key = (palette.espece|default(''))~'||'~(palette.qualite??'—')~'||'~(palette.moule??'—')~'||'~(palette.famille??'—') %}
+                        {% set gTotalC = gTotalC + palette.nombreCartons %}
+                        {% set gTotalP = gTotalP + palette.poidsTotal %}
+                        {% if grouped[key] is not defined %}
+                            {% set grouped = grouped|merge({(key):{'esp':palette.espece|default(''),'qual':palette.qualite??'—','moule':palette.moule??'—','cond':palette.famille??'—','cartons':palette.nombreCartons,'poids':palette.poidsTotal}}) %}
+                        {% else %}
+                            {% set prev = grouped[key] %}
+                            {% set grouped = grouped|merge({(key):{'esp':prev.esp,'qual':prev.qual,'moule':prev.moule,'cond':prev.cond,'cartons':prev.cartons+palette.nombreCartons,'poids':prev.poids+palette.poidsTotal}}) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% for item in grouped %}
+                    <tr>
+                        <td><strong>{{ item.esp }}</strong></td>
+                        <td>{{ item.qual }}</td>
+                        <td>{{ item.moule }}</td>
+                        <td>{{ item.cond }}</td>
+                        <td class="text-center fw-semibold">{{ item.cartons }}</td>
+                        <td class="text-end fw-semibold">{{ item.poids|number_format(0,',',' ') }}&nbsp;kg</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="fw-bold">TOTAL G&Eacute;N&Eacute;RAL</td>
+                        <td class="text-center fw-bold">{{ gTotalC }}</td>
+                        <td class="text-end fw-bold">{{ gTotalP|number_format(0,',',' ') }}&nbsp;kg</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
 
+    {# ════════ ACTIONS WORKFLOW ════════ #}
+    {% if fiche.isEnCoursControle() and fiche.controleur and fiche.controleur.id == app.user.id %}
+    <div class="card mb-3 no-print">
         <div class="card-body">
             <form action="{{ path('app_fiche_submit', {id: fiche.id}) }}" method="post">
                 <input type="hidden" name="_token" value="{{ csrf_token('submit' ~ fiche.id) }}">
-                <div class="mb-3">
-                    <label class="form-label">Observation (optionnel)</label>
-                    <textarea name="observation" class="form-control" rows="2" placeholder="Remarques du contrôle...">{{ fiche.observation }}</textarea>
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold">Observation (optionnel)</label>
+                    <textarea name="observation" class="form-control form-control-sm" rows="2"
+                              placeholder="Remarques du contr&ocirc;le...">{{ fiche.observation }}</textarea>
                 </div>
-                <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> 📤 Envoyer pour validation</button>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-send me-1"></i>Envoyer pour validation
+                </button>
             </form>
         </div>
     </div>
     {% endif %}
 
     {% if fiche.isEnAttenteValidation() and is_granted('ROLE_CHEF_STOCK') %}
-
-
-    <div class="card">
+    <div class="card mb-3 no-print">
         <div class="card-body d-flex gap-2 justify-content-end">
             <form action="{{ path('app_fiche_validate', {id: fiche.id}) }}" method="post" class="d-inline">
                 <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ fiche.id) }}">
-                <button class="btn btn-success"><i class="bi bi-check-circle"></i> ✅ Valider la fiche</button>
+                <button class="btn btn-success btn-sm"><i class="bi bi-check-circle me-1"></i>Valider la fiche</button>
             </form>
-            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectFicheModal"><i class="bi bi-x-circle"></i> ❌ Rejeter</button>
+            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectFicheModal">
+                <i class="bi bi-x-circle me-1"></i>Rejeter
+            </button>
         </div>
     </div>
-
     <div class="modal fade" id="rejectFicheModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <form action="{{ path('app_fiche_reject', {id: fiche.id}) }}" method="post">
                     <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ fiche.id) }}">
-                    <div class="modal-header"><h5 class="modal-title">Motif de rejet</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold text-danger">Motif de rejet</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
                     <div class="modal-body">
                         <textarea name="commentaire" class="form-control" rows="3" placeholder="Commentaire..."></textarea>
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-danger">Rejeter</button>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="submit" class="btn btn-danger btn-sm">Rejeter</button>
                     </div>
                 </form>
             </div>
@@ -287,54 +548,71 @@
     {% endif %}
 
     {% if fiche.commentaireRejet %}
-    <div class="alert alert-danger mt-3">
+    <div class="alert alert-danger mt-2">
         <strong>Motif de rejet :</strong> {{ fiche.commentaireRejet }}
     </div>
     {% endif %}
 
-    {% if isExitControl %}
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const scanInput = document.getElementById('scanInput');
-        if (scanInput) {
-            scanInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const code = this.value.trim();
-                    document.querySelectorAll('#palettesTable tbody tr').forEach(r => r.classList.remove('table-info'));
-                    const row = document.querySelector('#palettesTable tbody tr[data-palette-code="' + code + '"]');
-                    if (row) {
-                        row.classList.add('table-info');
-                        row.scrollIntoView({behavior: 'smooth', block: 'center'});
-                    }
-                    this.value = '';
-                }
-            });
-        }
+</div>
 
-        // Sync cartons_sortis to hidden form
-        document.querySelectorAll('.palette-control-form input[name="cartons_sortis"]').forEach(function(input) {
-            input.addEventListener('change', function() {
-                const row = this.closest('tr');
-                const hidden = row.querySelector('.cartons-hidden');
-                if (hidden) hidden.value = this.value;
-            });
+{# ════════ JS CONTROLE TERRAIN ════════ #}
+{% if isExitControl %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const scanInput = document.getElementById('scanInput');
+    if (scanInput) {
+        scanInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const code = this.value.trim().split('|')[0].trim();
+                document.querySelectorAll('#palettesTable tbody tr').forEach(r => r.style.background = '');
+                const row = document.querySelector('#palettesTable tbody tr[data-palette-code="' + code + '"]');
+                if (row) {
+                    row.style.background = '#dbeafe';
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                this.value = '';
+            }
         });
+    }
 
-        // Reject buttons
-        document.querySelectorAll('.btn-reject').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const motif = prompt('Motif de rejet :');
-                if (motif) {
-                    const paletteId = this.dataset.paletteId;
-                    const form = document.getElementById('form-reject-' + paletteId);
-                    form.querySelector('.motif-hidden').value = motif;
-                    form.submit();
-                }
-            });
+    document.querySelectorAll('input[name="cartons_sortis"]').forEach(function(input) {
+        input.addEventListener('change', function() {
+            const row = this.closest('tr');
+            if (!row) return;
+            row.querySelectorAll('.cartons-hidden').forEach(h => h.value = this.value);
         });
     });
-    </script>
-    {% endif %}
-</div>
+
+    document.querySelectorAll('.btn-reject').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const motif = prompt('Motif de rejet :');
+            if (motif) {
+                const form = document.getElementById('form-reject-' + this.dataset.paletteId);
+                form.querySelector('.motif-hidden').value = motif;
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endif %}
+
+<script>
+(function(){
+    var title = document.querySelector('.fiche-print-title');
+    var sectionTitles = document.querySelectorAll('.section-title-print');
+    if (title) title.style.display = 'none';
+    sectionTitles.forEach(function(el){ el.style.display = 'none'; });
+    window.addEventListener('beforeprint', function() {
+        if (title) title.style.display = 'block';
+        sectionTitles.forEach(function(el){ el.style.display = 'block'; });
+    });
+    window.addEventListener('afterprint', function() {
+        if (title) title.style.display = 'none';
+        sectionTitles.forEach(function(el){ el.style.display = 'none'; });
+    });
+})();
+</script>
+
 {% endblock %}

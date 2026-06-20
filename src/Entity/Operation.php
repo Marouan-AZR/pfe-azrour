@@ -3,7 +3,9 @@
 namespace App\Entity;
 
 use App\Enum\OperationType;
+use App\Enum\PaletteStatus;
 use App\Enum\StockStatus;
+use App\Enum\TypeStockage;
 use App\Repository\OperationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -71,6 +73,15 @@ class Operation
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $numeroAgrement = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $carliste = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $heureDebutChargement = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $heureFinChargement = null;
+
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
@@ -86,6 +97,9 @@ class Operation
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $bonNumber = null;
+
+    #[ORM\Column(type: 'string', enumType: TypeStockage::class, nullable: true)]
+    private ?TypeStockage $typeStockage = null;
 
     public function __construct()
     {
@@ -149,11 +163,23 @@ class Operation
     public function getNumeroAgrement(): ?string { return $this->numeroAgrement; }
     public function setNumeroAgrement(?string $numeroAgrement): static { $this->numeroAgrement = $numeroAgrement; return $this; }
 
+    public function getCarliste(): ?string { return $this->carliste; }
+    public function setCarliste(?string $carliste): static { $this->carliste = $carliste; return $this; }
+
+    public function getHeureDebutChargement(): ?string { return $this->heureDebutChargement; }
+    public function setHeureDebutChargement(?string $h): static { $this->heureDebutChargement = $h; return $this; }
+
+    public function getHeureFinChargement(): ?string { return $this->heureFinChargement; }
+    public function setHeureFinChargement(?string $h): static { $this->heureFinChargement = $h; return $this; }
+
     public function getCreatedAt(): \DateTimeInterface { return $this->createdAt; }
     public function getUpdatedAt(): \DateTimeInterface { return $this->updatedAt; }
 
     public function getBonNumber(): ?string { return $this->bonNumber; }
     public function setBonNumber(?string $bonNumber): static { $this->bonNumber = $bonNumber; return $this; }
+
+    public function getTypeStockage(): ?TypeStockage { return $this->typeStockage; }
+    public function setTypeStockage(?TypeStockage $typeStockage): static { $this->typeStockage = $typeStockage; return $this; }
 
     /** @return Collection<int, Palette> */
     public function getPalettes(): Collection { return $this->palettes; }
@@ -208,6 +234,45 @@ class Operation
         foreach ($this->palettes as $palette) {
             $espece = $palette->getEspece();
             if ($espece && !in_array($espece, $especes)) {
+                $especes[] = $espece;
+            }
+        }
+        return $especes;
+    }
+
+    /** Cartons réellement sortis (hors palettes rejetées/annulées), avec quantités terrain si disponibles. */
+    public function getTotalCartonsSortis(): int
+    {
+        return $this->palettes->reduce(function (int $t, Palette $p): int {
+            if ($p->getStatus() === PaletteStatus::REJETEE || $p->getStatus() === PaletteStatus::ANNULEE) {
+                return $t;
+            }
+            return $t + ($p->getCartonsReellementSortis() ?? $p->getNombreCartons());
+        }, 0);
+    }
+
+    /** Poids réellement sorti, calculé à partir des cartons terrain. */
+    public function getPoidsTotalSortis(): float
+    {
+        return $this->palettes->reduce(function (float $t, Palette $p): float {
+            if ($p->getStatus() === PaletteStatus::REJETEE || $p->getStatus() === PaletteStatus::ANNULEE) {
+                return $t;
+            }
+            $cartons = $p->getCartonsReellementSortis() ?? $p->getNombreCartons();
+            return $t + ($cartons * (float) $p->getPoidsCarton());
+        }, 0.0);
+    }
+
+    /** Espèces des palettes réellement sorties (hors rejetées/annulées). */
+    public function getEspecesSorties(): array
+    {
+        $especes = [];
+        foreach ($this->palettes as $palette) {
+            if ($palette->getStatus() === PaletteStatus::REJETEE || $palette->getStatus() === PaletteStatus::ANNULEE) {
+                continue;
+            }
+            $espece = $palette->getEspece();
+            if ($espece && !in_array($espece, $especes, true)) {
                 $especes[] = $espece;
             }
         }

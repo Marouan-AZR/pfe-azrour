@@ -1,247 +1,398 @@
 {% extends 'base.html.twig' %}
+{% block title %}Préparer une sortie{% endblock %}
 
-{% block title %}Préparation Sortie{% endblock %}
+{% block stylesheets %}
+<style>
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+.step-badge { width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0; }
+.filter-row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:flex-end; padding:.75rem 1rem; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
+.filter-row .form-control, .filter-row .form-select { font-size:.78rem; padding:.3rem .55rem; border-radius:.4rem; }
+.filter-lbl { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#64748b; display:block; margin-bottom:.2rem; }
+.tbl thead th { font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; padding:.55rem .75rem; white-space:nowrap; background:#f8fafc; }
+.tbl tbody td { font-size:.82rem; padding:.55rem .75rem; vertical-align:middle; }
+.tbl tbody tr.selected-row { background:rgba(99,102,241,.06); }
+.summary-panel { position:sticky; top:80px; }
+.summary-line { display:flex; justify-content:space-between; align-items:center; padding:.3rem 0; border-bottom:1px solid #f1f5f9; font-size:.82rem; }
+.summary-total { display:flex; justify-content:space-between; align-items:center; padding:.4rem 0; font-weight:700; font-size:.9rem; }
+.badge-qty { background:rgba(99,102,241,.1); color:#4f46e5; padding:.2em .55em; border-radius:.4rem; font-size:.72rem; font-weight:700; }
+.section-title { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; font-weight:700; color:#64748b; }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-box-arrow-up me-2"></i>Préparation de Sortie</h1>
-        <a href="{{ path('app_operation_exit_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+<div class="container-fluid py-4 px-4">
+
+  {# ── Header ── #}
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <nav aria-label="breadcrumb" class="mb-1">
+        <ol class="breadcrumb" style="font-size:.8rem">
+          <li class="breadcrumb-item">
+            <a href="{{ path('app_operation_exit_index') }}" class="text-primary text-decoration-none">
+              <i class="bi bi-box-arrow-up me-1"></i>Sorties
+            </a>
+          </li>
+          <li class="breadcrumb-item active">Préparer</li>
+        </ol>
+      </nav>
+      <h2 class="mb-0 fw-bold"><i class="bi bi-clipboard-plus me-2 text-danger"></i>Préparer une sortie</h2>
     </div>
+  </div>
 
-    {# Client selection #}
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-person me-2"></i>Sélection du client</div>
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-6">
-                    <label class="form-label">Client</label>
-                    <select name="client" class="form-select" onchange="this.form.submit()">
-                        <option value="">-- Sélectionner un client --</option>
-                        {% for client in clients %}
-                        <option value="{{ client.id }}" {{ selectedClient and selectedClient.id == client.id ? 'selected' : '' }}>
-                            {{ client.companyName }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </form>
+  {% if not selectedClient %}
+  {# ════════════════════════════════════════
+     ÉTAPE 1 — Sélection du client
+  ════════════════════════════════════════ #}
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="glass p-4">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <span class="step-badge" style="background:#6366f1;color:#fff">1</span>
+          <div>
+            <div class="fw-bold">Sélection du client</div>
+            <div class="text-secondary" style="font-size:.82rem">Choisissez le client dont vous souhaitez sortir les marchandises</div>
+          </div>
         </div>
-    </div>
-
-    {% if selectedClient %}
-    <form method="post">
-        <input type="hidden" name="client" value="{{ selectedClient.id }}">
-
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-grid me-2"></i>Palettes disponibles — {{ selectedClient.companyName }} ({{ palettes|length }})</span>
-            </div>
-
-            {# Column dropdown filters #}
-            <div class="card-body border-bottom py-2">
-                <div class="row g-2">
-                    <div class="col">
-                        <select class="form-select form-select-sm" id="filterEspece">
-                            <option value="">Espèce</option>
-                            {% set especes = [] %}
-                            {% for p in palettes %}
-                                {% if p.espece not in especes %}
-                                    <option value="{{ p.espece }}">{{ p.espece }}</option>
-                                    {% set especes = especes|merge([p.espece]) %}
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col">
-                        <select class="form-select form-select-sm" id="filterMoule">
-                            <option value="">Moule</option>
-                            {% set moules = [] %}
-                            {% for p in palettes %}
-                                {% if p.moule and p.moule not in moules %}
-                                    <option value="{{ p.moule }}">{{ p.moule }}</option>
-                                    {% set moules = moules|merge([p.moule]) %}
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col">
-                        <select class="form-select form-select-sm" id="filterQualite">
-                            <option value="">Qualité</option>
-                            {% set qualites = [] %}
-                            {% for p in palettes %}
-                                {% if p.qualite and p.qualite not in qualites %}
-                                    <option value="{{ p.qualite }}">{{ p.qualite }}</option>
-                                    {% set qualites = qualites|merge([p.qualite]) %}
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col">
-                        <select class="form-select form-select-sm" id="filterFamille">
-                            <option value="">Famille</option>
-                            {% set familles = [] %}
-                            {% for p in palettes %}
-                                {% if p.famille and p.famille not in familles %}
-                                    <option value="{{ p.famille }}">{{ p.famille }}</option>
-                                    {% set familles = familles|merge([p.famille]) %}
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col">
-                        <select class="form-select form-select-sm" id="filterRayon">
-                            <option value="">Rayon</option>
-                            {% set rayons = [] %}
-                            {% for p in palettes %}
-                                {% if p.rayon and p.rayon not in rayons %}
-                                    <option value="{{ p.rayon }}">{{ p.rayon }}</option>
-                                    {% set rayons = rayons|merge([p.rayon]) %}
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-auto">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFilters()"><i class="bi bi-x-lg"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="paletteTable">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" id="selectAll"></th>
-                                <th>Code Palette</th>
-                                <th>Espèce</th>
-                                <th>Moule</th>
-                                <th>Qualité</th>
-                                <th>Famille</th>
-                                <th>Code Lot Client</th>
-                                <th>Date Réception</th>
-                                <th>Chambre</th>
-                                <th>Rayon</th>
-                                <th class="text-center">Qté Disponible</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for palette in palettes %}
-                            <tr class="palette-row"
-                                data-espece="{{ palette.espece }}"
-                                data-moule="{{ palette.moule ?? '' }}"
-                                data-qualite="{{ palette.qualite ?? '' }}"
-                                data-famille="{{ palette.famille ?? '' }}"
-                                data-rayon="{{ palette.rayon ?? '' }}"
-                                data-cartons="{{ palette.cartonsRestants }}"
-                                data-poids="{{ palette.poidsRestant ?? 0 }}">
-                                <td><input type="checkbox" name="selected_palettes[]" value="{{ palette.id }}"></td>
-                                <td><code>{{ palette.codePalette }}</code></td>
-                                <td>{{ palette.espece }}</td>
-                                <td>{{ palette.moule ?? '—' }}</td>
-                                <td>{{ palette.qualite ?? '—' }}</td>
-                                <td>{{ palette.famille ?? '—' }}</td>
-                                <td>{{ palette.operation.cdLotClient ?? '—' }}</td>
-                                <td>{{ palette.createdAt|date('d/m/Y') }}</td>
-                                <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
-                                <td>{{ palette.rayon ?? '—' }}</td>
-                                <td class="text-center fw-bold">{{ palette.cartonsRestants }}</td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="11" class="text-center py-4 text-muted">Aucune palette disponible</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        {% if palettes|length > 0 %}
-        {# Controleur + Summary + Submit #}
-        <div class="card">
-            <div class="card-body">
-                <div class="row g-3 align-items-center">
-                    <div class="col-md-3">
-                        <label class="form-label">Contrôleur responsable</label>
-                        <select name="controleur" class="form-select">
-                            <option value="">-- Sélectionner --</option>
-                            {% for ctrl in controleurs %}
-                            <option value="{{ ctrl.id }}">{{ ctrl.fullName }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex gap-4" id="selectionSummary">
-                            <span><strong id="sumPalettes">0</strong> palette(s)</span>
-                            <span><strong id="sumCartons">0</strong> cartons</span>
-                            <span><strong id="sumPoids">0</strong> kg</span>
-                        </div>
-                    </div>
-                    <div class="col-md-3 text-end">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Enregistrer la sortie</button>
-                    </div>
-                </div>
-            </div>
+        <form method="get" action="{{ path('app_operation_exit_prepare') }}">
+          <label class="form-label fw-semibold" for="clientSelect">Client</label>
+          <select name="client" id="clientSelect" class="form-select mb-3" required>
+            <option value="">— Sélectionner un client —</option>
+            {% for client in clients %}
+            <option value="{{ client.id }}">{{ client.companyName }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-danger w-100 fw-semibold">
+            <i class="bi bi-arrow-right-circle me-2"></i>Charger les palettes disponibles
+          </button>
+        </form>
+        {% if clients|length == 0 %}
+        <div class="text-center text-secondary mt-4 py-3">
+          <i class="bi bi-person-x display-5 d-block mb-2 opacity-25"></i>
+          Aucun client actif trouvé.
         </div>
         {% endif %}
-    </form>
-    {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  {# ════════════════════════════════════════
+     ÉTAPE 2 — Palettes + Récapitulatif
+  ════════════════════════════════════════ #}
+  <form method="post" action="{{ path('app_operation_exit_prepare') }}" id="exitForm">
+    <input type="hidden" name="client" value="{{ selectedClient.id }}">
+
+    <div class="row g-4">
+      {# ── Colonne gauche : palettes ── #}
+      <div class="col-lg-8">
+
+        {# Client banner #}
+        <div class="glass p-3 mb-3 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-3">
+            <span class="step-badge" style="background:#10b981;color:#fff">2</span>
+            <div>
+              <div class="fw-bold" style="font-size:1.05rem">{{ selectedClient.companyName }}</div>
+              <div class="text-secondary small">Sélectionnez les palettes à sortir</div>
+            </div>
+          </div>
+          <a href="{{ path('app_operation_exit_prepare') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Changer de client
+          </a>
+        </div>
+
+        {# ── Barre de filtres ── #}
+        <div class="glass overflow-hidden mb-3">
+          <div class="px-3 py-2 border-bottom d-flex align-items-center gap-2">
+            <i class="bi bi-funnel text-secondary"></i>
+            <span class="section-title">Filtres rapides</span>
+            <button type="button" class="btn btn-sm btn-link ms-auto p-0 text-secondary" id="clearFilters" style="font-size:.78rem">
+              <i class="bi bi-x-circle me-1"></i>Réinitialiser
+            </button>
+          </div>
+          <div class="filter-row">
+            <div>
+              <label class="filter-lbl">Espèce</label>
+              <select class="form-select" id="fEspece">
+                <option value="">Toutes</option>
+                {% for e in filterValues.especes %}<option value="{{ e }}">{{ e }}</option>{% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="filter-lbl">Qualité</label>
+              <select class="form-select" id="fQualite">
+                <option value="">Toutes</option>
+                {% for q in filterValues.qualites %}<option value="{{ q }}">{{ q }}</option>{% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="filter-lbl">Moule</label>
+              <select class="form-select" id="fMoule">
+                <option value="">Tous</option>
+                {% for m in filterValues.moules %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="filter-lbl">Famille</label>
+              <select class="form-select" id="fFamille">
+                <option value="">Toutes</option>
+                {% for f in filterValues.familles %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="filter-lbl">Chambre</label>
+              <select class="form-select" id="fChambre">
+                <option value="">Toutes</option>
+                {% for c in filterValues.chambres %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="filter-lbl">Rayon</label>
+              <select class="form-select" id="fRayon">
+                <option value="">Tous</option>
+                {% for r in filterValues.rayons %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="filter-lbl">Code lot client</label>
+              <input type="text" class="form-control" id="fLot" placeholder="Lot…" style="min-width:100px">
+            </div>
+            <div>
+              <label class="filter-lbl">Date réception</label>
+              <input type="date" class="form-control" id="fDate">
+            </div>
+          </div>
+          <div class="px-3 py-2 d-flex align-items-center gap-3" style="background:#f8fafc;border-top:1px solid #e2e8f0">
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="checkbox" id="selectAll">
+              <label class="form-check-label small fw-semibold" for="selectAll">Tout sélectionner (visible)</label>
+            </div>
+            <span class="text-secondary small" id="visibleCount">{{ palettes|length }} palette(s)</span>
+          </div>
+        </div>
+
+        {# ── Tableau des palettes ── #}
+        <div class="glass overflow-hidden">
+          {% if palettes|length == 0 %}
+          <div class="text-center py-5 text-secondary">
+            <i class="bi bi-box-seam display-4 d-block mb-2 opacity-25"></i>
+            <div>Aucune palette disponible pour ce client.</div>
+            <small>Vérifiez que des entrées ont été validées.</small>
+          </div>
+          {% else %}
+          <div class="table-responsive">
+            <table class="table tbl table-hover mb-0" id="paletteTable">
+              <thead>
+                <tr>
+                  <th style="width:36px"></th>
+                  <th>Code palette</th>
+                  <th>Espèce</th>
+                  <th>Qualité</th>
+                  <th>Moule</th>
+                  <th>Famille</th>
+                  <th>Lot client</th>
+                  <th>Réception</th>
+                  <th>Chambre</th>
+                  <th>Rayon</th>
+                  <th class="text-center">Cartons dispo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in palettes %}
+                <tr class="pal-row"
+                    data-espece="{{ p.espece }}"
+                    data-qualite="{{ p.qualite ?? '' }}"
+                    data-moule="{{ p.moule ?? '' }}"
+                    data-famille="{{ p.famille ?? '' }}"
+                    data-rayon="{{ p.rayon ?? '' }}"
+                    data-chambre="{{ p.coldRoom ? p.coldRoom.name : '' }}"
+                    data-lot="{{ p.operation.cdLotClient ?? '' }}"
+                    data-date="{{ p.operation.dateReception|date('Y-m-d') }}"
+                    data-cartons="{{ p.cartonsRestants }}"
+                    data-poids="{{ p.poidsRestant }}">
+                  <td>
+                    <input type="checkbox" name="selected_palettes[]" value="{{ p.id }}"
+                           class="form-check-input pal-check" style="cursor:pointer">
+                  </td>
+                  <td>
+                    <code style="background:rgba(99,102,241,.1);color:#4f46e5;padding:.15em .4em;border-radius:.3rem;font-weight:700;font-size:.78rem">
+                      {{ p.codePalette }}
+                    </code>
+                  </td>
+                  <td class="fw-semibold">{{ p.espece }}</td>
+                  <td>{{ p.qualite ?? '—' }}</td>
+                  <td>{{ p.moule ?? '—' }}</td>
+                  <td>{{ p.famille ?? '—' }}</td>
+                  <td>{{ p.operation.cdLotClient ?? '—' }}</td>
+                  <td class="text-nowrap">{{ p.operation.dateReception|date('d/m/Y') }}</td>
+                  <td>
+                    {% if p.coldRoom %}
+                    <span style="background:rgba(14,165,233,.1);color:#0369a1;padding:.15em .4em;border-radius:.3rem;font-size:.75rem;font-weight:600">
+                      <i class="bi bi-snow2" style="font-size:.6rem"></i> {{ p.coldRoom.name }}
+                    </span>
+                    {% else %}—{% endif %}
+                  </td>
+                  <td>{{ p.rayon ?? '—' }}</td>
+                  <td class="text-center">
+                    <span class="badge-qty">{{ p.cartonsRestants }}</span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Colonne droite : récapitulatif ── #}
+      <div class="col-lg-4">
+        <div class="summary-panel">
+
+          {# Résumé sélection #}
+          <div class="glass p-3 mb-3">
+            <div class="section-title mb-3"><i class="bi bi-calculator me-1"></i>Récapitulatif</div>
+            <div class="summary-line">
+              <span class="text-secondary">Palettes sélectionnées</span>
+              <span class="fw-bold" id="sumPalettes">0</span>
+            </div>
+            <div class="summary-line">
+              <span class="text-secondary">Total cartons</span>
+              <span class="fw-bold" id="sumCartons">0</span>
+            </div>
+            <div class="summary-total" style="border-top:2px solid #e2e8f0;margin-top:.25rem;padding-top:.5rem">
+              <span>Poids total</span>
+              <span id="sumPoids" style="color:#dc2626">0 kg</span>
+            </div>
+          </div>
+
+          {# Contrôleur #}
+          <div class="glass p-3 mb-3">
+            <div class="section-title mb-3"><i class="bi bi-person-badge me-1"></i>Contrôleur responsable</div>
+            <select name="controleur" class="form-select form-select-sm" required>
+              <option value="">— Sélectionner un contrôleur —</option>
+              {% for ctrl in controleurs %}
+              <option value="{{ ctrl.id }}">{{ ctrl.firstName }} {{ ctrl.lastName }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {# Bouton créer #}
+          <button type="submit" class="btn btn-danger w-100 fw-semibold py-2" id="submitBtn" disabled>
+            <i class="bi bi-check2-circle me-2"></i>Créer l'opération de sortie
+          </button>
+          <p class="text-center text-secondary mt-2" style="font-size:.72rem">
+            <i class="bi bi-info-circle me-1"></i>Aucune quantité ne sera déduite avant validation finale
+          </p>
+        </div>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
 </div>
 {% endblock %}
 
 {% block javascripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Select all visible
-    document.getElementById('selectAll')?.addEventListener('change', function() {
-        document.querySelectorAll('.palette-row:not([style*="display: none"]) input[type="checkbox"]').forEach(cb => { cb.checked = this.checked; });
-        updateSummary();
-    });
+(function () {
+  const rows     = document.querySelectorAll('.pal-row');
+  const checks   = document.querySelectorAll('.pal-check');
+  if (!rows.length) return;
 
-    document.querySelectorAll('input[name="selected_palettes[]"]').forEach(cb => {
-        cb.addEventListener('change', updateSummary);
-    });
+  const sumPalettes  = document.getElementById('sumPalettes');
+  const sumCartons   = document.getElementById('sumCartons');
+  const sumPoids     = document.getElementById('sumPoids');
+  const submitBtn    = document.getElementById('submitBtn');
+  const visibleCount = document.getElementById('visibleCount');
+  const selectAll    = document.getElementById('selectAll');
 
-    function updateSummary() {
-        let palettes = 0, cartons = 0, poids = 0;
-        document.querySelectorAll('input[name="selected_palettes[]"]:checked').forEach(cb => {
-            const row = cb.closest('tr');
-            palettes++;
-            cartons += parseInt(row.dataset.cartons) || 0;
-            poids += parseFloat(row.dataset.poids) || 0;
-        });
-        document.getElementById('sumPalettes').textContent = palettes;
-        document.getElementById('sumCartons').textContent = cartons;
-        document.getElementById('sumPoids').textContent = poids.toLocaleString('fr-FR', {maximumFractionDigits: 0});
+  function visibleRows() {
+    return Array.from(rows).filter(r => r.style.display !== 'none');
+  }
+
+  function updateSummary() {
+    let palettes = 0, cartons = 0, poids = 0;
+    checks.forEach(cb => {
+      if (cb.checked) {
+        const tr = cb.closest('tr');
+        palettes++;
+        cartons += parseInt(tr.dataset.cartons, 10) || 0;
+        poids   += parseFloat(tr.dataset.poids) || 0;
+      }
+    });
+    sumPalettes.textContent = palettes;
+    sumCartons.textContent  = cartons.toLocaleString('fr-FR');
+    sumPoids.textContent    = poids.toLocaleString('fr-FR', {maximumFractionDigits: 0}) + ' kg';
+    submitBtn.disabled      = palettes === 0;
+    if (selectAll) {
+      const vis = visibleRows().length;
+      const checked = visibleRows().filter(r => r.querySelector('.pal-check').checked).length;
+      selectAll.checked       = vis > 0 && checked === vis;
+      selectAll.indeterminate = checked > 0 && checked < vis;
     }
+  }
 
-    // Dropdown filters
-    const filters = ['filterEspece', 'filterMoule', 'filterQualite', 'filterFamille', 'filterRayon'];
-    filters.forEach(id => {
-        document.getElementById(id)?.addEventListener('change', applyFilters);
+  function applyFilters() {
+    const fe = document.getElementById('fEspece').value;
+    const fq = document.getElementById('fQualite').value;
+    const fm = document.getElementById('fMoule').value;
+    const ff = document.getElementById('fFamille').value;
+    const fc = document.getElementById('fChambre').value;
+    const fr = document.getElementById('fRayon').value;
+    const fl = document.getElementById('fLot').value.toLowerCase();
+    const fd = document.getElementById('fDate').value;
+
+    let visible = 0;
+    rows.forEach(r => {
+      const ok = (!fe || r.dataset.espece   === fe)
+              && (!fq || r.dataset.qualite  === fq)
+              && (!fm || r.dataset.moule    === fm)
+              && (!ff || r.dataset.famille  === ff)
+              && (!fc || r.dataset.chambre  === fc)
+              && (!fr || r.dataset.rayon    === fr)
+              && (!fl || r.dataset.lot.toLowerCase().includes(fl))
+              && (!fd || r.dataset.date     === fd);
+      r.style.display = ok ? '' : 'none';
+      if (ok) visible++;
     });
+    if (visibleCount) visibleCount.textContent = visible + ' palette(s)';
+    updateSummary();
+  }
 
-    function applyFilters() {
-        const espece = document.getElementById('filterEspece').value;
-        const moule = document.getElementById('filterMoule').value;
-        const qualite = document.getElementById('filterQualite').value;
-        const famille = document.getElementById('filterFamille').value;
-        const rayon = document.getElementById('filterRayon').value;
+  ['fEspece','fQualite','fMoule','fFamille','fChambre','fRayon'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', applyFilters);
+  });
+  ['fLot','fDate'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', applyFilters);
+  });
 
-        document.querySelectorAll('.palette-row').forEach(row => {
-            const show = (!espece || row.dataset.espece === espece)
-                && (!moule || row.dataset.moule === moule)
-                && (!qualite || row.dataset.qualite === qualite)
-                && (!famille || row.dataset.famille === famille)
-                && (!rayon || row.dataset.rayon === rayon);
-            row.style.display = show ? '' : 'none';
-        });
-    }
+  if (selectAll) {
+    selectAll.addEventListener('change', function () {
+      visibleRows().forEach(r => {
+        const cb = r.querySelector('.pal-check');
+        if (cb) cb.checked = this.checked;
+        r.classList.toggle('selected-row', this.checked);
+      });
+      updateSummary();
+    });
+  }
 
-    window.clearFilters = function() {
-        filters.forEach(id => { document.getElementById(id).value = ''; });
-        document.querySelectorAll('.palette-row').forEach(r => r.style.display = '');
-    };
-});
+  checks.forEach(cb => cb.addEventListener('change', function () {
+    this.closest('tr').classList.toggle('selected-row', this.checked);
+    updateSummary();
+  }));
+
+  document.getElementById('clearFilters')?.addEventListener('click', function () {
+    ['fEspece','fQualite','fMoule','fFamille','fChambre','fRayon'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    ['fLot','fDate'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    applyFilters();
+  });
+
+  updateSummary();
+})();
 </script>
 {% endblock %}

@@ -1,151 +1,407 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}Sorties de Stock{% endblock %}
 
+{% block stylesheets %}
+<style>
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+.kpi-card { border-radius:.85rem; padding:1rem 1.25rem; cursor:pointer; transition:box-shadow .15s,transform .15s; border:2px solid transparent; }
+.kpi-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.1); }
+.kpi-card.active { border-color:currentColor; }
+.kpi-val { font-size:2rem; font-weight:800; line-height:1; }
+.kpi-lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; margin-top:.2rem; opacity:.75; }
+.status-pill { display:inline-flex; align-items:center; gap:.35rem; font-size:.75rem; font-weight:700; padding:.3em .75em; border-radius:50px; }
+.role-badge { font-size:.65rem; font-weight:700; padding:.2em .55em; border-radius:.3rem; text-transform:uppercase; letter-spacing:.04em; }
+.tbl thead th { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; padding:.6rem 1rem; white-space:nowrap; }
+.tbl tbody td { font-size:.85rem; padding:.65rem 1rem; vertical-align:middle; }
+.reject-reason { font-size:.72rem; color:#991b1b; background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.2); border-radius:.35rem; padding:.15em .5em; margin-top:.25rem; display:block; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:help; }
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-box-arrow-up me-2"></i>Opérations de Sortie</h1>
+<div class="container-fluid py-4 px-4">
+
+  {# ── Header ── #}
+  <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+      <h2 class="mb-1 fw-bold"><i class="bi bi-box-arrow-up me-2 text-danger"></i>Sorties de Stock</h2>
+      <p class="text-secondary mb-0 small">
         {% if is_granted('ROLE_CHEF_STOCK') %}
-        <a href="{{ path('app_operation_exit_prepare') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Préparer une sortie
-        </a>
+          Vue chef de stock — toutes les opérations
+        {% else %}
+          Vos opérations assignées
         {% endif %}
+      </p>
     </div>
+    {% if is_granted('ROLE_CHEF_STOCK') %}
+    <a href="{{ path('app_operation_exit_prepare') }}" class="btn btn-danger d-flex align-items-center gap-2">
+      <i class="bi bi-plus-circle-fill"></i> Préparer une sortie
+    </a>
+    {% endif %}
+  </div>
 
-    {# Filtres #}
-    <div class="card mb-3">
-        <div class="card-body py-2">
-            <div class="row g-2 align-items-center">
-                <div class="col-md-3">
-                    <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="🔍 Rechercher BL, client...">
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select form-select-sm" id="statusFilter">
-                        <option value="">Tous les statuts</option>
-                        <option value="en_attente_controle">En attente de contrôle</option>
-                        <option value="en_attente_validation">En attente de validation</option>
-                        <option value="validated">Validé</option>
-                        <option value="rejected">Rejeté</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select form-select-sm" id="clientFilter">
-                        <option value="">Tous les clients</option>
-                        {% set clientsSeen = [] %}
-                        {% for op in operations %}
-                            {% if op.client.companyName not in clientsSeen %}
-                                <option value="{{ op.client.companyName }}">{{ op.client.companyName }}</option>
-                                {% set clientsSeen = clientsSeen|merge([op.client.companyName]) %}
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </div>
+  {# ── KPI cards ── #}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md">
+      <div class="kpi-card active" style="background:rgba(99,102,241,.08);color:#4f46e5" onclick="filterByStatus('all',this)">
+        <div class="kpi-val">{{ kpi.total }}</div>
+        <div class="kpi-lbl">Total sorties</div>
+      </div>
     </div>
+    <div class="col-6 col-md">
+      <div class="kpi-card" style="background:rgba(59,130,246,.08);color:#1d4ed8" onclick="filterByStatus('en_attente_controle',this)">
+        <div class="kpi-val">{{ kpi.en_attente_controle }}</div>
+        <div class="kpi-lbl"><i class="bi bi-search me-1"></i>En attente de contrôle</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="kpi-card" style="background:rgba(245,158,11,.08);color:#b45309" onclick="filterByStatus('en_attente_validation',this)">
+        <div class="kpi-val">{{ kpi.en_attente_validation }}</div>
+        <div class="kpi-lbl"><i class="bi bi-hourglass-split me-1"></i>En attente de validation</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="kpi-card" style="background:rgba(16,185,129,.08);color:#065f46" onclick="filterByStatus('validated',this)">
+        <div class="kpi-val">{{ kpi.validated }}</div>
+        <div class="kpi-lbl"><i class="bi bi-check-circle me-1"></i>Validées</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="kpi-card" style="background:rgba(239,68,68,.08);color:#991b1b" onclick="filterByStatus('rejected',this)">
+        <div class="kpi-val">{{ kpi.rejected }}</div>
+        <div class="kpi-lbl"><i class="bi bi-x-circle me-1"></i>Rejetées</div>
+      </div>
+    </div>
+  </div>
 
-    {# Tableau regroupé par BL #}
-    <div class="card">
-        <div class="card-header">
-            <i class="bi bi-table me-2"></i>Sorties regroupées par BL ({{ operations|length }} opérations)
+  {# ── Filtres ── #}
+  <div class="glass mb-4 p-3">
+    <div class="row g-2 align-items-center mb-2">
+      <div class="col-md-4">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-secondary"></i></span>
+          <input type="text" class="form-control border-start-0" id="searchInput" placeholder="N° BL, client, espèce…">
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>N° BL</th>
-                            <th>Date</th>
-                            <th>Client</th>
-                            <th>Espèces sorties</th>
-                            <th class="text-center">Quantité (kg)</th>
-                            <th class="text-center">Cartons</th>
-                            <th class="text-center">Statut</th>
-                            <th>Contrôleur</th>
-                            <th>Chef de stock</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for op in operations %}
-                        <tr class="op-row"
-                            data-search="{{ op.code }} {{ op.client.companyName }}"
-                            data-status="{{ op.status.value }}"
-                            data-client="{{ op.client.companyName }}">
-                            <td><code class="fw-bold">{{ op.code }}</code></td>
-                            <td>
-                                {{ op.createdAt|date('d/m/Y') }}
-                                <br><small class="text-muted">{{ op.createdAt|date('H:i') }}</small>
-                            </td>
-                            <td class="fw-semibold">{{ op.client.companyName }}</td>
-                            <td>{{ op.especes|join(', ') }}</td>
-                            <td class="text-center">{{ op.poidsTotal|number_format(0, ',', ' ') }}</td>
-                            <td class="text-center">{{ op.totalCartons }}</td>
-                            <td class="text-center">
-                                <span class="badge bg-{{ op.status.cssClass }}">{{ op.status.label }}</span>
-                            </td>
-                            <td>
-                                {% if op.controleur is defined and op.controleur %}
-                                    <small>{{ op.controleur.fullName }}</small>
-                                {% else %}
-                                    <small class="text-muted">—</small>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if op.validatedBy is defined and op.validatedBy %}
-                                    <small>{{ op.validatedBy.fullName }}</small>
-                                {% else %}
-                                    <small class="text-muted">—</small>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex gap-1 justify-content-center">
-                                    <a href="{{ path('app_operation_show', {id: op.id}) }}" class="btn btn-sm btn-outline-primary" title="Voir"><i class="bi bi-eye"></i></a>
-                                    {% if op.isValidated %}
-                                    <a href="{{ path('app_operation_bon_sortie', {id: op.id}) }}" class="btn btn-sm btn-outline-success" target="_blank" title="Bon de sortie"><i class="bi bi-file-earmark"></i></a>
-                                    {% endif %}
-                                    {% if op.isPending and is_granted('ROLE_CHEF_STOCK') %}
-                                    <form action="{{ path('app_operation_validate', {id: op.id}) }}" method="post" class="d-inline">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ op.id) }}">
-                                        <button class="btn btn-sm btn-outline-success" title="Valider"><i class="bi bi-check"></i></button>
-                                    </form>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="10" class="text-center py-4 text-muted"><i class="bi bi-inbox" style="font-size:2rem"></i><p>Aucune opération de sortie</p></td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select form-select-sm" id="statusSelect">
+          <option value="">Tous les statuts</option>
+          <option value="en_attente_controle">En attente de contrôle</option>
+          <option value="en_attente_validation">En attente de validation</option>
+          <option value="validated">Validé</option>
+          <option value="rejected">Rejeté</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select form-select-sm" id="clientSelect">
+          <option value="">Tous les clients</option>
+          {% set seen = [] %}
+          {% for op in operations %}{% if op.client.companyName not in seen %}
+            <option value="{{ op.client.companyName }}">{{ op.client.companyName }}</option>
+            {% set seen = seen|merge([op.client.companyName]) %}
+          {% endif %}{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 text-end">
+        <span class="text-secondary small" id="countLabel">{{ operations|length }} opération(s)</span>
+      </div>
     </div>
+    {# ── Filtres date ── #}
+    <div class="row g-2 align-items-center pt-2" style="border-top:1px solid #f1f5f9">
+      <div class="col-auto">
+        <small class="text-secondary fw-semibold" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.05em">
+          <i class="bi bi-calendar3 me-1"></i>Filtrer par date
+        </small>
+      </div>
+      <div class="col-auto">
+        <select class="form-select form-select-sm" id="daySelect" style="min-width:90px">
+          <option value="">Jour</option>
+          {% for d in 1..31 %}
+            <option value="{{ d }}">{{ '%02d'|format(d) }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <select class="form-select form-select-sm" id="monthSelect" style="min-width:120px">
+          <option value="">Mois</option>
+          {% set months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'] %}
+          {% for m in 1..12 %}
+            <option value="{{ m }}">{{ months[m-1] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <select class="form-select form-select-sm" id="yearSelect" style="min-width:100px">
+          <option value="">Année</option>
+          {% set years = [] %}
+          {% for op in operations %}
+            {% set y = op.createdAt|date('Y') %}
+            {% if y not in years %}
+              {% set years = years|merge([y]) %}
+            {% endif %}
+          {% endfor %}
+          {% for y in years|sort|reverse %}
+            <option value="{{ y }}">{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-sm btn-outline-secondary" id="resetDateBtn" title="Réinitialiser les dates" style="font-size:.75rem">
+          <i class="bi bi-x-circle me-1"></i>Effacer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {# ── Table ── #}
+  <div class="glass overflow-hidden">
+    <div class="table-responsive">
+      <table class="table tbl table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>N° BL</th>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Espèces</th>
+            <th class="text-center">Cartons</th>
+            <th class="text-end">Poids (kg)</th>
+            <th class="text-center">Statut</th>
+            <th>Contrôleur</th>
+            {% if is_granted('ROLE_CHEF_STOCK') %}<th>Chef stock</th>{% endif %}
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="opTableBody">
+          {% for op in operations %}
+          {% set sv = op.status.value %}
+          <tr class="op-row"
+              data-search="{{ op.code|lower }} {{ op.client.companyName|lower }} {{ op.especesSorties|join(' ')|lower }}"
+              data-status="{{ sv == 'pending' ? 'en_attente_controle' : sv }}"
+              data-client="{{ op.client.companyName }}"
+              data-day="{{ op.createdAt|date('j') }}"
+              data-month="{{ op.createdAt|date('n') }}"
+              data-year="{{ op.createdAt|date('Y') }}">
+            <td>
+              <code style="background:rgba(99,102,241,.1);color:#4f46e5;padding:.2em .5em;border-radius:.35rem;font-weight:700">
+                {{ op.code }}
+              </code>
+            </td>
+            <td class="text-nowrap">
+              {{ op.createdAt|date('d/m/Y') }}<br>
+              <small class="text-secondary">{{ op.createdAt|date('H:i') }}</small>
+            </td>
+            <td class="fw-semibold">{{ op.client.companyName }}</td>
+            <td>
+              {% for esp in op.especesSorties %}
+              <span style="background:#f1f5f9;color:#475569;padding:.15em .45em;border-radius:.3rem;font-size:.75rem;font-weight:600;margin:.1rem .05rem">
+                {{ esp }}
+              </span>
+              {% endfor %}
+            </td>
+            <td class="text-center fw-semibold">{{ op.totalCartonsSortis }}</td>
+            <td class="text-end fw-semibold">{{ op.poidsTotalSortis|number_format(0, ',', ' ') }}</td>
+            <td class="text-center">
+              {% if sv == 'validated' %}
+                <span class="status-pill" style="background:rgba(16,185,129,.12);color:#065f46">
+                  <i class="bi bi-check-circle-fill"></i>Validé
+                </span>
+              {% elseif sv == 'rejected' %}
+                <span class="status-pill" style="background:rgba(239,68,68,.12);color:#991b1b">
+                  <i class="bi bi-x-circle-fill"></i>Rejeté
+                </span>
+                {% if op.rejectionReason %}
+                  <span class="reject-reason" title="{{ op.rejectionReason }}">
+                    <i class="bi bi-chat-left-text"></i> {{ op.rejectionReason|slice(0,35) }}{% if op.rejectionReason|length > 35 %}…{% endif %}
+                  </span>
+                {% endif %}
+              {% elseif sv == 'en_attente_validation' %}
+                <span class="status-pill" style="background:rgba(245,158,11,.12);color:#92400e">
+                  <i class="bi bi-hourglass-split"></i>En attente de validation
+                </span>
+              {% else %}
+                <span class="status-pill" style="background:rgba(100,116,139,.12);color:#334155">
+                  <i class="bi bi-person-check"></i>En attente de contrôle
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              {% if op.controleur %}
+                <div style="display:flex;align-items:center;gap:.4rem">
+                  <span style="width:26px;height:26px;border-radius:50%;background:rgba(99,102,241,.15);color:#4f46e5;display:inline-flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;flex-shrink:0">
+                    {{ op.controleur.firstName|slice(0,1) }}{{ op.controleur.lastName|slice(0,1) }}
+                  </span>
+                  <span style="font-size:.82rem">{{ op.controleur.firstName }} {{ op.controleur.lastName|slice(0,1) }}.</span>
+                </div>
+              {% else %}
+                <span class="text-secondary small">—</span>
+              {% endif %}
+            </td>
+            {% if is_granted('ROLE_CHEF_STOCK') %}
+            <td>
+              {% if op.validatedBy %}
+                <span style="font-size:.82rem">{{ op.validatedBy.firstName }} {{ op.validatedBy.lastName|slice(0,1) }}.</span>
+              {% else %}
+                <span class="text-secondary small">—</span>
+              {% endif %}
+            </td>
+            {% endif %}
+            <td class="text-center">
+              <div class="d-flex gap-1 justify-content-center">
+                <a href="{{ path('app_operation_show', {id: op.id}) }}"
+                   class="btn btn-sm btn-outline-primary" title="Détail" style="border-radius:.5rem">
+                  <i class="bi bi-eye"></i>
+                </a>
+
+                {# Contrôleur : accès terrain #}
+                {% if (sv == 'en_attente_controle' or sv == 'pending') and
+                      (is_granted('ROLE_CHEF_STOCK') or op.controleur == app.user) %}
+                <a href="{{ path('app_operation_exit_controle', {id: op.id}) }}"
+                   class="btn btn-sm btn-outline-info" title="Contrôle terrain" style="border-radius:.5rem">
+                  <i class="bi bi-clipboard-check"></i>
+                </a>
+                {% endif %}
+
+                {# Chef de stock : valider / rejeter si en attente de validation #}
+                {% if sv == 'en_attente_validation' and is_granted('ROLE_CHEF_STOCK') %}
+                <button class="btn btn-sm btn-success" style="border-radius:.5rem"
+                        data-bs-toggle="modal" data-bs-target="#validateModal{{ op.id }}" title="Valider">
+                  <i class="bi bi-check2"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" style="border-radius:.5rem"
+                        data-bs-toggle="modal" data-bs-target="#rejectModal{{ op.id }}" title="Rejeter">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+                {% endif %}
+
+                {# Bon de sortie #}
+                {% if op.isValidated %}
+                <a href="{{ path('app_operation_bon_sortie', {id: op.id}) }}"
+                   class="btn btn-sm btn-outline-success" target="_blank" title="Bon de sortie" style="border-radius:.5rem">
+                  <i class="bi bi-file-earmark-text"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+
+          {# Validate Modal #}
+          {% if sv == 'en_attente_validation' and is_granted('ROLE_CHEF_STOCK') %}
+          <div class="modal fade" id="validateModal{{ op.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                <div class="modal-header border-0 pb-0">
+                  <h6 class="modal-title fw-bold text-success">
+                    <i class="bi bi-check-circle me-2"></i>Valider l'opération
+                  </h6>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-2">
+                  <p class="text-secondary small mb-0">
+                    Valider <strong>{{ op.code }}</strong> pour <strong>{{ op.client.companyName }}</strong> ?
+                    Le stock sera déduit après confirmation.
+                  </p>
+                </div>
+                <div class="modal-footer border-0 gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                  <form action="{{ path('app_operation_validate', {id: op.id}) }}" method="post" class="d-inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ op.id) }}">
+                    <button class="btn btn-sm btn-success"><i class="bi bi-check2 me-1"></i>Confirmer</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          {# Reject Modal #}
+          <div class="modal fade" id="rejectModal{{ op.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                <form action="{{ path('app_operation_reject', {id: op.id}) }}" method="post">
+                  <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ op.id) }}">
+                  <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold text-danger"><i class="bi bi-x-circle me-2"></i>Rejeter</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body py-2">
+                    <textarea name="reason" class="form-control form-control-sm" rows="3" required
+                              placeholder="Motif obligatoire…"></textarea>
+                  </div>
+                  <div class="modal-footer border-0 gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button class="btn btn-sm btn-danger"><i class="bi bi-x-circle me-1"></i>Rejeter</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          {% else %}
+          <tr>
+            <td colspan="10" class="text-center py-5 text-secondary">
+              <i class="bi bi-inbox display-4 d-block mb-2 opacity-25"></i>
+              <div>Aucune opération de sortie</div>
+              {% if is_granted('ROLE_CHEF_STOCK') %}
+              <a href="{{ path('app_operation_exit_prepare') }}" class="btn btn-sm btn-danger mt-2">
+                <i class="bi bi-plus-circle me-1"></i>Préparer une sortie
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block javascripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const rows = document.querySelectorAll('.op-row');
+(function () {
+  const rows  = document.querySelectorAll('.op-row');
+  const count = document.getElementById('countLabel');
 
-    function applyFilters() {
-        const q = (document.getElementById('searchInput').value || '').toLowerCase();
-        const status = document.getElementById('statusFilter').value;
-        const client = document.getElementById('clientFilter').value;
+  function applyFilters() {
+    const q      = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusSelect').value;
+    const client = document.getElementById('clientSelect').value;
+    const day    = document.getElementById('daySelect').value;
+    const month  = document.getElementById('monthSelect').value;
+    const year   = document.getElementById('yearSelect').value;
+    let visible = 0;
+    rows.forEach(r => {
+      const ok = (!q      || r.dataset.search.includes(q))
+              && (!status || r.dataset.status === status)
+              && (!client || r.dataset.client === client)
+              && (!day    || r.dataset.day   === day)
+              && (!month  || r.dataset.month === month)
+              && (!year   || r.dataset.year  === year);
+      r.style.display = ok ? '' : 'none';
+      if (ok) visible++;
+    });
+    count.textContent = visible + ' opération(s)';
+  }
 
-        rows.forEach(r => {
-            const matchSearch = !q || r.dataset.search.toLowerCase().includes(q);
-            const matchStatus = !status || r.dataset.status === status;
-            const matchClient = !client || r.dataset.client === client;
-            r.style.display = (matchSearch && matchStatus && matchClient) ? '' : 'none';
-        });
-    }
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.getElementById('statusSelect').addEventListener('change', applyFilters);
+  document.getElementById('clientSelect').addEventListener('change', applyFilters);
+  document.getElementById('daySelect').addEventListener('change', applyFilters);
+  document.getElementById('monthSelect').addEventListener('change', applyFilters);
+  document.getElementById('yearSelect').addEventListener('change', applyFilters);
 
-    document.getElementById('searchInput').addEventListener('input', applyFilters);
-    document.getElementById('statusFilter').addEventListener('change', applyFilters);
-    document.getElementById('clientFilter').addEventListener('change', applyFilters);
-});
+  document.getElementById('resetDateBtn').addEventListener('click', function () {
+    document.getElementById('daySelect').value   = '';
+    document.getElementById('monthSelect').value = '';
+    document.getElementById('yearSelect').value  = '';
+    applyFilters();
+  });
+
+  window.filterByStatus = function(status, card) {
+    document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    document.getElementById('statusSelect').value = status === 'all' ? '' : status;
+    applyFilters();
+  };
+})();
 </script>
 {% endblock %}

@@ -9,6 +9,7 @@ enum PaletteStatus: string
     case REJETEE = 'rejetee';
     case SORTIE_PARTIELLE = 'sortie_partielle';
     case SORTIE_COMPLETE = 'sortie_complete';
+    case ANNULEE = 'annulee';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum PaletteStatus: string
             self::REJETEE => 'Rejetée',
             self::SORTIE_PARTIELLE => 'Sortie partielle',
             self::SORTIE_COMPLETE => 'Sortie complète',
+            self::ANNULEE => 'Annulée – retour stock',
         };
     }
 
@@ -29,6 +31,7 @@ enum PaletteStatus: string
             self::REJETEE => 'danger',
             self::SORTIE_PARTIELLE => 'info',
             self::SORTIE_COMPLETE => 'secondary',
+            self::ANNULEE => 'dark',
         };
     }
 }

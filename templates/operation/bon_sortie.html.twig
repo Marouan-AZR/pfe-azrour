@@ -4,92 +4,299 @@
 
 {% block stylesheets %}
 <style>
+    @page { size: A4 portrait; margin: 0; }
     @media print {
-        .sidebar, .main-header, .no-print { display: none !important; }
-        .main-content { margin-left: 0 !important; }
-        .main-body { padding: 0 !important; }
+        .sidebar, .main-header, .sidebar-overlay,
+        .no-print { display: none !important; }
+        .app-wrapper    { display: block !important; }
+        .main-content   { margin-left: 0 !important; padding: 0 !important; }
+        .main-body      { padding: 0 !important; }
+        .container-fluid{ padding: 0 !important; }
+        body {
+            margin: 0 !important; padding: 0 !important; font-size: 10pt;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
+        .bon-wrapper {
+            box-shadow: none !important; border: none !important;
+            max-width: 100% !important; margin: 0 !important;
+            padding: 0 !important;
+        }
     }
-    .bon-header { text-align: center; border-bottom: 2px solid #1e40af; padding-bottom: 1rem; margin-bottom: 1.5rem; }
-    .bon-header h2 { color: #1e40af; }
-    .bon-table th { background: #f1f5f9; }
-    .bon-total { background: #f1f5f9; font-weight: bold; }
-    .signatures { display: flex; justify-content: space-between; margin-top: 3rem; }
-    .signature-box { text-align: center; width: 180px; border-top: 1px solid #333; padding-top: 0.5rem; font-size: 0.85rem; }
+
+    .bon-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        overflow: hidden;
+    }
+
+    .bon-header {
+        background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+        color: #fff;
+        padding: 1.25rem 1.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .bon-header .company-info h3 { margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: .5px; }
+    .bon-header .company-info p  { margin: .15rem 0 0; font-size: .8rem; opacity: .85; }
+    .bon-header .bon-logo {
+        background: #fff;
+        border-radius: 8px;
+        padding: 6px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 120px;
+        max-width: 180px;
+    }
+    .bon-header .bon-logo img { max-height: 90px; max-width: 200px; object-fit: contain; }
+
+    .bon-title-bar {
+        background: #f0f4ff;
+        border-bottom: 2px solid #1e40af;
+        text-align: center;
+        padding: .6rem 1rem;
+    }
+    .bon-title-bar h2 {
+        margin: 0;
+        color: #1e40af;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .bon-title-bar .bon-code {
+        display: inline-block;
+        margin-top: .2rem;
+        font-size: .85rem;
+        color: #475569;
+        font-weight: 600;
+    }
+
+    .bon-info {
+        padding: 1.1rem 1.75rem;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f0f4ff;
+    }
+    .bon-info .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .35rem 2rem;
+    }
+    .bon-info .info-grid .info-item {
+        display: flex;
+        gap: .4rem;
+        font-size: .88rem;
+        align-items: baseline;
+    }
+    .bon-info .info-grid .info-item .lbl {
+        color: #64748b;
+        font-weight: 600;
+        white-space: nowrap;
+        min-width: 110px;
+    }
+    .bon-info .info-grid .info-item .val {
+        color: #1e293b;
+        font-weight: 500;
+    }
+
+    .bon-body { padding: 1rem 1.75rem 1.5rem; }
+    .bon-table { width: 100%; border-collapse: collapse; font-size: .88rem; margin-bottom: 0; }
+    .bon-table thead tr { background: #1e40af; color: #fff; }
+    .bon-table thead th { padding: .6rem .75rem; font-weight: 600; white-space: nowrap; border: 1px solid #1e3a8a; }
+    .bon-table tbody tr:nth-child(even) { background: #f0f4ff; }
+    .bon-table tbody tr:hover { background: #dbeafe; }
+    .bon-table tbody td { padding: .5rem .75rem; border: 1px solid #e2e8f0; vertical-align: middle; }
+    .bon-table tfoot td { padding: .6rem .75rem; border: 1px solid #bfdbfe; background: #dbeafe; font-weight: 700; color: #1e40af; font-size: .92rem; }
+
+    .badge-rejetee { background: #fee2e2; color: #991b1b; border-radius: 4px; padding: 2px 8px; font-size: .78rem; font-weight: 600; }
+    .badge-sortie  { background: #dbeafe; color: #1e40af; border-radius: 4px; padding: 2px 8px; font-size: .78rem; font-weight: 600; }
+
+    .bon-signatures {
+        display: flex;
+        justify-content: space-around;
+        padding: 1.5rem 1.75rem 1.75rem;
+        border-top: 1px solid #e2e8f0;
+        background: #f0f4ff;
+        gap: 1rem;
+    }
+    .signature-box { text-align: center; flex: 1; max-width: 220px; }
+    .signature-box .sig-title {
+        font-size: .8rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin-bottom: .4rem;
+    }
+    .signature-box .sig-area {
+        height: 60px;
+        border: 1px dashed #94a3b8;
+        border-radius: 4px;
+        background: #fff;
+    }
+    .signature-box .sig-line {
+        border-top: 1.5px solid #334155;
+        margin-top: .3rem;
+        padding-top: .3rem;
+        font-size: .78rem;
+        color: #64748b;
+    }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="no-print d-flex justify-content-between mb-3">
-        <a href="{{ path('app_operation_show', {id: operation.id}) }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
-        <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer"></i> Imprimer</button>
+<div class="container-fluid py-3">
+    <div class="no-print d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ path('app_operation_show', {id: operation.id}) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+        <button onclick="window.print()" class="btn btn-primary btn-sm">
+            <i class="bi bi-printer"></i> Imprimer
+        </button>
     </div>
 
-    <div class="card">
-        <div class="card-body p-4">
-            <div class="bon-header">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" style="max-height:60px;max-width:200px;margin-bottom:0.5rem" onerror="this.style.display='none'">
-                <h4>🏭 GOLDEN LOGISTIQUE</h4>
-                <h2>BON DE SORTIE</h2>
-            </div>
+    <div class="bon-wrapper">
 
-            <div class="row mb-4">
-                <div class="col-6">
-                    <p><strong>N° BL :</strong> {{ operation.code }}</p>
-                    <p><strong>Date :</strong> {{ operation.validatedAt|date('d/m/Y') }}</p>
-                    <p><strong>Client :</strong> {{ operation.client.companyName }}</p>
+        <div class="bon-header">
+            <div class="company-info">
+                <h3>Golden Logistics</h3>
+                <p>Gestion de stock frigorifique</p>
+            </div>
+            <div class="bon-logo">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo"
+                     onerror="this.parentElement.innerHTML='<span style=&quot;color:#1e40af;font-weight:700;font-size:1rem;&quot;>GL</span>'">
+            </div>
+        </div>
+
+        <div class="bon-title-bar">
+            <h2>Bon de Sortie</h2>
+            <span class="bon-code">R&eacute;f&nbsp;: {{ operation.code }}</span>
+        </div>
+
+        <div class="bon-info">
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="lbl">N&deg; BL&nbsp;:</span>
+                    <span class="val">{{ operation.code }}</span>
                 </div>
-                <div class="col-6 text-end">
-                    <p><strong>Contrôleur :</strong> {{ operation.controleur ? operation.controleur.fullName : '—' }}</p>
-                    <p><strong>Chef de stock :</strong> {{ operation.validatedBy ? operation.validatedBy.fullName : '—' }}</p>
+                <div class="info-item">
+                    <span class="lbl">Contr&ocirc;leur&nbsp;:</span>
+                    <span class="val">{{ operation.controleur ? operation.controleur.fullName : '&mdash;' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="lbl">Date&nbsp;:</span>
+                    <span class="val">{{ operation.validatedAt ? operation.validatedAt|date('d/m/Y') : '&mdash;' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="lbl">Chef de stock&nbsp;:</span>
+                    <span class="val">{{ operation.validatedBy ? operation.validatedBy.fullName : '&mdash;' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="lbl">Client&nbsp;:</span>
+                    <span class="val fw-bold">{{ operation.client.companyName }}</span>
                 </div>
             </div>
+        </div>
 
-            <table class="table table-bordered bon-table">
+        <div class="bon-body">
+            {% set grouped       = {} %}
+            {% set totalC        = 0 %}
+            {% set totalP        = 0 %}
+            {% set rejectedCount = 0 %}
+
+            {% for palette in operation.palettes %}
+                {% set isRejected = palette.status.value in ['rejetee', 'annulee'] %}
+                {% if isRejected %}
+                    {% set rejectedCount = rejectedCount + 1 %}
+                {% else %}
+                    {% set esp     = palette.espece|default('&mdash;') %}
+                    {% set qual    = palette.qualite ?? '&mdash;' %}
+                    {% set moule   = palette.moule ?? '&mdash;' %}
+                    {% set cond    = palette.famille ?? '&mdash;' %}
+                    {% set key     = esp ~ '||' ~ qual ~ '||' ~ moule ~ '||' ~ cond %}
+                    {% set cartons = palette.cartonsReellementSortis ?? palette.nombreCartons %}
+                    {% set poids   = palette.poidsTotal %}
+
+                    {% set totalC = totalC + cartons %}
+                    {% set totalP = totalP + poids %}
+
+                    {% if grouped[key] is not defined %}
+                        {% set grouped = grouped|merge({ (key): {
+                            'esp': esp, 'qual': qual, 'moule': moule, 'cond': cond,
+                            'cartons': cartons,
+                            'poids':   poids
+                        } }) %}
+                    {% else %}
+                        {% set prev = grouped[key] %}
+                        {% set grouped = grouped|merge({ (key): {
+                            'esp': prev.esp, 'qual': prev.qual, 'moule': prev.moule, 'cond': prev.cond,
+                            'cartons': prev.cartons + cartons,
+                            'poids':   prev.poids   + poids
+                        } }) %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            <table class="bon-table">
                 <thead>
                     <tr>
-                        <th>Espèce</th>
-                        <th>Qualité</th>
+                        <th style="width:5%">#</th>
+                        <th>Esp&egrave;ce / D&eacute;signation</th>
+                        <th>Qualit&eacute;</th>
                         <th>Moule</th>
                         <th>Famille</th>
                         <th class="text-center">Cartons sortis</th>
-                        <th class="text-end">Poids total (kg)</th>
+                        <th class="text-end">Poids (kg)</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% set totalC = 0 %}
-                    {% set totalP = 0 %}
-                    {% for palette in operation.palettes %}
+                    {% for item in grouped %}
                     <tr>
-                        <td>{{ palette.espece }}</td>
-                        <td>{{ palette.qualite ?? '—' }}</td>
-                        <td>{{ palette.moule ?? '—' }}</td>
-                        <td>{{ palette.famille ?? '—' }}</td>
-                        <td class="text-center">{{ palette.nombreCartons }}</td>
-                        <td class="text-end">{{ palette.poidsTotal|number_format(0, ',', ' ') }}</td>
+                        <td class="text-center text-muted">{{ loop.index }}</td>
+                        <td class="fw-semibold">{{ item.esp }}</td>
+                        <td>{{ item.qual }}</td>
+                        <td>{{ item.moule }}</td>
+                        <td>{{ item.cond }}</td>
+                        <td class="text-center fw-semibold">{{ item.cartons }}</td>
+                        <td class="text-end">{{ item.poids|number_format(0, ',', ' ') }}</td>
                     </tr>
-                    {% set totalC = totalC + palette.nombreCartons %}
-                    {% set totalP = totalP + palette.poidsTotal %}
                     {% endfor %}
                 </tbody>
                 <tfoot>
-                    <tr class="bon-total">
-                        <td colspan="4">TOTAL</td>
+                    <tr>
+                        <td colspan="5" class="text-end">TOTAL SORTI</td>
                         <td class="text-center">{{ totalC }}</td>
                         <td class="text-end">{{ totalP|number_format(0, ',', ' ') }} kg</td>
                     </tr>
                 </tfoot>
             </table>
 
-            <p class="text-muted mt-3"><strong>Nombre total de palettes :</strong> {{ operation.nombrePalettes }}</p>
+            {% if rejectedCount > 0 %}
+            <div style="margin-top:.75rem;padding:.55rem .85rem;background:#fef2f2;border:1px solid #fecaca;border-radius:.5rem;font-size:.8rem;color:#991b1b;display:flex;align-items:center;gap:.5rem">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>{{ rejectedCount }} palette{{ rejectedCount > 1 ? 's' : '' }} rejet&eacute;e{{ rejectedCount > 1 ? 's' : '' }} &mdash; non incluse{{ rejectedCount > 1 ? 's' : '' }} dans ce bon de sortie.</span>
+            </div>
+            {% endif %}
+        </div>
 
-            <div class="signatures">
-                <div class="signature-box">Responsable Client</div>
-                <div class="signature-box">Contrôleur</div>
-                <div class="signature-box">Chef de Stock</div>
-                <div class="signature-box">Cachet Entreprise</div>
+        <div class="bon-signatures">
+            <div class="signature-box">
+                <div class="sig-title">Contr&ocirc;leur</div>
+                <div class="sig-area"></div>
+                <div class="sig-line">Nom &amp; Signature</div>
+            </div>
+            <div class="signature-box">
+                <div class="sig-title">Responsable Client</div>
+                <div class="sig-area"></div>
+                <div class="sig-line">Nom &amp; Signature</div>
             </div>
         </div>
+
     </div>
 </div>
 {% endblock %}

@@ -2,370 +2,1812 @@
 
 {% block title %}Opération {{ operation.code }}{% endblock %}
 
-{% block body %}
+{% block stylesheets %}
 <style>
-    .ticket-wrapper{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
-    .qr-canvas{border:1px solid rgba(0,0,0,.08); background:#fff; border-radius:8px;}
-    @media print{
-        body *{visibility:hidden;}
-        .print-area, .print-area *{visibility:visible;}
-        .print-area{position:absolute;left:0;top:0;width:100%;padding:20px;}
-        .no-print{display:none !important;}
+    /* ── Base ── */
+    .glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+    .info-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:#94a3b8; font-weight:600; margin-bottom:.2rem; }
+    .info-value { font-size:.9rem; font-weight:600; color:#0f172a; }
+    .section-title { font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; font-weight:700; color:#64748b; }
+
+    /* ── Table ── */
+    .table thead th { font-size:.73rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; padding:.65rem 1rem; }
+    .table tbody td { font-size:.875rem; padding:.7rem 1rem; vertical-align:middle; }
+
+    /* ── Status badge ── */
+    .op-status {
+        display:inline-flex; align-items:center; gap:.4rem;
+        font-size:.8rem; font-weight:700; padding:.35em .85em;
+        border-radius:50px;
+    }
+    .op-status.pending    { background:rgba(245,158,11,.12); color:#92400e; border:1px solid rgba(245,158,11,.3); }
+    .op-status.validated  { background:rgba(16,185,129,.12); color:#065f46; border:1px solid rgba(16,185,129,.3); }
+    .op-status.rejected   { background:rgba(239,68,68,.12);  color:#991b1b; border:1px solid rgba(239,68,68,.3);  }
+    .op-status.ctrl       { background:rgba(59,130,246,.12); color:#1d4ed8; border:1px solid rgba(59,130,246,.3); }
+
+    /* ── Palette status ── */
+    .pal-badge { font-size:.72rem; font-weight:700; padding:.25em .6em; border-radius:.4rem; }
+
+    /* ── Exit stepper ── */
+    .exit-stepper { display:flex; align-items:center; overflow-x:auto; padding:.25rem 0; }
+    .exit-step { display:flex; flex-direction:column; align-items:center; min-width:110px; flex:0 0 auto; }
+    .exit-step-circle { width:42px; height:42px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:1.05rem; margin-bottom:.4rem; flex-shrink:0; }
+    .exit-step-circle.done    { background:#10b981; color:#fff; }
+    .exit-step-circle.active  { background:#3b82f6; color:#fff; box-shadow:0 0 0 5px rgba(59,130,246,.18); }
+    .exit-step-circle.waiting { background:#f59e0b; color:#fff; box-shadow:0 0 0 5px rgba(245,158,11,.18); }
+    .exit-step-circle.idle    { background:#e2e8f0; color:#94a3b8; }
+    .exit-step-circle.success { background:#10b981; color:#fff; box-shadow:0 0 0 5px rgba(16,185,129,.18); }
+    .exit-step-circle.danger  { background:#ef4444; color:#fff; box-shadow:0 0 0 5px rgba(239,68,68,.18); }
+    .exit-step-label { font-size:.72rem; font-weight:700; }
+    .exit-step-sub   { font-size:.65rem; color:#94a3b8; margin-top:.1rem; }
+    .exit-connector  { flex:1; height:2px; min-width:24px; border-radius:1px; }
+
+    /* ── Hero header ── */
+    .op-hero { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); overflow:hidden; margin-bottom:1.5rem; }
+    .op-hero-bar { height:5px; width:100%; }
+    .op-hero-body { padding:1.25rem 1.5rem; }
+
+    /* ── Info chips ── */
+    .info-chip { display:flex; align-items:center; gap:.7rem; padding:.6rem .85rem; border-radius:.65rem; background:#f8fafc; border:1px solid #e2e8f0; transition:border-color .15s; }
+    .info-chip:hover { border-color:#c7d2fe; }
+    .info-chip-icon { width:34px; height:34px; border-radius:.5rem; display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; }
+    .info-chip-label { font-size:.66rem; text-transform:uppercase; letter-spacing:.05em; color:#94a3b8; font-weight:600; line-height:1; margin-bottom:.2rem; }
+    .info-chip-value { font-size:.87rem; font-weight:600; color:#0f172a; line-height:1.25; }
+
+    /* ── KPI mini cards ── */
+    .kpi-mini { border-radius:.85rem; padding:1rem 1.15rem; }
+    .kpi-mini-val { font-size:1.7rem; font-weight:800; line-height:1; }
+    .kpi-mini-lbl { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; margin-top:.25rem; opacity:.8; }
+
+    /* ── Op type badge ── */
+    .op-type-badge { display:inline-flex; align-items:center; gap:.4rem; font-size:.78rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:.4em 1em; border-radius:50px; }
+
+    @media print {
+        body * { visibility:hidden; }
+        .print-area, .print-area * { visibility:visible; }
+        .print-area { position:absolute; left:0; top:0; width:100%; padding:20px; }
+        .no-print { display:none !important; }
     }
 </style>
+{% endblock %}
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
-        <div>
-            <h1 class="mb-1"><i class="bi bi-clipboard-data me-2"></i>Détails de l'opération</h1>
-            {% if operation.status.value == 'rejected' and operation.rejectionReason %}
-                <div class="alert alert-danger mb-0 p-3" style="font-weight:600;">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    <span>Motif rejet :</span>
-                    <span class="text-body-emphasis">{{ operation.rejectionReason }}</span>
-                </div>
-            {% endif %}
+{% block body %}
+<div class="container-fluid py-4 px-4 no-print">
+
+
+    {# ── Hero Header ── #}
+    <div class="op-hero">
+        <div class="op-hero-bar"
+             style="background:linear-gradient(90deg,{{ operation.type.value == 'entry' ? '#10b981,#34d399' : '#ef4444,#f87171' }})">
         </div>
-        <div class="d-flex gap-2">
-            {% if operation.type.value == 'entry' %}
-            <a href="{{ path('app_operation_entry_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
-            {% endif %}
-            {% if operation.isValidated and operation.type.value == 'entry' %}
-            <a href="{{ path('app_operation_bon_entree', {id: operation.id}) }}" class="btn btn-outline-success" target="_blank">
-                <i class="bi bi-file-earmark-text"></i> 📄 Bon d'Entrée
-            </a>
-            {% endif %}
-            {% if operation.isValidated and operation.type.value == 'exit' %}
-            <a href="{{ path('app_operation_bon_sortie', {id: operation.id}) }}" class="btn btn-outline-success" target="_blank">
-                <i class="bi bi-file-earmark-text"></i> 📦 Bon de Sortie
-            </a>
-            {% endif %}
-            {% if not operation.ficheDecharge and is_granted('ROLE_CONTROLEUR') %}
-            <a href="{{ path('app_operation_generate_fiche', {id: operation.id}) }}" class="btn btn-primary">
-                <i class="bi bi-file-earmark-plus"></i> 📄 Générer Fiche
-            </a>
-            {% elseif operation.ficheDecharge %}
-            <a href="{{ path('app_fiche_show', {id: operation.ficheDecharge.id}) }}" class="btn btn-outline-info">
-                <i class="bi bi-file-earmark-check"></i> Voir Fiche
-            </a>
-            {% endif %}
-        </div>
-    </div>
+        <div class="op-hero-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
 
-    {# Informations générales #}
-    <div class="card mb-4 no-print">
-        <div class="card-header"><i class="bi bi-info-circle me-2"></i>Informations Générales</div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <small class="text-muted d-block">📋 Code opération</small>
-                    <strong><code>{{ operation.code }}</code></strong>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">📅 Date et Heure</small>
-                    <strong>{{ operation.createdAt|date('d/m/Y H:i:s') }}</strong>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">👤 Client</small>
-                    <strong>{{ operation.client.companyName }}</strong>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">Statut</small>
-                    <span class="badge bg-{{ operation.status.cssClass }} fs-6">{{ operation.status.label }}</span>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">🔍 Contrôleur</small>
-                    <strong>{{ operation.controleur ? operation.controleur.firstName ~ ' ' ~ operation.controleur.lastName : '—' }}</strong>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">Nombre de Palettes</small>
-                    <strong>{{ operation.nombrePalettes }}</strong>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">Total Cartons</small>
-                    <strong>{{ operation.totalCartons }}</strong>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">⚖️ Poids Total</small>
-                    <strong>{{ operation.poidsTotal|number_format(0, ',', ' ') }} kg ({{ operation.poidsTotalTonnes|number_format(2) }} T)</strong>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">Créé par</small>
-                    <strong>{{ operation.createdBy.fullName }}</strong>
-                </div>
-            </div>
-        </div>
-    </div>
+                {# Left: breadcrumb + identity #}
+                <div>
+                    <nav aria-label="breadcrumb" class="mb-2">
+                        <ol class="breadcrumb mb-0" style="font-size:.82rem">
+                            <li class="breadcrumb-item">
+                                {% if operation.type.value == 'entry' %}
+                                <a href="{{ path('app_operation_entry_index') }}" class="text-primary text-decoration-none">
+                                    <i class="bi bi-arrow-down-circle me-1"></i>Entrées
+                                </a>
+                                {% else %}
+                                <a href="{{ path('app_operation_exit_index') }}" class="text-primary text-decoration-none">
+                                    <i class="bi bi-arrow-up-circle me-1"></i>Sorties
+                                </a>
+                                {% endif %}
+                            </li>
+                            <li class="breadcrumb-item active text-secondary">{{ operation.code }}</li>
+                        </ol>
+                    </nav>
 
-    {# Tableau des palettes #}
-    <div class="card mb-4 no-print">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-grid-3x3 me-2"></i>Palettes associées ({{ operation.nombrePalettes }})</span>
-            {% if operation.isPending and (is_granted('ROLE_CONTROLEUR') or is_granted('ROLE_CHEF_STOCK')) %}
-            <a href="{{ path('app_operation_entry_new', {operation: operation.id}) }}" class="btn btn-sm btn-primary">
-                <i class="bi bi-plus-circle"></i> Ajouter Nouvelle Entrée
-            </a>
-            {% endif %}
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>N° Palette</th>
-                            <th>Espèce</th>
-                            <th>Qualité</th>
-                            <th>Moule</th>
-                            <th>Famille</th>
-                            <th class="text-center">Cartons</th>
-                            <th class="text-end">Poids</th>
-                            <th>Chambre</th>
-                            <th>Rayon</th>
-                            <th class="text-center">Statut</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for palette in operation.palettes %}
-                        <tr>
-                            <td><code class="fw-bold">{{ palette.codePalette }}</code></td>
-                            <td class="fw-semibold">{{ palette.espece }}</td>
-                            <td>{{ palette.qualite ?? '—' }}</td>
-                            <td>{{ palette.moule ?? '—' }}</td>
-                            <td>{{ palette.famille ?? '—' }}</td>
-                            <td class="text-center">{{ palette.nombreCartons }}</td>
-                            <td class="text-end">{{ palette.poidsTotal|number_format(0, ',', ' ') }} kg</td>
-                            <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</td>
-                            <td>{{ palette.rayon ?? '—' }}</td>
-                            <td class="text-center">
-                                <span class="badge bg-{{ palette.status.cssClass }}">{{ palette.status.label }}</span>
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex gap-1 justify-content-center">
-                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailModal{{ palette.id }}" title="Voir">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    {% if (is_granted('ROLE_CHEF_STOCK')) or (is_granted('ROLE_CONTROLEUR') and operation.isPending) %}
-                                    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ palette.id }}" title="Modifier">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#ticketModal{{ palette.id }}" title="Générer ticket">
-                                        <i class="bi bi-ticket-perforated"></i>
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-
-                        {# Detail Modal #}
-                        <div class="modal fade" id="detailModal{{ palette.id }}" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Palette {{ palette.codePalette }}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <dl class="row mb-0">
-                                            <dt class="col-5">Code</dt><dd class="col-7"><code>{{ palette.codePalette }}</code></dd>
-                                            <dt class="col-5">Espèce</dt><dd class="col-7">{{ palette.espece }}</dd>
-                                            <dt class="col-5">Famille</dt><dd class="col-7">{{ palette.famille ?? '—' }}</dd>
-                                            <dt class="col-5">Qualité</dt><dd class="col-7">{{ palette.qualite ?? '—' }}</dd>
-                                            <dt class="col-5">Moule</dt><dd class="col-7">{{ palette.moule ?? '—' }}</dd>
-                                            <dt class="col-5">Cartons</dt><dd class="col-7">{{ palette.nombreCartons }}</dd>
-                                            <dt class="col-5">Poids/carton</dt><dd class="col-7">{{ palette.poidsCarton }} kg</dd>
-                                            <dt class="col-5">Poids total</dt><dd class="col-7">{{ palette.poidsTotal|number_format(0, ',', ' ') }} kg</dd>
-                                            <dt class="col-5">Chambre</dt><dd class="col-7">{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</dd>
-                                            <dt class="col-5">Rayon</dt><dd class="col-7">{{ palette.rayon ?? '—' }}</dd>
-                                            <dt class="col-5">Observation</dt><dd class="col-7">{{ palette.observation ?? '—' }}</dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {# Edit Modal #}
-                        <div class="modal fade" id="editModal{{ palette.id }}" tabindex="-1">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <form action="{{ path('app_operation_palette_edit', {id: operation.id, paletteId: palette.id}) }}" method="post">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">✏️ Modifier {{ palette.codePalette }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Espèce</label>
-                                                    <input type="text" name="espece" class="form-control" value="{{ palette.espece }}">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Famille</label>
-                                                    <input type="text" name="famille" class="form-control" value="{{ palette.famille }}">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Qualité</label>
-                                                    <input type="text" name="qualite" class="form-control" value="{{ palette.qualite }}">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Moule</label>
-                                                    <input type="text" name="moule" class="form-control" value="{{ palette.moule }}">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Nombre de cartons</label>
-                                                    <input type="number" name="nombre_cartons" class="form-control" value="{{ palette.nombreCartons }}">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Poids par carton (kg)</label>
-                                                    <input type="number" name="poids_carton" class="form-control" step="0.001" value="{{ palette.poidsCarton }}">
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Rayon</label>
-                                                    <input type="text" name="rayon" class="form-control" value="{{ palette.rayon }}">
-                                                </div>
-                                                <div class="col-12">
-                                                    <label class="form-label">Observation</label>
-                                                    <textarea name="observation" class="form-control" rows="2">{{ palette.observation }}</textarea>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                            <button type="submit" class="btn btn-primary">Enregistrer</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        {# Ticket Modal - Professional Bon #}
-                        <div class="modal fade" id="ticketModal{{ palette.id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-lg modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header no-print">
-                                        <h5 class="modal-title">🎫 Ticket Palette {{ palette.codePalette }}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="ticket-wrapper print-area" id="ticket-{{ palette.id }}">
-                                            {# Header #}
-                                            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <div style="width:50px;height:50px;background:#1e40af;border-radius:8px;" class="d-flex align-items-center justify-content-center">
-                                                        <span class="text-white fw-bold fs-5">GL</span>
-                                                    </div>
-                                                    <div>
-                                                        <h4 class="mb-0 fw-bold">Golden Logistics</h4>
-                                                        <small class="text-muted">Entrepôt Frigorifique</small>
-                                                    </div>
-                                                </div>
-                                                <div class="text-end">
-                                                    <div class="fw-bold text-primary fs-5">{{ operation.code }}</div>
-                                                    <small class="text-muted">{{ operation.createdAt|date('d/m/Y H:i') }}</small>
-                                                </div>
-                                            </div>
-
-                                            {# Bloc Informations Générales #}
-                                            <div class="row g-3 mb-3">
-                                                <div class="col-6">
-                                                    <div class="border rounded p-3">
-                                                        <h6 class="fw-bold text-muted mb-2">Informations Générales</h6>
-                                                        <div class="row g-2">
-                                                            <div class="col-6"><small class="text-muted">Client</small><div class="fw-semibold">{{ operation.client.companyName }}</div></div>
-                                                            <div class="col-6"><small class="text-muted">Produit</small><div class="fw-semibold">{{ palette.espece }}</div></div>
-                                                            <div class="col-6"><small class="text-muted">Contrôleur</small><div class="fw-semibold">{{ operation.controleur ? operation.controleur.firstName ~ ' ' ~ operation.controleur.lastName : '—' }}</div></div>
-                                                            <div class="col-6"><small class="text-muted">Chef de stock</small><div class="fw-semibold">{{ operation.validatedBy ? operation.validatedBy.firstName ~ ' ' ~ operation.validatedBy.lastName : '—' }}</div></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="border rounded p-3 h-100 d-flex align-items-center justify-content-end">
-                                                        <canvas width="150" height="150" class="qr-canvas" data-qr-text="{{ operation.code }}"></canvas>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {# Bloc Palettes #}
-                                            <div class="border rounded p-3">
-                                                <h6 class="fw-bold text-muted mb-2">Détail Palette</h6>
-                                                <table class="table table-sm table-bordered mb-0">
-                                                    <thead class="table-light">
-                                                        <tr>
-                                                            <th>Code Palette</th>
-                                                            <th>Espèce</th>
-                                                            <th class="text-end">Poids</th>
-                                                            <th>Emplacement</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td><code>{{ palette.codePalette }}</code></td>
-                                                            <td>{{ palette.espece }}</td>
-                                                            <td class="text-end">{{ palette.poidsTotal|number_format(0, ',', ' ') }} kg</td>
-                                                            <td>{{ palette.coldRoom ? palette.coldRoom.name : '—' }}{% if palette.rayon %} / {{ palette.rayon }}{% endif %}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer no-print">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
-                                        <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Imprimer</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        {# Type pill #}
+                        {% if operation.type.value == 'entry' %}
+                        <span class="op-type-badge"
+                              style="background:rgba(16,185,129,.12);color:#065f46;border:1px solid rgba(16,185,129,.3)">
+                            <i class="bi bi-arrow-down-circle-fill"></i>ENTRÉE
+                        </span>
                         {% else %}
-                        <tr><td colspan="11" class="text-center py-4 text-muted">Aucune palette</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        <span class="op-type-badge"
+                              style="background:rgba(239,68,68,.12);color:#991b1b;border:1px solid rgba(239,68,68,.3)">
+                            <i class="bi bi-arrow-up-circle-fill"></i>SORTIE
+                        </span>
+                        {% endif %}
+
+                        {# Code + client #}
+                        <div>
+                            <div class="d-flex align-items-center gap-2">
+                                <h4 class="mb-0 fw-bold">
+                                    <code style="background:rgba(99,102,241,.1);color:#4f46e5;padding:.1em .45em;border-radius:.4rem;font-size:1.15rem">
+                                        {{ operation.code }}
+                                    </code>
+                                </h4>
+                            </div>
+                            <div class="mt-1" style="font-size:.84rem;color:#64748b">
+                                <i class="bi bi-building me-1"></i><strong style="color:#1e293b">{{ operation.client.companyName }}</strong>
+                                <span class="mx-2" style="color:#cbd5e1">·</span>
+                                <i class="bi bi-calendar3 me-1"></i>{{ operation.createdAt|date('d/m/Y à H:i') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Right: action buttons #}
+                <div class="d-flex gap-2 flex-wrap align-items-start">
+                    {% if operation.type.value == 'entry' and operation.palettes|length > 0 %}
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#ticketsModal">
+                        <i class="bi bi-ticket-perforated me-1"></i>Générer Tickets
+                    </button>
+                    {% endif %}
+                    {% if operation.isValidated and operation.type.value == 'entry' %}
+                    <a href="{{ path('app_operation_bon_entree', {id: operation.id}) }}" class="btn btn-outline-success btn-sm" target="_blank">
+                        <i class="bi bi-file-earmark-text me-1"></i>Bon d'Entrée
+                    </a>
+                    {% endif %}
+                    {% if operation.isValidated and operation.type.value == 'exit' %}
+                    <a href="{{ path('app_operation_bon_sortie', {id: operation.id}) }}" class="btn btn-outline-success btn-sm" target="_blank">
+                        <i class="bi bi-file-earmark-text me-1"></i>Bon de Sortie
+                    </a>
+                    {% endif %}
+                    {% if not operation.ficheDecharge and is_granted('ROLE_CONTROLEUR') %}
+                    <a href="{{ path('app_operation_generate_fiche', {id: operation.id}) }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-file-earmark-plus me-1"></i>Générer Fiche
+                    </a>
+                    {% elseif operation.ficheDecharge %}
+                    <a href="{{ path('app_fiche_show', {id: operation.ficheDecharge.id}) }}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-file-earmark-check me-1"></i>Voir Fiche
+                    </a>
+                    {% endif %}
+                    {% if is_granted('ROLE_CONTROLEUR') %}
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteOperationModal">
+                        <i class="bi bi-trash3 me-1"></i>Supprimer
+                    </button>
+                    {% endif %}
+                </div>
+
             </div>
         </div>
     </div>
 
-    {# Actions de validation #}
-    {% if operation.isPending and is_granted('ROLE_CHEF_STOCK') %}
-    <div class="card no-print">
-        <div class="card-body d-flex gap-2 justify-content-end">
-            <form action="{{ path('app_operation_validate', {id: operation.id}) }}" method="post" class="d-inline">
-                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ operation.id) }}">
-                <button class="btn btn-success"><i class="bi bi-check-circle"></i> ✅ Valider l'opération</button>
-            </form>
-            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
-                <i class="bi bi-x-circle"></i> ❌ Rejeter
-            </button>
-        </div>
-    </div>
-
-    {# Reject Modal #}
-    <div class="modal fade" id="rejectModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="{{ path('app_operation_reject', {id: operation.id}) }}" method="post">
-                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ operation.id) }}">
-                    <div class="modal-header"><h5 class="modal-title">Motif de rejet</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                    <div class="modal-body">
-                        <textarea name="reason" class="form-control" rows="3" required placeholder="Indiquez le motif du rejet..."></textarea>
+    {# ── Modal suppression ── #}
+    {% if is_granted('ROLE_CONTROLEUR') %}
+    <div class="modal fade" id="deleteOperationModal" tabindex="-1" aria-labelledby="deleteOpLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger">
+                <form method="post" action="{{ path('app_operation_delete', {id: operation.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ operation.id) }}">
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold text-danger" id="deleteOpLabel">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmer la suppression
+                        </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
+                    <div class="modal-body pt-2">
+                        <p class="mb-2">Vous êtes sur le point de supprimer l'opération :</p>
+                        <div class="rounded p-2 mb-3" style="background:#fef2f2;border:1px solid #fecaca">
+                            <strong>{{ operation.code }}</strong>
+                            &nbsp;·&nbsp;
+                            {{ operation.type.value == 'entry' ? 'Entrée' : 'Sortie' }}
+                            &nbsp;·&nbsp;
+                            {{ operation.client.companyName }}
+                        </div>
+                        {% if operation.isValidated %}
+                        <div class="alert alert-warning py-2 small mb-2">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Cette opération est <strong>validée</strong> — sa suppression mettra le stock à jour automatiquement.
+                        </div>
+                        {% endif %}
+                        <p class="text-danger small mb-0"><strong>Cette action est irréversible.</strong></p>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="bi bi-trash3 me-1"></i>Oui, supprimer
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
     {% endif %}
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    {# ══════════════════════════════════════════════════════════════
+       PROCESSUS D'ENTRÉE : stepper + bannière
+    ══════════════════════════════════════════════════════════════ #}
+    {% if operation.type.value == 'entry' %}
+    {% set sv = operation.status.value %}
+    {% set hasPalettes = operation.palettes|length > 0 %}
+    <div class="glass mb-4 p-3">
+        <div class="section-title mb-3"><i class="bi bi-diagram-3 me-2"></i>Processus d&rsquo;entr&eacute;e</div>
+        <div class="exit-stepper">
+
+            {# &Eacute;tape 1 — Op&eacute;ration cr&eacute;&eacute;e #}
+            <div class="exit-step">
+                <div class="exit-step-circle done"><i class="bi bi-file-earmark-plus-fill"></i></div>
+                <div class="exit-step-label" style="color:#10b981">Cr&eacute;&eacute;e</div>
+                <div class="exit-step-sub">Op&eacute;ration cr&eacute;&eacute;e</div>
+            </div>
+
+            <div class="exit-connector" style="background:{% if hasPalettes or sv in ['validated','rejected'] %}#10b981{% else %}#e2e8f0{% endif %}"></div>
+
+            {# Étape 2 — Palettes saisies #}
+            <div class="exit-step">
+                {% if sv in ['validated','rejected'] or hasPalettes %}
+                    <div class="exit-step-circle done"><i class="bi bi-check-lg"></i></div>
+                    <div class="exit-step-label" style="color:#10b981">Saisies</div>
+                {% else %}
+                    <div class="exit-step-circle active"><i class="bi bi-boxes"></i></div>
+                    <div class="exit-step-label" style="color:#3b82f6">En cours</div>
+                {% endif %}
+                <div class="exit-step-sub">Palettes saisies</div>
+            </div>
+
+            <div class="exit-connector" style="background:{% if sv in ['en_attente_validation','validated','rejected'] %}#10b981{% elseif sv == 'en_attente_controle' or (sv == 'pending' and hasPalettes) %}#f59e0b{% else %}#e2e8f0{% endif %}"></div>
+
+            {# Étape 3 — Contrôle terrain #}
+            <div class="exit-step">
+                {% if sv in ['en_attente_validation','validated','rejected'] %}
+                    <div class="exit-step-circle done"><i class="bi bi-check-lg"></i></div>
+                    <div class="exit-step-label" style="color:#10b981">Contrôlé</div>
+                {% elseif sv == 'en_attente_controle' or (sv == 'pending' and hasPalettes) %}
+                    <div class="exit-step-circle waiting"><i class="bi bi-clipboard-check-fill"></i></div>
+                    <div class="exit-step-label" style="color:#f59e0b">En attente</div>
+                {% else %}
+                    <div class="exit-step-circle idle"><i class="bi bi-clipboard-check"></i></div>
+                    <div class="exit-step-label" style="color:#94a3b8">Contrôle</div>
+                {% endif %}
+                <div class="exit-step-sub">Contrôle terrain</div>
+            </div>
+
+            <div class="exit-connector" style="background:{% if sv in ['validated','rejected'] %}#10b981{% elseif sv == 'en_attente_validation' %}#f59e0b{% else %}#e2e8f0{% endif %}"></div>
+
+            {# Étape 4 — Attente validation #}
+            <div class="exit-step">
+                {% if sv in ['validated','rejected'] %}
+                    <div class="exit-step-circle done"><i class="bi bi-check-lg"></i></div>
+                    <div class="exit-step-label" style="color:#10b981">Soumis</div>
+                {% elseif sv == 'en_attente_validation' %}
+                    <div class="exit-step-circle waiting"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="exit-step-label" style="color:#f59e0b">En attente</div>
+                {% else %}
+                    <div class="exit-step-circle idle"><i class="bi bi-hourglass"></i></div>
+                    <div class="exit-step-label" style="color:#94a3b8">Validation</div>
+                {% endif %}
+                <div class="exit-step-sub">Attente validation</div>
+            </div>
+
+            <div class="exit-connector" style="background:{% if sv == 'validated' %}#10b981{% elseif sv == 'rejected' %}#ef4444{% else %}#e2e8f0{% endif %}"></div>
+
+            {# Étape 5 — Décision finale #}
+            <div class="exit-step">
+                {% if sv == 'validated' %}
+                    <div class="exit-step-circle success"><i class="bi bi-check-circle-fill"></i></div>
+                    <div class="exit-step-label" style="color:#10b981">Validée</div>
+                {% elseif sv == 'rejected' %}
+                    <div class="exit-step-circle danger"><i class="bi bi-x-circle-fill"></i></div>
+                    <div class="exit-step-label" style="color:#ef4444">Rejetée</div>
+                {% else %}
+                    <div class="exit-step-circle idle"><i class="bi bi-shield-check"></i></div>
+                    <div class="exit-step-label" style="color:#94a3b8">Validation</div>
+                {% endif %}
+                <div class="exit-step-sub">Décision finale</div>
+            </div>
+
+        </div>
+    </div>
+
+    {# ── Banni&egrave;re selon statut entr&eacute;e ── #}
+    {% if sv == 'validated' %}
+    <div class="alert border-0 mb-4 d-flex align-items-center gap-3"
+         style="background:rgba(16,185,129,.08);border-left:4px solid #10b981 !important;border-radius:.75rem">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div>
+            <strong class="text-success">Entr&eacute;e valid&eacute;e</strong>
+            {% if operation.validatedAt %}
+            <span class="text-secondary small ms-2">le {{ operation.validatedAt|date('d/m/Y') }} &agrave; {{ operation.validatedAt|date('H:i') }}</span>
+            {% endif %}
+            {% if operation.validatedBy %}
+            <span class="text-secondary small">par {{ operation.validatedBy.firstName }} {{ operation.validatedBy.lastName }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% elseif sv == 'en_attente_controle' and is_granted('ROLE_CHEF_STOCK') %}
+    <div class="glass mb-4 p-3 d-flex align-items-center gap-3"
+         style="border-left:4px solid #3b82f6">
+        <i class="bi bi-clipboard-check-fill text-primary fs-5 flex-shrink-0"></i>
+        <div>
+            <div class="fw-bold mb-1">En attente du contrôle terrain</div>
+            <div class="text-secondary small">
+                {{ operation.palettes|length }} palette(s). Le contrôleur
+                {% if operation.controleur %}{{ operation.controleur.firstName }} {{ operation.controleur.lastName }}{% endif %}
+                doit effectuer le contrôle avant que vous puissiez valider.
+            </div>
+        </div>
+    </div>
+    {% elseif sv in ['en_attente_validation','pending'] and hasPalettes and is_granted('ROLE_CHEF_STOCK') %}
+    <div class="glass mb-4 p-3 d-flex align-items-center justify-content-between flex-wrap gap-3"
+         style="border-left:4px solid #f59e0b">
+        <div>
+            <div class="fw-bold mb-1">
+                <i class="bi bi-hourglass-split text-warning me-2"></i>
+                {% if sv == 'en_attente_validation' %}Contrôle terminé &mdash; en attente de validation{% else %}Palettes saisies &mdash; en attente de validation{% endif %}
+            </div>
+            <div class="text-secondary small">
+                {{ operation.palettes|length }} palette(s) enregistrée(s). En attente de validation par le chef de stock.
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success fw-semibold d-flex align-items-center gap-2"
+                    data-bs-toggle="modal" data-bs-target="#validateEntryModal">
+                <i class="bi bi-check-circle-fill"></i>Valider l&rsquo;entr&eacute;e
+            </button>
+            <button class="btn btn-danger fw-semibold d-flex align-items-center gap-2"
+                    data-bs-toggle="modal" data-bs-target="#rejectEntryModal">
+                <i class="bi bi-x-circle-fill"></i>Rejeter
+            </button>
+        </div>
+    </div>
+    {# Modal validation entr&eacute;e #}
+    <div class="modal fade" id="validateEntryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                <form action="{{ path('app_operation_validate', {id: operation.id}) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ operation.id) }}">
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold text-success">
+                            <i class="bi bi-check-circle-fill me-2"></i>Valider l&rsquo;entr&eacute;e
+                        </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-secondary small mb-3">S&eacute;lectionnez le type de stockage pour cette op&eacute;ration. Ce choix s&apos;applique &agrave; toutes les palettes sans type d&eacute;fini.</p>
+                        <label class="form-label fw-semibold" for="typeStockageValidate">Type de stockage <span class="text-danger">*</span></label>
+                        <select name="type_stockage" id="typeStockageValidate" class="form-select" required>
+                            <option value="">— Choisir —</option>
+                            <option value="sejour" {% if operation.typeStockage and operation.typeStockage.value == 'sejour' %}selected{% endif %}>Séjour (facturation au jour)</option>
+                            <option value="forfait" {% if operation.typeStockage and operation.typeStockage.value == 'forfait' %}selected{% endif %}>Forfait mensuel</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-sm btn-success fw-semibold">
+                            <i class="bi bi-check-circle-fill me-1"></i>Confirmer la validation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {# Modal rejet entr&eacute;e #}
+    <div class="modal fade" id="rejectEntryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                <form action="{{ path('app_operation_reject', {id: operation.id}) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ operation.id) }}">
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold text-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Motif de rejet
+                        </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-secondary small mb-2">Ce motif sera visible dans les d&eacute;tails de l&rsquo;op&eacute;ration.</p>
+                        <textarea name="reason" class="form-control" rows="3" required
+                                  placeholder="Indiquez le motif du rejet..."></textarea>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="bi bi-x-circle me-1"></i>Confirmer le rejet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Bannière contrôleur : état selon statut ── #}
+    {% if is_granted('ROLE_CONTROLEUR') and not is_granted('ROLE_CHEF_STOCK') and hasPalettes %}
+    <div class="glass mb-4 p-3 d-flex align-items-center gap-3"
+         style="border-left:4px solid {% if sv == 'en_attente_controle' %}#f59e0b{% elseif sv == 'en_attente_validation' %}#3b82f6{% else %}#f59e0b{% endif %}">
+        <i class="bi {% if sv == 'en_attente_controle' %}bi-clipboard-check-fill text-warning{% elseif sv == 'en_attente_validation' %}bi-check-circle-fill text-primary{% else %}bi-hourglass-split text-warning{% endif %} fs-5 flex-shrink-0"></i>
+        <div>
+            {% if sv == 'en_attente_controle' %}
+            <div class="fw-bold mb-1">Palettes saisies &mdash; en attente de votre contrôle</div>
+            <div class="text-secondary small">
+                {{ operation.palettes|length }} palette(s) enregistrée(s). Vous devez effectuer le contrôle terrain et soumettre la fiche.
+            </div>
+            {% elseif sv == 'en_attente_validation' %}
+            <div class="fw-bold mb-1">Fiche soumise &mdash; en attente de validation</div>
+            <div class="text-secondary small">
+                Vous avez soumis le contrôle terrain. En attente de la décision du chef de stock.
+            </div>
+            {% else %}
+            <div class="fw-bold mb-1">Palettes saisies &mdash; en attente de validation</div>
+            <div class="text-secondary small">
+                {{ operation.palettes|length }} palette(s) enregistrée(s). En attente de la décision du chef de stock.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Formulaire logistique entrée (controleur, opération en cours) ── #}
+    {% if is_granted('ROLE_CONTROLEUR') and not is_granted('ROLE_CHEF_STOCK') and sv == 'pending' %}
+    <div class="glass mb-4 p-3">
+        <div class="section-title mb-3">
+            <i class="bi bi-truck me-2"></i>Informations logistiques
+        </div>
+        <form method="post" action="{{ path('app_operation_save_logistique_entree', {id: operation.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('logistique_entree' ~ operation.id) }}">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Matricule</label>
+                    <input type="text" name="matricule" class="form-control form-control-sm"
+                           value="{{ operation.immatriculation ?? '' }}" placeholder="ex&nbsp;: 12345-A-6">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">N&deg; Conteneur</label>
+                    <input type="text" name="numero_conteneur" class="form-control form-control-sm"
+                           value="{{ operation.numeroConteneur ?? '' }}" placeholder="ex&nbsp;: MSCU1234567">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">N&deg; Agr&eacute;ment</label>
+                    {% if operation.client.numeroAgrement %}
+                    <div class="form-control form-control-sm bg-light d-flex align-items-center gap-1"
+                         style="cursor:default;color:#0369a1;font-weight:600">
+                        <i class="bi bi-patch-check-fill" style="font-size:.75rem"></i>
+                        {{ operation.client.numeroAgrement }}
+                    </div>
+                    {% else %}
+                    <div class="form-control form-control-sm bg-warning bg-opacity-10 border-warning d-flex align-items-center gap-1"
+                         style="cursor:default;color:#92400e;font-size:.78rem">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size:.72rem"></i>
+                        Non renseign&eacute; sur le client
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Temp&eacute;rature (&deg;C)</label>
+                    <input type="number" step="0.01" name="temperature" class="form-control form-control-sm"
+                           value="{{ operation.temperature ?? '' }}" placeholder="ex&nbsp;: -18.00">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Carliste</label>
+                    <input type="text" name="carliste" class="form-control form-control-sm"
+                           value="{{ operation.carliste ?? '' }}" placeholder="N&deg; carliste">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small fw-semibold">Heure d&eacute;but</label>
+                    <input type="time" name="heure_debut" class="form-control form-control-sm"
+                           value="{{ operation.heureDebutChargement ?? '' }}">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small fw-semibold">Heure fin</label>
+                    <input type="time" name="heure_fin" class="form-control form-control-sm"
+                           value="{{ operation.heureFinChargement ?? '' }}">
+                </div>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-floppy me-1"></i>Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    {% endif %}{# end entry block #}
+
+    {# ══════════════════════════════════════════════════════════════
+       PROCESSUS DE SORTIE : stepper + CTA (uniquement pour les exits)
+    ══════════════════════════════════════════════════════════════ #}
+    {% if operation.type.value == 'exit' %}
+    {% set sv = operation.status.value %}
+
+    {# ── Stepper ── #}
+    <div class="glass mb-4 p-3">
+        <div class="section-title mb-3"><i class="bi bi-diagram-3 me-2"></i>Processus de sortie</div>
+        <div class="exit-stepper">
+
+            {# Étape 1 — Créée #}
+            <div class="exit-step">
+                <div class="exit-step-circle done"><i class="bi bi-file-earmark-check-fill"></i></div>
+                <div class="exit-step-label" style="color:#10b981">Créée</div>
+                <div class="exit-step-sub">Opération créée</div>
+            </div>
+
+            <div class="exit-connector" style="background:{% if sv in ['en_attente_validation','validated','rejected'] %}#10b981{% else %}#e2e8f0{% endif %}"></div>
+
+            {# Étape 2 — Contrôle terrain #}
+            <div class="exit-step">
+                {% if sv in ['en_attente_validation','validated','rejected'] %}
+                    <div class="exit-step-circle done"><i class="bi bi-check-lg"></i></div>
+                    <div class="exit-step-label" style="color:#10b981">Contrôlé</div>
+                {% else %}
+                    <div class="exit-step-circle active"><i class="bi bi-clipboard-check-fill"></i></div>
+                    <div class="exit-step-label" style="color:#3b82f6">À contrôler</div>
+                {% endif %}
+                <div class="exit-step-sub">Contrôle terrain</div>
+            </div>
+
+            <div class="exit-connector" style="background:{% if sv in ['validated','rejected'] %}#10b981{% elseif sv == 'en_attente_validation' %}#f59e0b{% else %}#e2e8f0{% endif %}"></div>
+
+            {# Étape 3 — Attente validation #}
+            <div class="exit-step">
+                {% if sv in ['validated','rejected'] %}
+                    <div class="exit-step-circle done"><i class="bi bi-check-lg"></i></div>
+                    <div class="exit-step-label" style="color:#10b981">Soumis</div>
+                {% elseif sv == 'en_attente_validation' %}
+                    <div class="exit-step-circle waiting"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="exit-step-label" style="color:#f59e0b">En attente</div>
+                {% else %}
+                    <div class="exit-step-circle idle"><i class="bi bi-hourglass"></i></div>
+                    <div class="exit-step-label" style="color:#94a3b8">En attente</div>
+                {% endif %}
+                <div class="exit-step-sub">Attente validation</div>
+            </div>
+
+            <div class="exit-connector" style="background:{% if sv == 'validated' %}#10b981{% elseif sv == 'rejected' %}#ef4444{% else %}#e2e8f0{% endif %}"></div>
+
+            {# Étape 4 — Décision finale #}
+            <div class="exit-step">
+                {% if sv == 'validated' %}
+                    <div class="exit-step-circle success"><i class="bi bi-check-circle-fill"></i></div>
+                    <div class="exit-step-label" style="color:#10b981">Validée</div>
+                {% elseif sv == 'rejected' %}
+                    <div class="exit-step-circle danger"><i class="bi bi-x-circle-fill"></i></div>
+                    <div class="exit-step-label" style="color:#ef4444">Rejetée</div>
+                {% else %}
+                    <div class="exit-step-circle idle"><i class="bi bi-shield-check"></i></div>
+                    <div class="exit-step-label" style="color:#94a3b8">Validation</div>
+                {% endif %}
+                <div class="exit-step-sub">Décision finale</div>
+            </div>
+
+        </div>
+    </div>
+
+    {# ── Bannière CTA selon le statut ── #}
+    {% if sv in ['pending','en_attente_controle'] %}
+    <div class="glass mb-4 p-3 d-flex align-items-center justify-content-between flex-wrap gap-3"
+         style="border-left:4px solid #3b82f6">
+        <div>
+            <div class="fw-bold mb-1">
+                <i class="bi bi-clipboard-check text-primary me-2"></i>Contrôle terrain à effectuer
+            </div>
+            <div class="text-secondary small">
+                Contrôleur assigné :
+                <strong>{{ operation.controleur ? operation.controleur.firstName ~ ' ' ~ operation.controleur.lastName : '—' }}</strong>
+                &nbsp;·&nbsp; {{ operation.palettes|length }} palette(s) à contrôler
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            {% if is_granted('ROLE_CONTROLEUR') and not is_granted('ROLE_CHEF_STOCK') %}
+            <a href="{{ path('app_operation_exit_controle', {id: operation.id}) }}"
+               class="btn btn-primary d-flex align-items-center gap-2 fw-semibold">
+                <i class="bi bi-clipboard-check-fill"></i>
+                {{ sv == 'en_attente_controle' ? 'Reprendre le contrôle terrain' : 'Démarrer le contrôle terrain' }}
+            </a>
+            {% endif %}
+            {% if is_granted('ROLE_CHEF_STOCK') %}
+            <form action="{{ path('app_operation_validate', {id: operation.id}) }}" method="post" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ operation.id) }}">
+                <button class="btn btn-success fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill"></i>Valider la sortie
+                </button>
+            </form>
+            <button class="btn btn-danger fw-semibold d-flex align-items-center gap-2"
+                    data-bs-toggle="modal" data-bs-target="#rejectExitModal">
+                <i class="bi bi-x-circle-fill"></i>Rejeter
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% elseif sv == 'en_attente_validation' %}
+    <div class="glass mb-4 p-3 d-flex align-items-center justify-content-between flex-wrap gap-3"
+         style="border-left:4px solid #f59e0b">
+        <div>
+            <div class="fw-bold mb-1">
+                <i class="bi bi-hourglass-split text-warning me-2"></i>Contrôle terminé — en attente de validation
+            </div>
+            <div class="text-secondary small">
+                Le contrôleur a soumis le contrôle terrain. En attente de la décision du chef de stock.
+            </div>
+            {% if operation.ficheDecharge and operation.ficheDecharge.observation %}
+            <div class="mt-2 p-2 rounded" style="background:rgba(245,158,11,.08);border-left:3px solid #f59e0b">
+                <div class="fw-semibold" style="font-size:.8rem;color:#92400e">
+                    <i class="bi bi-chat-text me-1"></i>Observation du contr&ocirc;leur
+                </div>
+                <div class="text-secondary small mt-1">{{ operation.ficheDecharge.observation }}</div>
+            </div>
+            {% endif %}
+        </div>
+        {% if is_granted('ROLE_CHEF_STOCK') %}
+        <div class="d-flex gap-2">
+            <form action="{{ path('app_operation_validate', {id: operation.id}) }}" method="post" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ operation.id) }}">
+                <button class="btn btn-success fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill"></i>Valider la sortie
+                </button>
+            </form>
+            <button class="btn btn-danger fw-semibold d-flex align-items-center gap-2"
+                    data-bs-toggle="modal" data-bs-target="#rejectExitModal">
+                <i class="bi bi-x-circle-fill"></i>Rejeter
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    {% elseif sv == 'validated' %}
+    <div class="alert border-0 mb-4 d-flex align-items-center gap-3"
+         style="background:rgba(16,185,129,.08);border-left:4px solid #10b981 !important;border-radius:.75rem">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div>
+            <strong class="text-success">Sortie validée</strong>
+            {% if operation.validatedAt %}
+            <span class="text-secondary small ms-2">le {{ operation.validatedAt|date('d/m/Y à H:i') }}</span>
+            {% endif %}
+            {% if operation.validatedBy %}
+            <span class="text-secondary small">par {{ operation.validatedBy.firstName }} {{ operation.validatedBy.lastName }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# Modal rejet sortie — accessible depuis en_attente_controle et en_attente_validation #}
+    {% if is_granted('ROLE_CHEF_STOCK') %}
+    <div class="modal fade" id="rejectExitModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                <form action="{{ path('app_operation_reject', {id: operation.id}) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ operation.id) }}">
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold text-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Motif de rejet
+                        </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-secondary small mb-2">Ce motif sera visible dans les détails de l'opération.</p>
+                        <textarea name="reason" class="form-control" rows="3" required
+                                  placeholder="Indiquez le motif du rejet..."></textarea>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="bi bi-x-circle me-1"></i>Confirmer le rejet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %}{# end exit block #}
+
+    {# ── Rejection reason ── #}
+    {% if operation.status.value == 'rejected' and operation.rejectionReason %}
+    <div class="alert border-0 mb-4 d-flex align-items-start gap-3"
+         style="background:rgba(239,68,68,.08);border-left:4px solid #ef4444 !important;border-radius:.75rem;padding:1rem 1.25rem">
+        <i class="bi bi-exclamation-triangle-fill text-danger mt-1"></i>
+        <div>
+            <div class="fw-semibold text-danger mb-1">Motif de rejet</div>
+            <div class="text-secondary" style="font-size:.875rem">{{ operation.rejectionReason }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Informations générales + KPIs ── #}
+    {% set sv = operation.status.value %}
+    {% set statusClass = sv == 'validated' ? 'validated' : (sv == 'rejected' ? 'rejected' : (sv in ['en_attente_controle','en_attente_validation'] or (sv == 'pending' and operation.type.value == 'exit') ? 'ctrl' : 'pending')) %}
+    <div class="row g-4 mb-4">
+
+        {# ── Fiche d'information ── #}
+        <div class="col-lg-7">
+            <div class="glass h-100 overflow-hidden">
+                <div class="d-flex align-items-center justify-content-between px-4 py-3" style="border-bottom:1px solid #e2e8f0;background:#fafbfc">
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="bi bi-info-circle me-2 text-primary"></i>Informations Générales
+                    </h6>
+                    <span class="op-status {{ statusClass }}">
+                        {% if sv == 'validated' %}<i class="bi bi-check-circle-fill"></i>Validé
+                        {% elseif sv == 'rejected' %}<i class="bi bi-x-circle-fill"></i>Rejeté
+                        {% elseif sv == 'en_attente_controle' %}<i class="bi bi-search"></i>En attente de contrôle
+                        {% elseif sv == 'en_attente_validation' %}<i class="bi bi-hourglass-split"></i>En attente de validation
+                        {% elseif operation.type.value == 'entry' %}<i class="bi bi-hourglass-split"></i>En attente de validation
+                        {% else %}<i class="bi bi-search"></i>En attente de contrôle
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="p-4">
+                    <div class="row g-3">
+
+                        {# Code opération #}
+                        <div class="col-sm-6">
+                            <div class="info-chip">
+                                <div class="info-chip-icon" style="background:rgba(99,102,241,.1);color:#4f46e5">
+                                    <i class="bi bi-hash"></i>
+                                </div>
+                                <div>
+                                    <div class="info-chip-label">Code opération</div>
+                                    <div class="info-chip-value">
+                                        <code style="color:#4f46e5;font-size:.9rem">{{ operation.code }}</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Date réception #}
+                        <div class="col-sm-6">
+                            <div class="info-chip">
+                                <div class="info-chip-icon" style="background:rgba(14,165,233,.1);color:#0369a1">
+                                    <i class="bi bi-calendar3"></i>
+                                </div>
+                                <div>
+                                    <div class="info-chip-label">Date de réception</div>
+                                    <div class="info-chip-value">{{ operation.dateReception|date('d/m/Y') }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Client #}
+                        <div class="col-sm-6">
+                            <div class="info-chip">
+                                <div class="info-chip-icon" style="background:rgba(245,158,11,.1);color:#b45309">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                                <div>
+                                    <div class="info-chip-label">Client</div>
+                                    <div class="info-chip-value">{{ operation.client.companyName }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Créé par #}
+                        <div class="col-sm-6">
+                            <div class="info-chip">
+                                <div class="info-chip-icon" style="background:rgba(100,116,139,.1);color:#475569">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <div class="info-chip-label">Créé par</div>
+                                    <div class="info-chip-value">{{ operation.createdBy.fullName }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Contrôleur #}
+                        <div class="col-sm-6">
+                            <div class="info-chip">
+                                <div class="info-chip-icon" style="background:rgba(59,130,246,.1);color:#1d4ed8">
+                                    <i class="bi bi-person-check"></i>
+                                </div>
+                                <div>
+                                    <div class="info-chip-label">Contrôleur</div>
+                                    <div class="info-chip-value">
+                                        {% if operation.controleur %}
+                                            {{ operation.controleur.firstName }} {{ operation.controleur.lastName }}
+                                        {% else %}
+                                            <span class="text-secondary fw-normal">Non assigné</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Valideur / Décideur #}
+                        {% set isRejected = operation.status.value == 'rejected' %}
+                        <div class="col-sm-6">
+                            <div class="info-chip">
+                                <div class="info-chip-icon"
+                                     style="background:rgba({% if isRejected %}239,68,68{% else %}16,185,129{% endif %},.1);color:{% if isRejected %}#991b1b{% else %}#065f46{% endif %}">
+                                    <i class="bi bi-person-badge"></i>
+                                </div>
+                                <div>
+                                    <div class="info-chip-label">Chef de stock / {% if isRejected %}Décideur (rejet){% else %}Valideur{% endif %}</div>
+                                    <div class="info-chip-value" {% if isRejected %}style="color:#991b1b"{% endif %}>
+                                        {% if decisionBy %}
+                                            {{ decisionBy.firstName }} {{ decisionBy.lastName }}
+                                        {% else %}
+                                            <span class="text-secondary fw-normal">—</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Décidé le (validation ou rejet) #}
+                        {% if operation.validatedAt %}
+                        <div class="col-sm-6">
+                            <div class="info-chip">
+                                <div class="info-chip-icon"
+                                     style="background:rgba({% if isRejected %}239,68,68{% else %}16,185,129{% endif %},.1);color:{% if isRejected %}#991b1b{% else %}#065f46{% endif %}">
+                                    <i class="bi bi-{% if isRejected %}x-circle{% else %}check2-circle{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <div class="info-chip-label">{% if isRejected %}Rejeté le{% else %}Validé le{% endif %}</div>
+                                    <div class="info-chip-value" style="color:{% if isRejected %}#991b1b{% else %}#065f46{% endif %}">
+                                        {{ operation.validatedAt|date('d/m/Y à H:i') }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {# Type de stockage (entrée uniquement) #}
+                        {% if operation.type.value == 'entry' %}
+                        <div class="col-sm-6">
+                            <div class="info-chip">
+                                <div class="info-chip-icon" style="background:rgba(139,92,246,.1);color:#6d28d9">
+                                    <i class="bi bi-snow2"></i>
+                                </div>
+                                <div>
+                                    <div class="info-chip-label">Type de stockage</div>
+                                    <div class="info-chip-value">
+                                        {% if operation.typeStockage %}
+                                            <span class="badge bg-{{ operation.typeStockage.cssClass() }}">
+                                                <i class="bi {{ operation.typeStockage.icon() }} me-1"></i>{{ operation.typeStockage.label() }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-secondary fw-normal">—</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ── KPI quantitatifs ── #}
+        <div class="col-lg-5">
+            <div class="glass h-100 overflow-hidden">
+                <div class="px-4 py-3" style="border-bottom:1px solid #e2e8f0;background:#fafbfc">
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="bi bi-bar-chart-line me-2 text-primary"></i>Résumé quantitatif
+                    </h6>
+                </div>
+                <div class="p-4">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="kpi-mini" style="background:rgba(99,102,241,.08);color:#4f46e5">
+                                <div class="kpi-mini-val">{{ operation.nombrePalettes }}</div>
+                                <div class="kpi-mini-lbl"><i class="bi bi-boxes me-1"></i>Palettes</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="kpi-mini" style="background:rgba(16,185,129,.08);color:#065f46">
+                                <div class="kpi-mini-val">{{ operation.totalCartons|number_format(0, ',', ' ') }}</div>
+                                <div class="kpi-mini-lbl"><i class="bi bi-inboxes me-1"></i>Cartons</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="kpi-mini" style="background:rgba(245,158,11,.08);color:#b45309">
+                                <div class="kpi-mini-val">{{ operation.poidsTotal|number_format(0, ',', ' ') }} <span style="font-size:1rem;font-weight:600">kg</span></div>
+                                <div class="kpi-mini-lbl"><i class="bi bi-weight me-1"></i>Poids total · {{ operation.poidsTotalTonnes|number_format(2) }} T</div>
+                            </div>
+                        </div>
+
+                        {# Barre de progression des palettes (si sortie validée) #}
+                        {% if operation.type.value == 'exit' and sv == 'validated' %}
+                        {% set totalSortis = 0 %}
+                        {% set totalPrevus = 0 %}
+                        {% for p in operation.palettes %}
+                            {% set totalPrevus  = totalPrevus  + p.nombreCartons %}
+                            {% set totalSortis  = totalSortis  + (p.cartonsReellementSortis ?? 0) %}
+                        {% endfor %}
+                        {% set pct = totalPrevus > 0 ? ((totalSortis / totalPrevus) * 100)|round : 0 %}
+                        <div class="col-12 mt-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:.75rem;font-weight:600;color:#64748b">
+                                <span><i class="bi bi-arrow-up-circle me-1"></i>Cartons réellement sortis</span>
+                                <span>{{ totalSortis }} / {{ totalPrevus }} ({{ pct }}%)</span>
+                            </div>
+                            <div class="progress" style="height:8px;border-radius:4px">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width:{{ pct }}%;background:{{ pct >= 100 ? '#10b981' : '#f59e0b' }};border-radius:4px">
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── Tableau des palettes ── #}
+    <div class="glass overflow-hidden mb-4">
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-grid-3x3 me-2 text-primary"></i>Palettes associées
+                <span class="badge rounded-pill ms-1" style="background:rgba(99,102,241,.12);color:#4f46e5;font-size:.7rem">
+                    {{ operation.nombrePalettes }}
+                </span>
+            </h6>
+            {% if operation.type.value == 'entry' and operation.isPending and (is_granted('ROLE_CONTROLEUR') or is_granted('ROLE_CHEF_STOCK')) %}
+            <a href="{{ path('app_operation_entry_new', {operation: operation.id}) }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Nouvelle entrée
+            </a>
+            {% endif %}
+        </div>
+        {# ── Barre de recherche & filtres ── #}
+        <div class="px-3 py-2 border-bottom" style="background:#f8fafc">
+            <div class="row g-2 align-items-center">
+                <div class="col-12 col-md-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" id="paletteSearch" class="form-control border-start-0 ps-0"
+                               placeholder="Rechercher code, espèce…">
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <select id="filterEspece" class="form-select form-select-sm">
+                        <option value="">Toutes espèces</option>
+                    </select>
+                </div>
+                <div class="col-6 col-sm-4 col-md-1">
+                    <select id="filterQualite" class="form-select form-select-sm">
+                        <option value="">Qualité</option>
+                    </select>
+                </div>
+                <div class="col-6 col-sm-4 col-md-1">
+                    <select id="filterMoule" class="form-select form-select-sm">
+                        <option value="">Moule</option>
+                    </select>
+                </div>
+                <div class="col-6 col-sm-4 col-md-1">
+                    <select id="filterFamille" class="form-select form-select-sm">
+                        <option value="">Famille</option>
+                    </select>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <select id="filterChambre" class="form-select form-select-sm">
+                        <option value="">Chambre</option>
+                    </select>
+                </div>
+                <div class="col-6 col-sm-4 col-md-1">
+                    <select id="filterRayon" class="form-select form-select-sm">
+                        <option value="">Rayon</option>
+                    </select>
+                </div>
+                <div class="col-6 col-sm-4 col-md-1">
+                    <select id="filterStatut" class="form-select form-select-sm">
+                        <option value="">Statut</option>
+                        <option value="en_attente">En attente</option>
+                        {% if operation.type.value == 'exit' %}
+                        <option value="sortie_partielle">Sortie partielle</option>
+                        <option value="sortie_complete">Sortie complète</option>
+                        <option value="en_stock">En stock</option>
+                        <option value="rejetee">Rejetée</option>
+                        {% else %}
+                        <option value="validee">En stock</option>
+                        <option value="sortie_partielle">Sortie partielle</option>
+                        <option value="sortie_complete">Sortie complète</option>
+                        <option value="rejetee">Rejetée</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="button" id="btnResetFilters" class="btn btn-sm btn-outline-secondary" title="Réinitialiser les filtres">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="filterCount" class="text-muted d-none mt-1" style="font-size:.73rem"></div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>N° Palette</th>
+                        <th>Espèce</th>
+                        <th>Qualité</th>
+                        <th>Moule</th>
+                        <th>Famille</th>
+                        <th class="text-center">Cartons</th>
+                        <th class="text-end">Poids (kg)</th>
+                        <th>Chambre</th>
+                        <th>Rayon</th>
+                        {% if operation.type.value == 'exit' %}<th class="text-center">Cartons sortis réels</th>{% endif %}
+                        {% if operation.type.value == 'entry' %}<th class="text-center">Type stockage</th>{% endif %}
+                        <th class="text-center">Statut</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="palettesBody">
+                    {% for palette in operation.palettes %}
+                    {# Calcul du statut visuel pour le filtre (exit = basé sur résultat réel) #}
+                    {% set ps = palette.status.value %}
+                    {% if operation.type.value == 'exit' %}
+                        {% if ps == 'rejetee' %}
+                            {% set displayStatut = 'rejetee' %}
+                        {% elseif ps == 'annulee' %}
+                            {% set displayStatut = 'en_stock' %}
+                        {% elseif ps == 'validee' %}
+                            {% if palette.cartonsReellementSortis is not null %}
+                                {% if palette.cartonsReellementSortis >= palette.nombreCartons %}
+                                    {% set displayStatut = 'sortie_complete' %}
+                                {% elseif palette.cartonsReellementSortis > 0 %}
+                                    {% set displayStatut = 'sortie_partielle' %}
+                                {% else %}
+                                    {% set displayStatut = 'en_stock' %}
+                                {% endif %}
+                            {% else %}
+                                {% set displayStatut = 'en_stock' %}
+                            {% endif %}
+                        {% else %}
+                            {% set displayStatut = ps %}
+                        {% endif %}
+                    {% else %}
+                        {# Entrée : déduire le statut d'affichage depuis l'opération si la palette n'est pas encore mise à jour #}
+                        {% if ps == 'rejetee' or operation.status.value == 'rejected' %}
+                            {% set displayStatut = 'rejetee' %}
+                        {% elseif ps == 'validee' or operation.status.value == 'validated' %}
+                            {% set displayStatut = 'validee' %}
+                        {% else %}
+                            {% set displayStatut = ps %}
+                        {% endif %}
+                    {% endif %}
+                    <tr data-code="{{ palette.codePalette|lower }}"
+                        data-espece="{{ palette.espece|lower }}"
+                        data-qualite="{{ (palette.qualite ?? '')|lower }}"
+                        data-moule="{{ (palette.moule ?? '')|lower }}"
+                        data-famille="{{ (palette.famille ?? '')|lower }}"
+                        data-chambre="{{ palette.coldRoom ? palette.coldRoom.name|lower : '' }}"
+                        data-rayon="{{ (palette.rayon ?? '')|lower }}"
+                        data-statut="{{ displayStatut }}">
+                        <td>
+                            <code style="background:rgba(99,102,241,.08);color:#4f46e5;padding:.15em .45em;border-radius:.35rem;font-weight:700">
+                                {{ palette.codePalette }}
+                            </code>
+                        </td>
+                        <td class="fw-semibold">{{ palette.espece }}</td>
+                        <td>{{ palette.qualite ?? '—' }}</td>
+                        <td>{{ palette.moule ?? '—' }}</td>
+                        <td>{{ palette.famille ?? '—' }}</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill px-2" style="background:rgba(99,102,241,.1);color:#4f46e5">
+                                {{ palette.nombreCartons }}
+                            </span>
+                        </td>
+                        <td class="text-end fw-semibold">{{ palette.poidsTotal|number_format(0, ',', ' ') }}</td>
+                        <td>
+                            {% if palette.coldRoom %}
+                            <span style="background:rgba(14,165,233,.1);color:#0369a1;padding:.2em .5em;border-radius:.4rem;font-size:.78rem;font-weight:600">
+                                <i class="bi bi-snow2 me-1"></i>{{ palette.coldRoom.name }}
+                            </span>
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if palette.rayon %}
+                            <span style="background:#f1f5f9;color:#475569;padding:.2em .5em;border-radius:.4rem;font-size:.78rem;font-weight:600">
+                                {{ palette.rayon }}
+                            </span>
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        {% if operation.type.value == 'exit' %}
+                        <td class="text-center">
+                            {% if palette.cartonsReellementSortis is not null %}
+                            <span class="fw-bold" style="color:#0f172a">{{ palette.cartonsReellementSortis }}</span>
+                            <span class="text-secondary" style="font-size:.72rem"> / {{ palette.nombreCartons }}</span>
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        {% if operation.type.value == 'entry' %}
+                        <td class="text-center">
+                            {% if palette.typeStockage %}
+                                <span class="badge bg-{{ palette.typeStockage.cssClass() }}">
+                                    <i class="bi {{ palette.typeStockage.icon() }} me-1"></i>{{ palette.typeStockage.label() }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted" style="font-size:.8rem">—</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        <td class="text-center">
+                            {% set ps = palette.status.value %}
+                            {% if operation.type.value == 'exit' %}
+                                {# ── Palettes de sortie : badge basé sur résultat réel ── #}
+                                {% if ps == 'rejetee' %}
+                                    <span class="pal-badge" style="background:rgba(239,68,68,.12);color:#991b1b">
+                                        <i class="bi bi-x-circle me-1"></i>Rejetée
+                                    </span>
+                                {% elseif ps == 'annulee' %}
+                                    <span class="pal-badge" style="background:rgba(16,185,129,.12);color:#065f46">
+                                        <i class="bi bi-check-circle me-1"></i>En stock
+                                    </span>
+                                {% elseif ps == 'validee' %}
+                                    {% if palette.cartonsReellementSortis is not null %}
+                                        {% if palette.cartonsReellementSortis >= palette.nombreCartons %}
+                                            <span class="pal-badge" style="background:rgba(100,116,139,.12);color:#475569">
+                                                <i class="bi bi-arrow-up-circle me-1"></i>Sortie complète
+                                            </span>
+                                        {% elseif palette.cartonsReellementSortis > 0 %}
+                                            <span class="pal-badge" style="background:rgba(245,158,11,.12);color:#92400e">
+                                                <i class="bi bi-dash-circle me-1"></i>Sortie partielle
+                                            </span>
+                                        {% else %}
+                                            <span class="pal-badge" style="background:rgba(16,185,129,.12);color:#065f46">
+                                                <i class="bi bi-check-circle me-1"></i>En stock
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="pal-badge" style="background:rgba(16,185,129,.12);color:#065f46">
+                                            <i class="bi bi-check-circle me-1"></i>Validée
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="pal-badge" style="background:rgba(59,130,246,.12);color:#1d4ed8">
+                                        <i class="bi bi-clock me-1"></i>En attente
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                {# ── Palettes d'entrée : badge selon statut réel + statut opération ── #}
+                                {% set opSv = operation.status.value %}
+                                {% if ps == 'rejetee' or opSv == 'rejected' %}
+                                    <span class="pal-badge" style="background:rgba(239,68,68,.12);color:#991b1b">
+                                        <i class="bi bi-x-circle me-1"></i>Rejetée
+                                    </span>
+                                {% elseif ps == 'validee' or opSv == 'validated' %}
+                                    <span class="pal-badge" style="background:rgba(16,185,129,.12);color:#065f46">
+                                        <i class="bi bi-check-circle me-1"></i>En stock
+                                    </span>
+                                {% elseif ps == 'sortie_partielle' %}
+                                    <span class="pal-badge" style="background:rgba(245,158,11,.12);color:#92400e">
+                                        <i class="bi bi-dash-circle me-1"></i>Sortie partielle
+                                    </span>
+                                {% elseif ps == 'sortie_complete' %}
+                                    <span class="pal-badge" style="background:rgba(100,116,139,.12);color:#475569">
+                                        <i class="bi bi-arrow-up-circle me-1"></i>Sortie complète
+                                    </span>
+                                {% else %}
+                                    <span class="pal-badge" style="background:rgba(59,130,246,.12);color:#1d4ed8">
+                                        <i class="bi bi-clock me-1"></i>En attente
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                {# Detail view button #}
+                                <button class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#detailModal{{ palette.id }}"
+                                        title="Voir détail" style="border-radius:.5rem">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                {# Ticket — visible pour tous #}
+                                <a href="{{ path('app_operation_palette_ticket', {id: operation.id, paletteId: palette.id}) }}"
+                                   class="btn btn-sm btn-outline-info" target="_blank"
+                                   title="Générer ticket" style="border-radius:.5rem">
+                                    <i class="bi bi-ticket-perforated"></i>
+                                </a>
+
+                                {% if is_granted('ROLE_CHEF_STOCK') or (is_granted('ROLE_CONTROLEUR') and not operation.isValidated and not operation.isRejected) %}
+                                {# Edit button #}
+                                <button class="btn btn-sm btn-outline-warning"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editModal{{ palette.id }}"
+                                        title="Modifier" style="border-radius:.5rem">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                {# Delete palette #}
+                                <button class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deletePaletteModal{{ palette.id }}"
+                                        title="Supprimer" style="border-radius:.5rem">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% if is_granted('ROLE_CHEF_STOCK') or (is_granted('ROLE_CONTROLEUR') and not operation.isValidated and not operation.isRejected) %}
+                    {# ── Delete Palette Modal — placé hors du <tr> pour éviter que d-none masque le modal ── #}
+                    <div class="modal fade" id="deletePaletteModal{{ palette.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered modal-sm">
+                            <div class="modal-content border-danger">
+                                <form method="post" action="{{ path('app_operation_palette_delete', {id: operation.id, paletteId: palette.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_palette' ~ palette.id) }}">
+                                    <div class="modal-header border-0 pb-0">
+                                        <h6 class="modal-title fw-bold text-danger">
+                                            <i class="bi bi-trash3 me-1"></i>Supprimer la palette
+                                        </h6>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body pt-2 text-center">
+                                        <p class="mb-1 small">Supprimer la palette :</p>
+                                        <code class="d-block mb-2" style="font-size:.8rem;color:#4f46e5">{{ palette.codePalette }}</code>
+                                        <p class="small text-secondary mb-1">{{ palette.espece }}{% if palette.qualite %} · {{ palette.qualite }}{% endif %}</p>
+                                        {% if palette.status.value == 'validee' %}
+                                        <div class="alert alert-warning py-1 small mb-2">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>Cette palette est en stock — elle sera retirée.
+                                        </div>
+                                        {% endif %}
+                                        <p class="text-danger small mb-0 fw-semibold">Action irréversible.</p>
+                                    </div>
+                                    <div class="modal-footer border-0 pt-0">
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash3 me-1"></i>Supprimer
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {# ── Detail Modal ── #}
+                    <div class="modal fade" id="detailModal{{ palette.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                                <div class="modal-header border-0 pb-0">
+                                    <h6 class="modal-title fw-bold">
+                                        <i class="bi bi-boxes me-2 text-primary"></i>
+                                        Palette <code style="color:#4f46e5">{{ palette.codePalette }}</code>
+                                    </h6>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body pt-2">
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <div class="info-label">Espèce</div>
+                                            <div class="info-value">{{ palette.espece }}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-label">Famille</div>
+                                            <div class="info-value">{{ palette.famille ?? '—' }}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-label">Qualité</div>
+                                            <div class="info-value">{{ palette.qualite ?? '—' }}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-label">Moule</div>
+                                            <div class="info-value">{{ palette.moule ?? '—' }}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-label">Cartons</div>
+                                            <div class="info-value">{{ palette.nombreCartons }}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-label">Poids / carton</div>
+                                            <div class="info-value">{{ palette.poidsCarton }} kg</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-label">Poids total</div>
+                                            <div class="info-value">{{ palette.poidsTotal|number_format(0, ',', ' ') }} kg</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-label">Emplacement</div>
+                                            <div class="info-value">
+                                                {{ palette.coldRoom ? palette.coldRoom.name : '—' }}
+                                                {% if palette.rayon %} / {{ palette.rayon }}{% endif %}
+                                            </div>
+                                        </div>
+                                        {% if palette.observation %}
+                                        <div class="col-12">
+                                            <div class="info-label">Observation</div>
+                                            <div class="info-value">{{ palette.observation }}</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 pt-0 gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                                    <a href="{{ path('app_operation_palette_ticket', {id: operation.id, paletteId: palette.id}) }}"
+                                       class="btn btn-sm btn-dark" target="_blank">
+                                        <i class="bi bi-ticket-perforated me-1"></i>Ticket
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ── Edit Modal ── #}
+                    <div class="modal fade" id="editModal{{ palette.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                                <form action="{{ path('app_operation_palette_edit', {id: operation.id, paletteId: palette.id}) }}" method="post">
+                                    <div class="modal-header border-0 pb-0">
+                                        <h6 class="modal-title fw-bold">
+                                            <i class="bi bi-pencil me-2 text-warning"></i>
+                                            Modifier <code style="color:#4f46e5">{{ palette.codePalette }}</code>
+                                        </h6>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Espèce</label>
+                                                <input type="text" name="espece" class="form-control form-control-sm" value="{{ palette.espece }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Famille</label>
+                                                <input type="text" name="famille" class="form-control form-control-sm" value="{{ palette.famille }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Qualité</label>
+                                                <input type="text" name="qualite" class="form-control form-control-sm" value="{{ palette.qualite }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Moule</label>
+                                                <input type="text" name="moule" class="form-control form-control-sm" value="{{ palette.moule }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Nombre de cartons</label>
+                                                <input type="number" name="nombre_cartons" class="form-control form-control-sm" value="{{ palette.nombreCartons }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Poids par carton (kg)</label>
+                                                <input type="number" name="poids_carton" class="form-control form-control-sm" step="0.001" value="{{ palette.poidsCarton }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Rayon</label>
+                                                <input type="text" name="rayon" class="form-control form-control-sm" value="{{ palette.rayon }}">
+                                            </div>
+                                            {% if operation.type.value == 'entry' %}
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Type de stockage</label>
+                                                <select name="type_stockage" class="form-select form-select-sm">
+                                                    <option value="">— Non défini —</option>
+                                                    <option value="forfait" {{ palette.typeStockage and palette.typeStockage.value == 'forfait' ? 'selected' }}>
+                                                        🏷️ Forfait
+                                                    </option>
+                                                    <option value="sejour" {{ palette.typeStockage and palette.typeStockage.value == 'sejour' ? 'selected' }}>
+                                                        📅 Séjour
+                                                    </option>
+                                                </select>
+                                            </div>
+                                            {% endif %}
+                                            <div class="col-12">
+                                                <label class="form-label small fw-semibold">Observation</label>
+                                                <textarea name="observation" class="form-control form-control-sm" rows="2">{{ palette.observation }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-0">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-check2 me-1"></i>Enregistrer
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="11" class="text-center py-5 text-secondary">
+                            <i class="bi bi-inbox display-5 d-block mb-2 opacity-25"></i>
+                            Aucune palette associée
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                  {% if operation.type.value == 'exit' %}
+                  {# ── Ligne totaux sortie ── #}
+                  <tr style="background:rgba(99,102,241,.06);border-top:2px solid #c7d2fe">
+                    <td colspan="5" class="text-end fw-bold py-2 px-3"
+                        style="color:#4f46e5;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em">
+                      <i class="bi bi-sigma me-1"></i>Totaux
+                    </td>
+                    <td class="text-center py-2">
+                      <div class="fw-bold" style="color:#0f172a">{{ operation.totalCartons }}</div>
+                      <div style="font-size:.68rem;color:#64748b">prévu</div>
+                    </td>
+                    <td class="text-end py-2">
+                      <div class="fw-bold" style="color:#0f172a">{{ operation.poidsTotal|number_format(0, ',', ' ') }} kg</div>
+                      <div style="font-size:.68rem;color:#64748b">prévu</div>
+                    </td>
+                    <td colspan="2"></td>
+                    <td class="text-center py-2">
+                      <div class="fw-bold" style="color:#dc2626">{{ operation.totalCartonsSortis }}</div>
+                      <div style="font-size:.68rem;color:#dc2626;font-weight:600">
+                        {{ operation.poidsTotalSortis|number_format(0, ',', ' ') }} kg
+                      </div>
+                      <div style="font-size:.63rem;color:#94a3b8">réellement sortis</div>
+                    </td>
+                    <td colspan="2"></td>
+                  </tr>
+                  {% else %}
+                  {# ── Ligne totaux entrée ── #}
+                  <tr style="background:rgba(16,185,129,.05);border-top:2px solid #a7f3d0">
+                    <td colspan="5" class="text-end fw-bold py-2 px-3"
+                        style="color:#065f46;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em">
+                      <i class="bi bi-sigma me-1"></i>Totaux
+                    </td>
+                    <td class="text-center fw-bold py-2" style="color:#0f172a">
+                      {{ operation.totalCartons }}
+                    </td>
+                    <td class="text-end fw-bold py-2" style="color:#0f172a">
+                      {{ operation.poidsTotal|number_format(0, ',', ' ') }} kg
+                    </td>
+                    <td colspan="5"></td>
+                  </tr>
+                  {% endif %}
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    {# ── Actions de validation (ENTRÉES uniquement) ── #}
+    {% if operation.type.value == 'entry' and operation.isPending and is_granted('ROLE_CHEF_STOCK') %}
+    <div class="glass p-3 d-flex gap-2 justify-content-end">
+        <button class="btn btn-success d-flex align-items-center gap-2"
+                data-bs-toggle="modal" data-bs-target="#validateEntryModal">
+            <i class="bi bi-check-circle-fill"></i>Valider l'opération
+        </button>
+        <button class="btn btn-danger d-flex align-items-center gap-2"
+                data-bs-toggle="modal" data-bs-target="#rejectModal">
+            <i class="bi bi-x-circle-fill"></i>Rejeter
+        </button>
+    </div>
+
+    {# Modal validation avec type de stockage #}
+    <div class="modal fade" id="validateEntryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                <form action="{{ path('app_operation_validate', {id: operation.id}) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ operation.id) }}">
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold text-success">
+                            <i class="bi bi-check-circle-fill me-2"></i>Valider l'opération d'entrée
+                        </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3 p-3 rounded" style="background:#f0fdf4;border:1px solid #bbf7d0">
+                            <div class="fw-semibold text-success mb-1">
+                                <i class="bi bi-info-circle me-1"></i>{{ operation.code }}
+                            </div>
+                            <div class="text-secondary small">
+                                {{ operation.palettes|length }} palette(s) · {{ operation.client.companyName }}
+                            </div>
+                        </div>
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-tag me-1 text-primary"></i>Type de stockage
+                            <span class="text-danger">*</span>
+                        </label>
+                        <p class="text-secondary small mb-3">
+                            Ce type sera appliqué à toutes les palettes de cette opération (modifiable ensuite palette par palette).
+                        </p>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="d-block cursor-pointer">
+                                    <input type="radio" name="type_stockage" value="forfait" class="d-none ts-radio" required>
+                                    <div class="ts-card border rounded p-3 text-center" style="cursor:pointer;transition:all .15s">
+                                        <i class="bi bi-tag-fill text-primary" style="font-size:1.6rem"></i>
+                                        <div class="fw-bold mt-1">Forfait</div>
+                                        <div class="text-muted" style="font-size:.75rem">Prix fixe par entrée</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="d-block cursor-pointer">
+                                    <input type="radio" name="type_stockage" value="sejour" class="d-none ts-radio" required>
+                                    <div class="ts-card border rounded p-3 text-center" style="cursor:pointer;transition:all .15s">
+                                        <i class="bi bi-calendar-week text-info" style="font-size:1.6rem"></i>
+                                        <div class="fw-bold mt-1">Séjour</div>
+                                        <div class="text-muted" style="font-size:.75rem">Facturation à la durée</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-success fw-semibold" id="btnConfirmValidate" disabled>
+                            <i class="bi bi-check-circle-fill me-1"></i>Confirmer la validation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# Reject Modal #}
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                <form action="{{ path('app_operation_reject', {id: operation.id}) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ operation.id) }}">
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold text-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Motif de rejet
+                        </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-secondary small mb-2">Ce motif sera visible dans les détails de l'opération.</p>
+                        <textarea name="reason" class="form-control" rows="3" required
+                                  placeholder="Indiquez le motif du rejet..."></textarea>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="bi bi-x-circle me-1"></i>Confirmer le rejet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ══════ MODAL GÉNÉRATION TICKETS ══════ #}
+    {% if operation.type.value == 'entry' and operation.palettes|length > 0 %}
+    <div class="modal fade" id="ticketsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+
+                <div class="modal-header border-0 pb-0" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff">
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0">
+                            <i class="bi bi-ticket-perforated me-2"></i>Génération des tickets de palette
+                        </h6>
+                        <div style="font-size:.78rem;opacity:.8;margin-top:.2rem">
+                            {{ operation.code }} &mdash; {{ operation.palettes|length }} palette(s)
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body px-3 py-3">
+
+                    {# Barre : Tout sélectionner + compteur #}
+                    <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" id="selectAllTickets">
+                            <label class="form-check-label fw-semibold" for="selectAllTickets" style="font-size:.85rem">
+                                Tout sélectionner
+                            </label>
+                        </div>
+                        <span id="ticketCounter" class="badge rounded-pill"
+                              style="background:rgba(37,99,235,.12);color:#1d4ed8;font-size:.75rem">
+                            0 sélectionné(s)
+                        </span>
+                    </div>
+
+                    {# Liste des palettes avec cases à cocher #}
+                    <div class="d-flex flex-column gap-2" id="ticketList">
+                        {% for palette in operation.palettes %}
+                        <label class="ticket-item d-flex align-items-center gap-3 p-2 rounded-3 cursor-pointer"
+                               style="border:1.5px solid #e2e8f0;transition:all .15s;cursor:pointer">
+                            <input class="form-check-input ticket-cb flex-shrink-0 mt-0"
+                                   type="checkbox" data-palette-id="{{ palette.id }}">
+                            <div class="flex-shrink-0">
+                                <div style="background:rgba(37,99,235,.08);color:#1d4ed8;border-radius:.4rem;padding:.2rem .55rem;font-size:.72rem;font-weight:700;font-family:monospace">
+                                    {{ palette.codePalette }}
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0" style="flex:1;min-width:0">
+                                <div style="font-size:.82rem;font-weight:700;color:#0f172a">
+                                    {{ palette.espece ?? '—' }}
+                                    {% if palette.qualite %}<span class="text-secondary fw-normal"> · {{ palette.qualite }}</span>{% endif %}
+                                    {% if palette.moule %}<span class="text-secondary fw-normal"> · {{ palette.moule }}</span>{% endif %}
+                                </div>
+                                <div style="font-size:.72rem;color:#64748b;margin-top:.15rem">
+                                    {{ palette.nombreCartons }} cartons
+                                    &nbsp;·&nbsp; {{ palette.poidsTotal|number_format(0, ',', ' ') }} kg
+                                    {% if palette.famille %}&nbsp;·&nbsp; {{ palette.famille }}{% endif %}
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 text-end" style="font-size:.7rem;color:#94a3b8">
+                                {% if palette.coldRoom %}
+                                <div><i class="bi bi-snow2 me-1"></i>{{ palette.coldRoom.name }}</div>
+                                {% endif %}
+                                {% if palette.rayon %}
+                                <div><i class="bi bi-grid-3x3-gap me-1"></i>{{ palette.rayon }}</div>
+                                {% endif %}
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+                <div class="modal-footer border-0 pt-0 gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary fw-semibold d-flex align-items-center gap-2"
+                            id="btnOpenTickets" disabled>
+                        <i class="bi bi-printer"></i>
+                        Imprimer les tickets sélectionnés
+                        <span id="btnTicketCount" class="badge bg-white text-primary ms-1" style="font-size:.72rem">0</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .ticket-item:hover { border-color:#93c5fd !important; background:#f8faff; }
+    .ticket-item.selected { border-color:#2563eb !important; background:#eff6ff; }
+    </style>
+
+    <script>
+    (function () {
+        const selectAll  = document.getElementById('selectAllTickets');
+        const checkboxes = document.querySelectorAll('.ticket-cb');
+        const items      = document.querySelectorAll('.ticket-item');
+        const counter    = document.getElementById('ticketCounter');
+        const btnOpen    = document.getElementById('btnOpenTickets');
+        const btnCount   = document.getElementById('btnTicketCount');
+
+        function updateCounter() {
+            const n = document.querySelectorAll('.ticket-cb:checked').length;
+            counter.textContent   = n + ' sélectionné(s)';
+            btnCount.textContent  = n;
+            btnOpen.disabled      = n === 0;
+            selectAll.checked       = n === checkboxes.length;
+            selectAll.indeterminate = n > 0 && n < checkboxes.length;
+        }
+
+        /* Clic sur une ligne entière */
+        items.forEach(item => {
+            item.addEventListener('click', function (e) {
+                if (e.target.type === 'checkbox') return;
+                const cb = this.querySelector('.ticket-cb');
+                cb.checked = !cb.checked;
+                this.classList.toggle('selected', cb.checked);
+                updateCounter();
+            });
+        });
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                this.closest('.ticket-item').classList.toggle('selected', this.checked);
+                updateCounter();
+            });
+        });
+
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+                cb.closest('.ticket-item').classList.toggle('selected', this.checked);
+            });
+            updateCounter();
+        });
+
+        btnOpen.addEventListener('click', function () {
+            const ids = [...document.querySelectorAll('.ticket-cb:checked')]
+                .map(cb => cb.dataset.paletteId);
+            if (!ids.length) return;
+            const base = '{{ path('app_operation_tickets_bulk', {id: operation.id}) }}';
+            const url  = base + '?' + ids.map(id => 'palettes[]=' + id).join('&');
+            window.open(url, '_blank');
+        });
+    })();
+    </script>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<style>
+.ts-card { border-color: #e2e8f0 !important; }
+.ts-card.selected { border-color: #6366f1 !important; background: rgba(99,102,241,.06); }
+</style>
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-    document.querySelectorAll('canvas.qr-canvas[data-qr-text]').forEach(function(canvas){
-        QRCode.toCanvas(canvas, canvas.dataset.qrText, {width: canvas.width, margin: 1});
+// ── Sélection type de stockage (modal validation entrée) ──
+(function () {
+    const radios = document.querySelectorAll('.ts-radio');
+    const btn    = document.getElementById('btnConfirmValidate');
+    if (!radios.length || !btn) return;
+    radios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.querySelectorAll('.ts-card').forEach(c => c.classList.remove('selected'));
+            radio.closest('label').querySelector('.ts-card').classList.add('selected');
+            btn.disabled = false;
+        });
+        radio.closest('label').querySelector('.ts-card').addEventListener('click', () => {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change'));
+        });
     });
-});
+})();
+
+(function () {
+    const rows    = document.querySelectorAll('#palettesBody tr[data-code]');
+    if (!rows.length) return;
+
+    const search  = document.getElementById('paletteSearch');
+    const selects = {
+        espece  : document.getElementById('filterEspece'),
+        qualite : document.getElementById('filterQualite'),
+        moule   : document.getElementById('filterMoule'),
+        famille : document.getElementById('filterFamille'),
+        chambre : document.getElementById('filterChambre'),
+        rayon   : document.getElementById('filterRayon'),
+    };
+    const fStatut = document.getElementById('filterStatut');
+    const counter = document.getElementById('filterCount');
+
+    /* Peupler les listes depuis les données réelles du tableau */
+    Object.entries(selects).forEach(([key, sel]) => {
+        const vals = new Set();
+        rows.forEach(r => { const v = (r.dataset[key] || '').trim(); if (v) vals.add(v); });
+        [...vals].sort().forEach(v => {
+            const o = document.createElement('option');
+            o.value = v;
+            o.textContent = v.charAt(0).toUpperCase() + v.slice(1);
+            sel.appendChild(o);
+        });
+        if (sel.options.length <= 1) sel.closest('.col-6, .col-md-1, .col-md-2')?.classList.add('d-none');
+    });
+
+    /* Filtrage des lignes */
+    function apply() {
+        const q  = (search.value || '').toLowerCase().trim();
+        const se = selects.espece.value;
+        const sq = selects.qualite.value;
+        const sm = selects.moule.value;
+        const sf = selects.famille.value;
+        const sc = selects.chambre.value;
+        const sr = selects.rayon.value;
+        const ss = fStatut.value;
+
+        let visible = 0;
+        rows.forEach(row => {
+            const d = row.dataset;
+            const textMatch = !q || d.code.includes(q) || d.espece.includes(q)
+                                 || d.famille.includes(q) || d.qualite.includes(q)
+                                 || d.moule.includes(q) || d.rayon.includes(q);
+            const match = textMatch
+                && (!se || d.espece  === se)
+                && (!sq || d.qualite === sq)
+                && (!sm || d.moule   === sm)
+                && (!sf || d.famille === sf)
+                && (!sc || d.chambre === sc)
+                && (!sr || d.rayon   === sr)
+                && (!ss || d.statut  === ss);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        if (visible < rows.length) {
+            counter.textContent = visible + ' palette(s) sur ' + rows.length;
+            counter.classList.remove('d-none');
+        } else {
+            counter.classList.add('d-none');
+        }
+    }
+
+    search.addEventListener('input', apply);
+    Object.values(selects).forEach(s => s.addEventListener('change', apply));
+    fStatut.addEventListener('change', apply);
+
+    document.getElementById('btnResetFilters').addEventListener('click', () => {
+        search.value = '';
+        Object.values(selects).forEach(s => s.value = '');
+        fStatut.value = '';
+        apply();
+    });
+})();
 </script>
 {% endblock %}

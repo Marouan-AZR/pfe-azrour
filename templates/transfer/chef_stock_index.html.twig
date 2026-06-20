@@ -1,0 +1,219 @@
+{% extends 'base.html.twig' %}
+{% block title %}Suivi des Transferts — Chef de Stock{% endblock %}
+
+{% block stylesheets %}
+<style>
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+.kpi-card { border-radius:.85rem; padding:1rem 1.25rem; }
+.kpi-val { font-size:2rem; font-weight:800; line-height:1; }
+.kpi-lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; margin-top:.2rem; opacity:.75; }
+.tbl thead th { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; padding:.6rem 1rem; white-space:nowrap; }
+.tbl tbody td { font-size:.85rem; padding:.65rem 1rem; vertical-align:middle; }
+.loc-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2em .55em; border-radius:.35rem; font-size:.78rem; font-weight:600; }
+.ctrl-avatar { width:30px; height:30px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:.68rem; font-weight:700; color:#fff; flex-shrink:0; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 px-4">
+
+  {# ── Header ── #}
+  <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+      <h2 class="mb-1 fw-bold"><i class="bi bi-arrow-left-right me-2 text-warning"></i>Suivi des Transferts</h2>
+      <p class="text-secondary mb-0 small">Tous les transferts réalisés par les contrôleurs</p>
+    </div>
+    <a href="{{ path('app_transfer_index') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Retour transferts
+    </a>
+  </div>
+
+  {# ── KPIs ── #}
+  {% set totalByCtrl = {} %}
+  {% for t in transfers %}
+    {% set name = t.transferredBy.fullName %}
+    {% set totalByCtrl = totalByCtrl|merge({(name): (totalByCtrl[name] is defined ? totalByCtrl[name] + 1 : 1)}) %}
+  {% endfor %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(245,158,11,.08);color:#b45309">
+        <div class="kpi-val">{{ transfers|length }}</div>
+        <div class="kpi-lbl"><i class="bi bi-arrow-left-right me-1"></i>Total transferts</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(99,102,241,.08);color:#4f46e5">
+        <div class="kpi-val">{{ controleurs|length }}</div>
+        <div class="kpi-lbl"><i class="bi bi-people me-1"></i>Contrôleurs actifs</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(16,185,129,.08);color:#065f46">
+        {% set clients_set = [] %}
+        {% for t in transfers %}{% if t.palette.operation.client.companyName not in clients_set %}{% set clients_set = clients_set|merge([t.palette.operation.client.companyName]) %}{% endif %}{% endfor %}
+        <div class="kpi-val">{{ clients_set|length }}</div>
+        <div class="kpi-lbl"><i class="bi bi-building me-1"></i>Clients concernés</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(14,165,233,.08);color:#0369a1">
+        {% set rooms_set = [] %}
+        {% for t in transfers %}
+          {% if t.toColdRoom.name not in rooms_set %}{% set rooms_set = rooms_set|merge([t.toColdRoom.name]) %}{% endif %}
+          {% if t.fromColdRoom.name not in rooms_set %}{% set rooms_set = rooms_set|merge([t.fromColdRoom.name]) %}{% endif %}
+        {% endfor %}
+        <div class="kpi-val">{{ rooms_set|length }}</div>
+        <div class="kpi-lbl"><i class="bi bi-snow2 me-1"></i>Chambres impliquées</div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Filtres ── #}
+  <div class="glass mb-4 p-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-2">
+        <label class="form-label fw-semibold small">Contrôleur</label>
+        <select name="controleur" class="form-select form-select-sm">
+          <option value="">Tous</option>
+          {% for ctrl in controleurs %}
+            <option value="{{ ctrl.id }}" {{ filters.controleur == (ctrl.id ~ '') ? 'selected' }}>
+              {{ ctrl.fullName }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-semibold small">Client</label>
+        <select name="client" class="form-select form-select-sm">
+          <option value="">Tous</option>
+          {% for c in clients %}
+            <option value="{{ c.id }}" {{ filters.client == (c.id ~ '') ? 'selected' }}>{{ c.companyName }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-semibold small">Chambre</label>
+        <select name="cold_room" class="form-select form-select-sm">
+          <option value="">Toutes</option>
+          {% for room in coldRooms %}
+            <option value="{{ room.id }}" {{ filters.coldRoom == (room.id ~ '') ? 'selected' }}>{{ room.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-semibold small">Code palette</label>
+        <input type="text" name="code_palette" class="form-control form-control-sm"
+               placeholder="Ex: BR-2024…" value="{{ filters.codePalette ?? '' }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label fw-semibold small">Du</label>
+        <input type="date" name="date_from" class="form-control form-control-sm" value="{{ filters.dateFrom ?? '' }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label fw-semibold small">Au</label>
+        <input type="date" name="date_to" class="form-control form-control-sm" value="{{ filters.dateTo ?? '' }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label d-block" style="visibility:hidden">.</label>
+        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel"></i></button>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label d-block" style="visibility:hidden">.</label>
+        <a href="{{ path('app_chef_stock_transfers') }}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-x-lg"></i></a>
+      </div>
+    </form>
+  </div>
+
+  {# ── Tableau ── #}
+  <div class="glass overflow-hidden">
+    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+      <h6 class="mb-0 fw-semibold">
+        <i class="bi bi-list-ul me-2 text-warning"></i>
+        Transferts
+        <span class="badge rounded-pill ms-1" style="background:rgba(245,158,11,.15);color:#b45309;font-size:.72rem">
+          {{ transfers|length }}
+        </span>
+      </h6>
+    </div>
+    <div class="table-responsive">
+      <table class="table tbl table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Heure</th>
+            <th>Effectué par</th>
+            <th>Code palette</th>
+            <th>Client</th>
+            <th>Espèce</th>
+            <th>Origine</th>
+            <th><i class="bi bi-arrow-right"></i></th>
+            <th>Destination</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in transfers %}
+          {% set colors = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#14b8a6'] %}
+          {% set nameParts = t.transferredBy.fullName|split(' ') %}
+          {% set initials = nameParts[0]|slice(0,1) ~ (nameParts[1] is defined ? nameParts[1]|slice(0,1) : '') %}
+          {% set colorIdx = (t.transferredBy.id % 8) %}
+          <tr>
+            <td class="fw-semibold text-nowrap">{{ t.transferredAt|date('d/m/Y') }}</td>
+            <td>
+              <span style="background:#f1f5f9;color:#334155;padding:.2em .55em;border-radius:.35rem;font-size:.8rem;font-weight:600">
+                {{ t.transferredAt|date('H:i') }}
+              </span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="ctrl-avatar" style="background:{{ colors[colorIdx] }}">{{ initials|upper }}</div>
+                <span class="fw-semibold" style="font-size:.85rem">{{ t.transferredBy.fullName }}</span>
+              </div>
+            </td>
+            <td>
+              <code style="background:rgba(99,102,241,.1);color:#4f46e5;padding:.2em .5em;border-radius:.35rem;font-weight:700">
+                {{ t.palette.codePalette }}
+              </code>
+            </td>
+            <td class="fw-semibold">{{ t.palette.operation.client.companyName }}</td>
+            <td>
+              <span style="background:#f1f5f9;color:#475569;padding:.15em .45em;border-radius:.3rem;font-size:.78rem;font-weight:600">
+                {{ t.palette.espece }}
+              </span>
+            </td>
+            <td>
+              <span class="loc-badge" style="background:rgba(245,158,11,.1);color:#92400e">
+                <i class="bi bi-snow2" style="font-size:.65rem"></i>
+                {{ t.fromColdRoom.name }}
+                {% if t.fromRayon %}<span class="ms-1 badge" style="background:#fef3c7;color:#92400e;font-size:.68rem">{{ t.fromRayon }}</span>{% endif %}
+              </span>
+            </td>
+            <td class="text-center text-secondary"><i class="bi bi-arrow-right"></i></td>
+            <td>
+              <span class="loc-badge" style="background:rgba(16,185,129,.1);color:#065f46">
+                <i class="bi bi-snow2" style="font-size:.65rem"></i>
+                {{ t.toColdRoom.name }}
+                {% if t.toRayon %}<span class="ms-1 badge" style="background:#d1fae5;color:#065f46;font-size:.68rem">{{ t.toRayon }}</span>{% endif %}
+              </span>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="9" class="text-center py-5 text-secondary">
+              <i class="bi bi-inbox display-4 d-block mb-2 opacity-25"></i>
+              <div>Aucun transfert trouvé</div>
+              {% if filters.controleur or filters.client or filters.codePalette or filters.coldRoom or filters.dateFrom or filters.dateTo %}
+                <a href="{{ path('app_chef_stock_transfers') }}" class="btn btn-sm btn-outline-secondary mt-2">
+                  <i class="bi bi-x-lg me-1"></i>Réinitialiser les filtres
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

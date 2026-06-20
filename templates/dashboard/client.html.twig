@@ -1,213 +1,406 @@
 {% extends 'base.html.twig' %}
+{% block title %}Mon Stock — {{ client.companyName }}{% endblock %}
 
-{% block title %}Mon Espace Client{% endblock %}
+{% block stylesheets %}
+<style>
+/* ── Layout ── */
+body { background:#f0f4ff; }
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
+  border-radius: 1.25rem;
+  padding: 2rem 2.25rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content:'';
+  position:absolute; inset:0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='28'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.hero-badge {
+  display:inline-flex; align-items:center; gap:.4rem;
+  background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25);
+  border-radius:50px; padding:.3rem .85rem; font-size:.78rem; font-weight:700;
+  backdrop-filter:blur(8px); margin-bottom:.75rem;
+}
+.hero-greeting { font-size:1.75rem; font-weight:800; margin-bottom:.25rem; }
+.hero-sub { font-size:.88rem; opacity:.8; }
+.hero-date { font-size:.78rem; opacity:.65; margin-top:.3rem; }
+
+/* ── KPI Cards ── */
+.kpi { border-radius:1rem; padding:1.25rem 1.4rem; border:1px solid transparent; transition:transform .15s,box-shadow .15s; }
+.kpi:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(0,0,0,.1); }
+.kpi-ico { width:46px; height:46px; border-radius:.75rem; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
+.kpi-val { font-size:1.85rem; font-weight:800; line-height:1; }
+.kpi-lbl { font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-top:.2rem; }
+.kpi-sub { font-size:.72rem; margin-top:.15rem; opacity:.7; }
+
+/* ── Glassmorphism cards ── */
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 20px rgba(0,0,0,.05); }
+.card-title { font-size:.88rem; font-weight:700; color:#0f172a; }
+.card-badge { font-size:.65rem; font-weight:700; padding:.2em .6em; border-radius:50px; background:rgba(99,102,241,.1); color:#4f46e5; }
+
+/* ── Table stock ── */
+.stbl { border-collapse:separate; border-spacing:0; width:100%; }
+.stbl thead th {
+  font-size:.65rem; text-transform:uppercase; letter-spacing:.07em;
+  color:#64748b; font-weight:700; padding:.6rem 1rem;
+  background:#f8fafc; border-bottom:2px solid #e2e8f0; white-space:nowrap;
+}
+.stbl tbody td { font-size:.82rem; padding:.65rem 1rem; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+.stbl tbody tr:hover td { background:#f8fafc; }
+.stbl tfoot td { font-size:.78rem; padding:.65rem 1rem; background:linear-gradient(135deg,#1e293b,#0f172a); color:#fff; font-weight:700; }
+
+/* ── Species pill ── */
+.sp-pill { display:inline-flex; align-items:center; gap:.3rem; font-size:.75rem; font-weight:700; padding:.25em .65em; border-radius:.4rem; }
+
+/* ── Progress bar ── */
+.pbar { height:6px; border-radius:3px; background:#e2e8f0; overflow:hidden; }
+.pbar-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#6366f1,#8b5cf6); }
+
+/* ── Movement list ── */
+.mv-item { display:flex; align-items:center; gap:.85rem; padding:.7rem 1rem; border-bottom:1px solid #f1f5f9; transition:background .1s; }
+.mv-item:last-child { border-bottom:none; }
+.mv-item:hover { background:#f8fafc; }
+.mv-ico { width:34px; height:34px; border-radius:.5rem; display:flex; align-items:center; justify-content:center; font-size:.95rem; flex-shrink:0; }
+
+/* ── Chart containers ── */
+.chart-wrap { position:relative; }
+.donut-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+</style>
+{% endblock %}
 
 {% block body %}
-<style>
-    .glass-card {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 1rem;
-        color: #1e293b;
-    }
-    .glass-card .card-header {
-        background: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
-        font-weight: 600;
-    }
-    .kpi-card {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 1rem;
-        transition: transform 0.2s;
-    }
-    .kpi-card:hover { transform: translateY(-4px); }
-    .kpi-icon {
-        width: 48px; height: 48px;
-        border-radius: 0.75rem;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.4rem;
-    }
-    .table-dark-custom { color: #1e293b; }
-    .table-dark-custom thead th {
-        background: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
-        font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .table-dark-custom td { border-color: #e2e8f0; vertical-align: middle; }
-    .badge-actif { background: rgba(25, 135, 84, 0.15); color: #198754; }
-    .badge-epuise { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
-    body { background: #f1f5f9; }
-</style>
+<div class="container-fluid py-4 px-4">
 
-<div class="container-fluid py-4">
-    {# Header #}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1"><i class="bi bi-speedometer2 me-2"></i>Mon Espace Client</h2>
-            <span class="text-muted">{{ client.companyName }}</span>
+  {# ── Hero Header ── #}
+  <div class="hero mb-4">
+    <div class="row align-items-center">
+      <div class="col">
+        <div class="hero-badge">
+          <i class="bi bi-person-circle"></i>Espace Client
         </div>
-        <span class="badge bg-info bg-opacity-25 text-info fs-6 px-3 py-2"><i class="bi bi-person-badge me-1"></i>Client</span>
+        <div class="hero-greeting">
+          Bonjour, {{ app.user.firstName ?? client.companyName }} 👋
+        </div>
+        <div class="hero-sub">{{ client.companyName }}</div>
+        <div style="font-size:.82rem;opacity:.85;margin-top:.4rem">
+          Bienvenue dans votre espace personnel — consultez l'état de votre stock en temps réel, suivez vos entrées et sorties, et visualisez la répartition de vos espèces stockées.
+        </div>
+        <div class="hero-date">
+          <i class="bi bi-calendar3 me-1"></i>{{ 'now'|date('d/m/Y') }}
+          &nbsp;·&nbsp;
+          <i class="bi bi-clock me-1"></i>{{ 'now'|date('H:i') }}
+        </div>
+      </div>
+      <div class="col-auto d-none d-md-flex flex-column align-items-end gap-2">
+        {% if lastEntryDate %}
+        <div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:.75rem;padding:.6rem 1.1rem;text-align:right;backdrop-filter:blur(8px)">
+          <div style="font-size:.65rem;opacity:.75;text-transform:uppercase;letter-spacing:.06em;font-weight:700">Dernière entrée</div>
+          <div style="font-size:1rem;font-weight:800">{{ lastEntryDate|date('d/m/Y') }}</div>
+        </div>
+        {% endif %}
+        <div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:.75rem;padding:.6rem 1.1rem;text-align:right;backdrop-filter:blur(8px)">
+          <div style="font-size:.65rem;opacity:.75;text-transform:uppercase;letter-spacing:.06em;font-weight:700">Espèces stockées</div>
+          <div style="font-size:1.4rem;font-weight:800">{{ nbEspeces }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── KPI Cards ── #}
+  <div class="row g-3 mb-4">
+
+    <div class="col-6 col-md-3">
+      <div class="kpi" style="background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(99,102,241,.05));border-color:rgba(99,102,241,.2);color:#4338ca">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-ico" style="background:rgba(99,102,241,.15)"><i class="bi bi-boxes"></i></div>
+          <div>
+            <div class="kpi-val">{{ totalPalettes }}</div>
+            <div class="kpi-lbl">Palettes</div>
+            <div class="kpi-sub">en stock actuellement</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    {# KPI Cards #}
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="kpi-card p-3 d-flex align-items-center gap-3">
-                <div class="kpi-icon bg-primary bg-opacity-25 text-primary"><i class="bi bi-box-seam"></i></div>
-                <div>
-                    <div class="text-muted small">Stock total</div>
-                    <div class="fs-4 fw-bold">{{ totalStock|number_format(2, '.', ' ') }} T</div>
-                </div>
-            </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi" style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.05));border-color:rgba(16,185,129,.2);color:#065f46">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-ico" style="background:rgba(16,185,129,.15)"><i class="bi bi-inboxes-fill"></i></div>
+          <div>
+            <div class="kpi-val">{{ totalCartons }}</div>
+            <div class="kpi-lbl">Cartons restants</div>
+            <div class="kpi-sub">toutes espèces</div>
+          </div>
         </div>
-        <div class="col-md-3">
-            <div class="kpi-card p-3 d-flex align-items-center gap-3">
-                <div class="kpi-icon bg-success bg-opacity-25 text-success"><i class="bi bi-stack"></i></div>
-                <div>
-                    <div class="text-muted small">Palettes en stock</div>
-                    <div class="fs-4 fw-bold">{{ stockItems|length }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="kpi-card p-3 d-flex align-items-center gap-3">
-                <div class="kpi-icon bg-warning bg-opacity-25 text-warning"><i class="bi bi-receipt"></i></div>
-                <div>
-                    <div class="text-muted small">Factures récentes</div>
-                    <div class="fs-4 fw-bold">{{ recentInvoices|length }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="kpi-card p-3 d-flex align-items-center gap-3">
-                <div class="kpi-icon bg-info bg-opacity-25 text-info"><i class="bi bi-calendar-check"></i></div>
-                <div>
-                    <div class="text-muted small">Dernière entrée</div>
-                    <div class="fs-5 fw-bold">
-                        {% if recentEntries|length > 0 %}
-                            {{ recentEntries[0].createdAt|date('d/m/Y') }}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
 
-    {# Mon Stock Table #}
-    <div class="glass-card mb-4">
-        <div class="card-header px-4 py-3 d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-box-seam me-2"></i>Mon Stock</span>
-            <a href="{{ path('app_stock_index') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+    <div class="col-6 col-md-3">
+      <div class="kpi" style="background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(139,92,246,.05));border-color:rgba(139,92,246,.2);color:#6d28d9">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-ico" style="background:rgba(139,92,246,.15)"><i class="bi bi-weight"></i></div>
+          <div>
+            <div class="kpi-val" style="font-size:1.5rem">{{ totalPoids|number_format(1, '.', ' ') }} <span style="font-size:.8rem;font-weight:600">T</span></div>
+            <div class="kpi-lbl">Poids total</div>
+            <div class="kpi-sub">{{ (totalPoids * 1000)|number_format(0, '.', ' ') }} kg</div>
+          </div>
         </div>
-        <div class="table-responsive">
-            <table class="table table-dark-custom mb-0">
-                <thead>
-                    <tr>
-                        <th>Produit</th>
-                        <th>Famille</th>
-                        <th>Qualité</th>
-                        <th>Chambre</th>
-                        <th>Rayon</th>
-                        <th>Cartons</th>
-                        <th>Poids restant (kg)</th>
-                        <th>Jours stockage</th>
-                        <th>Statut</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in stockItems %}
-                        <tr>
-                            <td>{{ item.productName }}</td>
-                            <td>{{ item.stockEntry.famille ?? '—' }}</td>
-                            <td>{{ item.stockEntry.qualite ?? '—' }}</td>
-                            <td>{{ item.coldRoom.name }}</td>
-                            <td>{{ item.stockEntry.rayon ?? '—' }}</td>
-                            <td>{{ item.stockEntry.nombreCartons ?? '—' }}</td>
-                            <td>{{ (item.remainingQuantity * 1000)|number_format(1, '.', ' ') }}</td>
-                            <td>{{ item.storageDays }}</td>
-                            <td>
-                                {% if item.remainingQuantity > 0 %}
-                                    <span class="badge badge-actif">Actif</span>
-                                {% else %}
-                                    <span class="badge badge-epuise">Épuisé</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr><td colspan="9" class="text-center text-muted py-4">Aucun stock disponible</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+      </div>
     </div>
 
-    {# Recent Entries & Invoices Row #}
-    <div class="row g-4 mb-4">
-        {# Dernières entrées #}
-        <div class="col-lg-6">
-            <div class="glass-card h-100">
-                <div class="card-header px-4 py-3"><i class="bi bi-arrow-down-circle me-2"></i>Dernières entrées</div>
-                <div class="table-responsive">
-                    <table class="table table-dark-custom mb-0">
-                        <thead>
-                            <tr><th>Date</th><th>Produit</th><th>Quantité (T)</th><th>Statut</th></tr>
-                        </thead>
-                        <tbody>
-                            {% for entry in recentEntries %}
-                                <tr>
-                                    <td>{{ entry.createdAt|date('d/m/Y') }}</td>
-                                    <td>{{ entry.productName ?? '—' }}</td>
-                                    <td>{{ entry.quantityTons|number_format(2, '.', ' ') }}</td>
-                                    <td><span class="badge badge-actif">Enregistrée</span></td>
-                                </tr>
-                            {% else %}
-                                <tr><td colspan="4" class="text-center text-muted py-3">Aucune entrée récente</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.05));border-color:rgba(245,158,11,.2);color:#92400e">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-ico" style="background:rgba(245,158,11,.15)"><i class="bi bi-fish-fill"></i></div>
+          <div>
+            <div class="kpi-val">{{ nbEspeces }}</div>
+            <div class="kpi-lbl">Espèces</div>
+            <div class="kpi-sub">différentes en stock</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ── Charts ── #}
+  <div class="row g-3 mb-4">
+
+    {# Donut stock par espèce #}
+    <div class="col-lg-5">
+      <div class="glass p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="card-title"><i class="bi bi-pie-chart-fill me-2" style="color:#6366f1"></i>Répartition par espèce</span>
+          <span class="card-badge">Cartons restants</span>
+        </div>
+        {% if stockByEspece is not empty %}
+        <div class="chart-wrap" style="height:220px;display:flex;align-items:center;justify-content:center">
+          <div style="position:relative;width:200px;height:200px">
+            <canvas id="donutEspece"></canvas>
+            <div class="donut-center">
+              <span style="font-size:1.5rem;font-weight:800;color:#0f172a;line-height:1">{{ totalCartons }}</span>
+              <span style="font-size:.65rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">cartons</span>
             </div>
+          </div>
         </div>
+        {# Légende #}
+        <div class="mt-3 d-flex flex-column gap-2">
+          {% set colors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f97316'] %}
+          {% set ci = 0 %}
+          {% for espece, data in stockByEspece %}
+          {% set pct = totalCartons > 0 ? ((data.cartons / totalCartons) * 100)|round(1) : 0 %}
+          <div class="d-flex align-items-center gap-2">
+            <div style="width:10px;height:10px;border-radius:2px;background:{{ colors[ci] }};flex-shrink:0"></div>
+            <span style="font-size:.78rem;font-weight:600;color:#0f172a;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ espece }}</span>
+            <span style="font-size:.75rem;color:#64748b;font-weight:600">{{ data.cartons }}</span>
+            <span style="font-size:.7rem;color:#94a3b8;min-width:35px;text-align:right">{{ pct }}%</span>
+          </div>
+          {% set ci = ci + 1 %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="d-flex flex-column align-items-center justify-content-center py-5 text-secondary">
+          <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.2"></i>
+          <p class="mt-2 mb-0 small">Aucun stock disponible</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
 
-        {# Dernières factures #}
-        <div class="col-lg-6">
-            <div class="glass-card h-100">
-                <div class="card-header px-4 py-3"><i class="bi bi-receipt-cutoff me-2"></i>Dernières factures</div>
-                <div class="table-responsive">
-                    <table class="table table-dark-custom mb-0">
-                        <thead>
-                            <tr><th>Numéro</th><th>Période</th><th>Montant</th><th>Statut</th><th></th></tr>
-                        </thead>
-                        <tbody>
-                            {% for invoice in recentInvoices %}
-                                <tr>
-                                    <td>{{ invoice.invoiceNumber }}</td>
-                                    <td>{{ invoice.periodStart|date('d/m') }} — {{ invoice.periodEnd|date('d/m/Y') }}</td>
-                                    <td>{{ invoice.totalTtc|number_format(2, '.', ' ') }} MAD</td>
-                                    <td>
-                                        <span class="badge bg-{{ invoice.status.cssClass }}">
-                                            {{ invoice.status.label }}
-                                        </span>
-                                    </td>
-                                    <td><a href="{{ path('app_invoice_show', {id: invoice.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a></td>
-                                </tr>
-                            {% else %}
-                                <tr><td colspan="5" class="text-center text-muted py-3">Aucune facture récente</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    {# Bar chart entrées/sorties #}
+    <div class="col-lg-7">
+      <div class="glass p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="card-title"><i class="bi bi-bar-chart-fill me-2" style="color:#10b981"></i>Mouvements mensuels</span>
+          <span class="card-badge">6 derniers mois</span>
+        </div>
+        <div style="height:260px"><canvas id="barMouvements"></canvas></div>
+        <div class="d-flex gap-4 justify-content-center mt-2">
+          <span style="font-size:.73rem;color:#64748b;display:flex;align-items:center;gap:.35rem">
+            <span style="width:12px;height:12px;background:#6366f1;border-radius:3px;display:inline-block"></span>Entrées
+          </span>
+          <span style="font-size:.73rem;color:#64748b;display:flex;align-items:center;gap:.35rem">
+            <span style="width:12px;height:12px;background:#ef4444;border-radius:3px;display:inline-block"></span>Sorties
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ── Tableau stock par espèce ── #}
+  <div class="glass overflow-hidden mb-4">
+    <div class="d-flex justify-content-between align-items-center px-4 py-3" style="border-bottom:1px solid #e2e8f0;background:#fafbfc">
+      <span class="card-title">
+        <i class="bi bi-table me-2" style="color:#6366f1"></i>Mon stock par espèce
+        <span class="ms-2" style="background:rgba(99,102,241,.1);color:#4f46e5;font-size:.65rem;font-weight:700;padding:.2em .6em;border-radius:50px">{{ nbEspeces }} espèce{{ nbEspeces > 1 ? 's' : '' }}</span>
+      </span>
+      <span style="font-size:.72rem;color:#94a3b8"><i class="bi bi-info-circle me-1"></i>Quantités actuellement disponibles</span>
+    </div>
+    <div class="table-responsive">
+      <table class="stbl">
+        <thead>
+          <tr>
+            <th>Espèce</th>
+            <th>Qualité</th>
+            <th>Famille</th>
+            <th class="text-center">Palettes</th>
+            <th class="text-center">Cartons restants</th>
+            <th style="min-width:140px">Proportion</th>
+            <th class="text-end">Poids (T)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set colors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f97316'] %}
+          {% set ci = 0 %}
+          {% for espece, data in stockByEspece %}
+          {% set pct = totalCartons > 0 ? ((data.cartons / totalCartons) * 100)|round(1) : 0 %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span style="width:8px;height:8px;border-radius:2px;background:{{ colors[ci] }};flex-shrink:0"></span>
+                <span class="fw-semibold" style="color:#0f172a">{{ espece }}</span>
+              </div>
+            </td>
+            <td>
+              {% if data.qualite %}
+              <span style="background:rgba(99,102,241,.08);color:#4338ca;padding:.15em .5em;border-radius:.3rem;font-size:.75rem;font-weight:600">{{ data.qualite }}</span>
+              {% else %}<span class="text-secondary">—</span>{% endif %}
+            </td>
+            <td>
+              {% if data.famille %}
+              <span style="background:rgba(16,185,129,.08);color:#065f46;padding:.15em .5em;border-radius:.3rem;font-size:.75rem;font-weight:600">{{ data.famille }}</span>
+              {% else %}<span class="text-secondary">—</span>{% endif %}
+            </td>
+            <td class="text-center fw-semibold">{{ data.palettes }}</td>
+            <td class="text-center fw-bold" style="color:#0f172a">{{ data.cartons }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="pbar flex-grow-1">
+                  <div class="pbar-fill" style="width:{{ pct }}%;background:{{ colors[ci] }}"></div>
                 </div>
-            </div>
-        </div>
+                <span style="font-size:.7rem;color:#64748b;font-weight:600;min-width:32px">{{ pct }}%</span>
+              </div>
+            </td>
+            <td class="text-end fw-semibold" style="color:#0f172a">
+              {{ data.poids|number_format(2, '.', ' ') }}
+              <span class="text-secondary fw-normal" style="font-size:.7rem">T</span>
+            </td>
+          </tr>
+          {% set ci = ci + 1 %}
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-secondary">
+              <i class="bi bi-inbox" style="font-size:2rem;opacity:.2;display:block;margin-bottom:.5rem"></i>
+              Aucun stock disponible
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% if nbEspeces > 1 %}
+        <tfoot>
+          <tr>
+            <td colspan="4" style="color:#94a3b8;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700">
+              <i class="bi bi-sigma me-1"></i>TOTAL
+            </td>
+            <td class="text-center" style="color:#6ee7b7">{{ totalCartons }}</td>
+            <td></td>
+            <td class="text-end" style="color:#c4b5fd">{{ totalPoids|number_format(2, '.', ' ') }} T</td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
     </div>
+  </div>
 
-    {# Quick Actions #}
-    <div class="d-flex gap-3">
-        <a href="{{ path('app_stock_index') }}" class="btn btn-primary px-4"><i class="bi bi-box-seam me-2"></i>Voir mon stock</a>
-        <a href="{{ path('app_invoice_index') }}" class="btn btn-outline-secondary px-4"><i class="bi bi-receipt me-2"></i>Mes factures</a>
-    </div>
+
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+/* ── Donut par espèce ── */
+{% if stockByEspece is not empty %}
+const donutColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f97316'];
+new Chart(document.getElementById('donutEspece'), {
+  type: 'doughnut',
+  data: {
+    labels: [{% for espece, d in stockByEspece %}'{{ espece|e('js') }}'{{ not loop.last ? ',' }}{% endfor %}],
+    datasets: [{
+      data: [{% for espece, d in stockByEspece %}{{ d.cartons }}{{ not loop.last ? ',' }}{% endfor %}],
+      backgroundColor: donutColors,
+      borderWidth: 2,
+      borderColor: '#fff',
+      hoverOffset: 6,
+    }]
+  },
+  options: {
+    cutout: '72%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.label} : ${ctx.parsed} cartons (${((ctx.parsed/{{ totalCartons }})*100).toFixed(1)}%)`
+        }
+      }
+    }
+  }
+});
+{% endif %}
+
+/* ── Bar mouvements mensuels ── */
+const labels  = [{% for m in monthlyData %}'{{ m.label }}'{{ not loop.last ? ',' }}{% endfor %}];
+const entries = [{% for m in monthlyData %}{{ m.entries }}{{ not loop.last ? ',' }}{% endfor %}];
+const exits   = [{% for m in monthlyData %}{{ m.exits }}{{ not loop.last ? ',' }}{% endfor %}];
+
+new Chart(document.getElementById('barMouvements'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Entrées',
+        data: entries,
+        backgroundColor: 'rgba(99,102,241,.75)',
+        borderRadius: 5,
+        borderSkipped: false,
+      },
+      {
+        label: 'Sorties',
+        data: exits,
+        backgroundColor: 'rgba(239,68,68,.65)',
+        borderRadius: 5,
+        borderSkipped: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label} : ${ctx.parsed.y} cartons`
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: {
+        beginAtZero: true,
+        grid: { color: '#f1f5f9' },
+        ticks: { font: { size: 11 }, stepSize: 1 }
+      }
+    }
+  }
+});
+</script>
 {% endblock %}

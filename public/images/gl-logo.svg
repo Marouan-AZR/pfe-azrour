@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 155" width="420" height="155">
+  <defs>
+    <linearGradient id="hexOuter" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="hexInner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="roofGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+  </defs>
+
+  <!-- ── Hexagone extérieur ── -->
+  <polygon points="77,5 140,41 140,113 77,149 14,113 14,41"
+           fill="url(#hexOuter)" filter="url(#shadow)"/>
+
+  <!-- ── Hexagone intérieur ── -->
+  <polygon points="77,16 129,46 129,108 77,138 25,108 25,46"
+           fill="url(#hexInner)"/>
+
+  <!-- ── Toit entrepôt ── -->
+  <polygon points="77,32 118,56 36,56" fill="url(#roofGrad)"/>
+
+  <!-- ── Murs entrepôt ── -->
+  <rect x="39" y="56" width="76" height="54" rx="1" fill="white" opacity="0.92"/>
+
+  <!-- ── Porte centrale ── -->
+  <rect x="65" y="76" width="24" height="34" rx="2" fill="#1e40af"/>
+  <!-- Vitre porte -->
+  <rect x="68" y="79" width="8" height="10" rx="1" fill="#93c5fd" opacity="0.7"/>
+  <rect x="79" y="79" width="8" height="10" rx="1" fill="#93c5fd" opacity="0.7"/>
+
+  <!-- ── Fenêtres ── -->
+  <rect x="43" y="63" width="14" height="11" rx="2" fill="#bfdbfe" opacity="0.8"/>
+  <rect x="97" y="63" width="14" height="11" rx="2" fill="#bfdbfe" opacity="0.8"/>
+
+  <!-- ── Petit flocon (stockage froid) ── -->
+  <g transform="translate(118,118)" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.85">
+    <line x1="0" y1="-9" x2="0" y2="9"/>
+    <line x1="-9" y1="0" x2="9" y2="0"/>
+    <line x1="-6" y1="-6" x2="6" y2="6"/>
+    <line x1="6" y1="-6" x2="-6" y2="6"/>
+    <circle cx="0" cy="-9" r="1.5" fill="white"/>
+    <circle cx="0" cy="9" r="1.5" fill="white"/>
+    <circle cx="-9" cy="0" r="1.5" fill="white"/>
+    <circle cx="9" cy="0" r="1.5" fill="white"/>
+  </g>
+
+  <!-- ── Séparateur vertical ── -->
+  <line x1="158" y1="20" x2="158" y2="135" stroke="#e2e8f0" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- ── GL ── -->
+  <text x="172" y="90"
+        font-family="'Arial Black', Arial, sans-serif"
+        font-size="76" font-weight="900"
+        fill="#0f172a" letter-spacing="-2">GL</text>
+
+  <!-- ── WAREHOUSE ── -->
+  <text x="174" y="116"
+        font-family="Arial, sans-serif"
+        font-size="20" font-weight="800"
+        fill="#1e40af" letter-spacing="5">WAREHOUSE</text>
+
+  <!-- ── SUITE ── -->
+  <text x="174" y="138"
+        font-family="Arial, sans-serif"
+        font-size="15" font-weight="700"
+        fill="#f59e0b" letter-spacing="3">SUITE</text>
+
+  <!-- ── — ── -->
+  <text x="254" y="138"
+        font-family="Arial, sans-serif"
+        font-size="15" font-weight="400"
+        fill="#94a3b8"> — </text>
+
+  <!-- ── WMS ── -->
+  <text x="283" y="138"
+        font-family="Arial, sans-serif"
+        font-size="15" font-weight="800"
+        fill="#f97316" letter-spacing="3">WMS</text>
+
+  <!-- ── Icône écran (WMS) ── -->
+  <g transform="translate(360, 60)" stroke="#2563eb" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Écran -->
+    <rect x="0" y="0" width="48" height="34" rx="4" fill="#eff6ff" stroke="#2563eb"/>
+    <!-- Barres graphique -->
+    <rect x="8"  y="22" width="7" height="6"  rx="1" fill="#f59e0b" stroke="none"/>
+    <rect x="18" y="16" width="7" height="12" rx="1" fill="#2563eb" stroke="none"/>
+    <rect x="28" y="10" width="7" height="18" rx="1" fill="#f59e0b" stroke="none"/>
+    <!-- Pied écran -->
+    <line x1="24" y1="34" x2="24" y2="44" stroke="#2563eb" stroke-width="2.5"/>
+    <line x1="14" y1="44" x2="34" y2="44" stroke="#2563eb" stroke-width="2.5"/>
+  </g>
+</svg>

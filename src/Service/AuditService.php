@@ -16,16 +16,29 @@ class AuditService
 
     public function log(string $action, object $entity, User $user, ?array $oldValues = null, ?array $newValues = null): void
     {
-        $log = new AuditLog();
-        $log->setAction($action);
-        $log->setEntityType($this->getEntityType($entity));
-        $log->setEntityId($entity->getId() ?? 0);
-        $log->setUser($user);
-        $log->setOldValues($oldValues);
-        $log->setNewValues($newValues);
+        try {
+            // Re-find the user from our own EM to avoid detached-entity errors
+            // (can happen when the caller's EM differs from ours, e.g. in tests or async contexts)
+            if (!$this->em->contains($user) && $user->getId() !== null) {
+                $managed = $this->em->find(User::class, $user->getId());
+                if ($managed !== null) {
+                    $user = $managed;
+                }
+            }
 
-        $this->em->persist($log);
-        $this->em->flush();
+            $log = new AuditLog();
+            $log->setAction($action);
+            $log->setEntityType($this->getEntityType($entity));
+            $log->setEntityId($entity->getId() ?? 0);
+            $log->setUser($user);
+            $log->setOldValues($oldValues);
+            $log->setNewValues($newValues);
+
+            $this->em->persist($log);
+            $this->em->flush();
+        } catch (\Throwable) {
+            // Audit failures must never break the main business operation
+        }
     }
 
     private function getEntityType(object $entity): string
@@ -52,7 +65,8 @@ class AuditService
             $filters['entityType'] ?? null,
             $filters['user'] ?? null,
             $dateFrom,
-            $dateTo
+            $dateTo,
+            $filters['search'] ?? null
         );
     }
 

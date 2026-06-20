@@ -1,242 +1,351 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}État du Stock{% endblock %}
 
+{% block stylesheets %}
+<style>
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+.kpi-card { border-radius:.85rem; padding:1rem 1.25rem; transition:box-shadow .15s,transform .15s; }
+.kpi-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.1); }
+.kpi-val { font-size:2rem; font-weight:800; line-height:1; }
+.kpi-lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; margin-top:.2rem; opacity:.75; }
+.tbl thead th { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; padding:.6rem 1rem; white-space:nowrap; }
+.tbl tbody td { font-size:.85rem; padding:.65rem 1rem; vertical-align:middle; }
+.status-pill { display:inline-flex; align-items:center; gap:.3rem; font-size:.73rem; font-weight:700; padding:.25em .7em; border-radius:50px; white-space:nowrap; }
+tr:hover td { background:rgba(99,102,241,.02); }
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1"><i class="bi bi-box-seam me-2"></i>État du Stock</h2>
-            <small class="text-muted">Suivi en temps réel des marchandises stockées</small>
-        </div>
-        <a href="{{ path('app_stock_export_csv', app.request.query.all) }}" class="btn btn-outline-success btn-sm">
-            <i class="bi bi-download"></i> Exporter CSV
-        </a>
+<div class="container-fluid py-4 px-4">
+
+  {# ── Header ── #}
+  <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+      <h2 class="mb-1 fw-bold"><i class="bi bi-box-seam me-2 text-primary"></i>État du Stock</h2>
+      <p class="text-secondary mb-0 small">Suivi en temps réel des marchandises stockées</p>
+    </div>
+    <a href="{{ path('app_stock_export_csv', app.request.query.all) }}" class="btn btn-sm btn-outline-success">
+      <i class="bi bi-download me-1"></i>Exporter CSV
+    </a>
+  </div>
+
+  {# ── KPIs (calculés depuis palettes) ── #}
+  {% set kpiPalettes = palettes|length %}
+  {% set kpiCartons  = 0 %}
+  {% set kpiPoids    = 0.0 %}
+  {% set kpiClients  = [] %}
+  {% for p in palettes %}
+    {% set kpiCartons = kpiCartons + p.cartonsRestants %}
+    {% set kpiPoids   = kpiPoids + p.poidsRestant %}
+    {% if p.operation.client.companyName not in kpiClients %}
+      {% set kpiClients = kpiClients|merge([p.operation.client.companyName]) %}
+    {% endif %}
+  {% endfor %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(99,102,241,.08);color:#4f46e5">
+        <div class="kpi-val">{{ kpiPalettes }}</div>
+        <div class="kpi-lbl"><i class="bi bi-boxes me-1"></i>Palettes en stock</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(16,185,129,.08);color:#065f46">
+        <div class="kpi-val">{{ kpiCartons }}</div>
+        <div class="kpi-lbl"><i class="bi bi-inboxes me-1"></i>Cartons restants</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(245,158,11,.08);color:#b45309">
+        <div class="kpi-val">{{ (kpiPoids / 1000)|number_format(1, '.', ' ') }}</div>
+        <div class="kpi-lbl"><i class="bi bi-weight me-1"></i>Poids total (T)</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(14,165,233,.08);color:#0369a1">
+        <div class="kpi-val">{{ kpiClients|length }}</div>
+        <div class="kpi-lbl"><i class="bi bi-building me-1"></i>Clients présents</div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Filtres ── #}
+  <div class="glass mb-4 p-3">
+    <form method="get" class="row g-2 align-items-end">
+      {% if clients|length > 0 %}
+      <div class="col-md-2">
+        <label class="form-label fw-semibold small">Client</label>
+        <select name="client" class="form-select form-select-sm">
+          <option value="">Tous les clients</option>
+          {% for c in clients %}
+            <option value="{{ c.id }}" {{ filters.client == c.id ? 'selected' }}>{{ c.companyName }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="col-md-2">
+        <label class="form-label fw-semibold small">Espèce</label>
+        <select name="espece" class="form-select form-select-sm">
+          <option value="">Toutes</option>
+          {% for e in distinctValues.especes %}
+            <option value="{{ e }}" {{ filters.espece == e ? 'selected' }}>{{ e }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-semibold small">Chambre</label>
+        <select name="cold_room" class="form-select form-select-sm">
+          <option value="">Toutes</option>
+          {% for room in coldRooms %}
+            <option value="{{ room.id }}" {{ filters.coldRoom == room.id ? 'selected' }}>{{ room.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label fw-semibold small">Rayon</label>
+        <select name="rayon" class="form-select form-select-sm">
+          <option value="">Tous</option>
+          {% for r in distinctValues.rayons %}
+            <option value="{{ r }}" {{ filters.rayon == r ? 'selected' }}>{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label fw-semibold small">Qualité</label>
+        <select name="qualite" class="form-select form-select-sm">
+          <option value="">Toutes</option>
+          {% for q in distinctValues.qualites %}
+            <option value="{{ q }}" {{ filters.qualite == q ? 'selected' }}>{{ q }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label fw-semibold small">Famille</label>
+        <select name="famille" class="form-select form-select-sm">
+          <option value="">Toutes</option>
+          {% for f in distinctValues.familles %}
+            <option value="{{ f }}" {{ filters.famille == f ? 'selected' }}>{{ f }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label fw-semibold small"><i class="bi bi-calendar3 me-1"></i>Du</label>
+        <input type="date" name="dateFrom" class="form-control form-control-sm" value="{{ filters.dateFrom ?? '' }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label fw-semibold small"><i class="bi bi-calendar3 me-1"></i>Au</label>
+        <input type="date" name="dateTo" class="form-control form-control-sm" value="{{ filters.dateTo ?? '' }}">
+      </div>
+      <div class="col-md-1">
+        <label class="form-label d-block" style="visibility:hidden">.</label>
+        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel"></i></button>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label d-block" style="visibility:hidden">.</label>
+        <a href="{{ path('app_stock_index') }}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-x-lg"></i></a>
+      </div>
+    </form>
+  </div>
+
+  {# ── Tableau principal ── #}
+  <div class="glass overflow-hidden">
+    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+      <h6 class="mb-0 fw-semibold">
+        <i class="bi bi-table me-2 text-primary"></i>Stock groupé
+        <span class="badge rounded-pill ms-1" style="background:rgba(99,102,241,.12);color:#4f46e5;font-size:.72rem">
+          {{ palettes|length }} palettes
+        </span>
+      </h6>
+      {% if filters.dateFrom or filters.dateTo %}
+      <small class="text-warning fw-semibold">
+        <i class="bi bi-calendar-range me-1"></i>
+        {% if filters.dateFrom %}Du {{ filters.dateFrom }}{% endif %}
+        {% if filters.dateTo %} au {{ filters.dateTo }}{% endif %}
+      </small>
+      {% endif %}
     </div>
 
-    {# ===== Filtres avancés ===== #}
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                {% if clients|length > 0 %}
-                <div class="col-md-2">
-                    <label class="form-label">Client</label>
-                    <select name="client" class="form-select">
-                        <option value="">Tous les clients</option>
-                        {% for client in clients %}
-                            <option value="{{ client.id }}" {{ filters.client == client.id ? 'selected' }}>{{ client.companyName }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endif %}
-                <div class="col-md-2">
-                    <label class="form-label">Espèce</label>
-                    <select name="espece" class="form-select">
-                        <option value="">Toutes</option>
-                        {% for e in distinctValues.especes %}
-                            <option value="{{ e }}" {{ filters.espece == e ? 'selected' }}>{{ e }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Qualité</label>
-                    <select name="qualite" class="form-select">
-                        <option value="">Toutes</option>
-                        {% for q in distinctValues.qualites %}
-                            <option value="{{ q }}" {{ filters.qualite == q ? 'selected' }}>{{ q }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Moule</label>
-                    <select name="moule" class="form-select">
-                        <option value="">Tous</option>
-                        {% for m in distinctValues.moules %}
-                            <option value="{{ m }}" {{ filters.moule == m ? 'selected' }}>{{ m }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Famille</label>
-                    <select name="famille" class="form-select">
-                        <option value="">Toutes</option>
-                        {% for f in distinctValues.familles %}
-                            <option value="{{ f }}" {{ filters.famille == f ? 'selected' }}>{{ f }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Chambre</label>
-                    <select name="cold_room" class="form-select">
-                        <option value="">Toutes</option>
-                        {% for room in coldRooms %}
-                            <option value="{{ room.id }}" {{ filters.coldRoom == room.id ? 'selected' }}>{{ room.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Rayon</label>
-                    <select name="rayon" class="form-select">
-                        <option value="">Tous</option>
-                        {% for r in distinctValues.rayons %}
-                            <option value="{{ r }}" {{ filters.rayon == r ? 'selected' }}>{{ r }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Date début</label>
-                    <input type="date" name="dateFrom" class="form-control" value="{{ filters.dateFrom }}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Date fin</label>
-                    <input type="date" name="dateTo" class="form-control" value="{{ filters.dateTo }}">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrer</button>
-                </div>
-                <div class="col-md-2">
-                    <a href="{{ path('app_stock_index') }}" class="btn btn-outline-secondary w-100"><i class="bi bi-x-lg"></i> Réinitialiser</a>
-                </div>
-            </form>
-        </div>
+    <div class="table-responsive">
+      <table class="table tbl table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Client</th>
+            <th>Espèce</th>
+            <th>Qualité</th>
+            <th>Moule</th>
+            <th>Famille</th>
+            <th class="text-center">Palettes</th>
+            <th class="text-center">Cartons initiaux</th>
+            <th class="text-center">Cartons restants</th>
+            <th class="text-end">Poids restant (T)</th>
+            <th class="text-center">Statut</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          {# Grouper les palettes #}
+          {% set groups = {} %}
+          {% for p in palettes %}
+            {% set key = (p.operation.client.companyName ~ '||' ~ p.espece ~ '||' ~ (p.coldRoom ? p.coldRoom.name : '—') ~ '||' ~ (p.rayon ?? '—') ~ '||' ~ (p.qualite ?? '—') ~ '||' ~ (p.moule ?? '—') ~ '||' ~ (p.famille ?? '—')) %}
+            {% if groups[key] is not defined %}
+              {% set groups = groups|merge({(key): {
+                client: p.operation.client.companyName,
+                clientId: p.operation.client.id,
+                espece: p.espece,
+                coldRoom: (p.coldRoom ? p.coldRoom.name : '—'),
+                coldRoomId: (p.coldRoom ? p.coldRoom.id : null),
+                rayon: (p.rayon ?? '—'),
+                qualite: (p.qualite ?? '—'),
+                moule: (p.moule ?? '—'),
+                famille: (p.famille ?? '—'),
+                palettes: [p],
+                nbPalettes: 1,
+                cartonsInitiaux: p.nombreCartons,
+                cartonsSortis: (p.nombreCartons - p.cartonsRestants),
+                cartonsRestants: p.cartonsRestants,
+                poidsRestant: p.poidsRestant
+              }}) %}
+            {% else %}
+              {% set g = groups[key] %}
+              {% set groups = groups|merge({(key): {
+                client: g.client,
+                clientId: g.clientId,
+                espece: g.espece,
+                coldRoom: g.coldRoom,
+                coldRoomId: g.coldRoomId,
+                rayon: g.rayon,
+                qualite: g.qualite,
+                moule: g.moule,
+                famille: g.famille,
+                palettes: g.palettes|merge([p]),
+                nbPalettes: g.nbPalettes + 1,
+                cartonsInitiaux: g.cartonsInitiaux + p.nombreCartons,
+                cartonsSortis: g.cartonsSortis + (p.nombreCartons - p.cartonsRestants),
+                cartonsRestants: g.cartonsRestants + p.cartonsRestants,
+                poidsRestant: g.poidsRestant + p.poidsRestant
+              }}) %}
+            {% endif %}
+          {% endfor %}
+
+          {% set totPalettes = 0 %}
+          {% set totInitiaux = 0 %}
+          {% set totSortis   = 0 %}
+          {% set totRestants = 0 %}
+          {% set totPoids    = 0.0 %}
+
+          {% for key, g in groups %}
+            {% set totPalettes = totPalettes + g.nbPalettes %}
+            {% set totInitiaux = totInitiaux + g.cartonsInitiaux %}
+            {% set totSortis   = totSortis   + g.cartonsSortis %}
+            {% set totRestants = totRestants + g.cartonsRestants %}
+            {% set totPoids    = totPoids    + g.poidsRestant %}
+
+            {% if g.cartonsRestants <= 0 %}
+              {% set pill = {bg: 'rgba(239,68,68,.12)', color: '#991b1b', icon: 'bi-x-circle-fill', label: 'Épuisé'} %}
+            {% elseif g.cartonsRestants < (g.cartonsInitiaux * 0.2) %}
+              {% set pill = {bg: 'rgba(245,158,11,.12)', color: '#92400e', icon: 'bi-exclamation-triangle-fill', label: 'Faible'} %}
+            {% else %}
+              {% set pill = {bg: 'rgba(16,185,129,.12)', color: '#065f46', icon: 'bi-check-circle-fill', label: 'Disponible'} %}
+            {% endif %}
+
+            {% set detailUrl = path('app_stock_group_details', {
+                client:    g.clientId,
+                espece:    g.espece,
+                cold_room: g.coldRoomId ?? '',
+                rayon:     g.rayon != '—'   ? g.rayon   : '',
+                qualite:   g.qualite != '—' ? g.qualite : '',
+                moule:     g.moule != '—'   ? g.moule   : '',
+                famille:   g.famille != '—' ? g.famille : ''
+            }) %}
+            <tr style="cursor:pointer" onclick="window.location='{{ detailUrl }}'">
+              <td class="fw-semibold">{{ g.client }}</td>
+              <td>
+                <span style="background:#f1f5f9;color:#475569;padding:.15em .45em;border-radius:.3rem;font-size:.78rem;font-weight:600">
+                  {{ g.espece }}
+                </span>
+              </td>
+              <td>
+                {% if g.qualite != '—' %}
+                <span style="background:rgba(99,102,241,.08);color:#4338ca;padding:.15em .45em;border-radius:.3rem;font-size:.78rem;font-weight:600">{{ g.qualite }}</span>
+                {% else %}<span class="text-secondary">—</span>{% endif %}
+              </td>
+              <td>
+                {% if g.moule != '—' %}
+                <span style="background:rgba(139,92,246,.08);color:#6d28d9;padding:.15em .45em;border-radius:.3rem;font-size:.78rem;font-weight:600">{{ g.moule }}</span>
+                {% else %}<span class="text-secondary">—</span>{% endif %}
+              </td>
+              <td>
+                {% if g.famille != '—' %}
+                <span style="background:rgba(16,185,129,.08);color:#065f46;padding:.15em .45em;border-radius:.3rem;font-size:.78rem;font-weight:600">{{ g.famille }}</span>
+                {% else %}<span class="text-secondary">—</span>{% endif %}
+              </td>
+              <td class="text-center fw-semibold">{{ g.nbPalettes }}</td>
+              <td class="text-center text-secondary">{{ g.cartonsInitiaux }}</td>
+              <td class="text-center fw-bold">{{ g.cartonsRestants }}</td>
+              <td class="text-end fw-bold">{{ (g.poidsRestant / 1000)|number_format(2, '.', ' ') }} T</td>
+              <td class="text-center">
+                <span class="status-pill" style="background:{{ pill.bg }};color:{{ pill.color }}">
+                  <i class="bi {{ pill.icon }}"></i>{{ pill.label }}
+                </span>
+              </td>
+              <td class="text-center">
+                <a href="{{ detailUrl }}" class="btn btn-sm btn-outline-primary" style="font-size:.8rem;padding:.3rem .7rem;border-radius:.5rem"
+                   onclick="event.stopPropagation()">
+                  <i class="bi bi-eye me-1"></i>Voir Détails
+                </a>
+              </td>
+            </tr>
+
+          {% else %}
+          <tr>
+            <td colspan="11" class="text-center py-5 text-secondary">
+              <i class="bi bi-inbox display-4 d-block mb-2 opacity-25"></i>
+              <div>Aucune palette en stock</div>
+              {% if filters.client or filters.espece or filters.coldRoom or filters.rayon or filters.dateFrom or filters.dateTo %}
+                <a href="{{ path('app_stock_index') }}" class="btn btn-sm btn-outline-secondary mt-2">
+                  <i class="bi bi-x-lg me-1"></i>Réinitialiser les filtres
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+
+          {# ── Ligne TOTAL ── #}
+          {% if palettes|length > 0 %}
+          <tr style="background:#1e293b;color:#fff;font-weight:700">
+            <td colspan="5" class="text-end" style="font-size:.78rem;letter-spacing:.05em;text-transform:uppercase">TOTAL</td>
+            <td class="text-center">{{ totPalettes }}</td>
+            <td class="text-center">{{ totInitiaux }}</td>
+            <td class="text-center">{{ totRestants }}</td>
+            <td class="text-end">{{ (totPoids / 1000)|number_format(2, '.', ' ') }} T</td>
+            <td colspan="2"></td>
+          </tr>
+          {% endif %}
+
+        </tbody>
+      </table>
     </div>
+  </div>
 
-    {# ===== Tableau Stock Groupé ===== #}
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-table me-2"></i>Stock détaillé ({{ palettes|length }} palettes)</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Client</th>
-                            <th>Espèce</th>
-                            <th>Chambre</th>
-                            <th>Rayon</th>
-                            <th class="text-center">Nb Palettes</th>
-                            <th class="text-center">Cartons Initiaux</th>
-                            <th class="text-center">Cartons Restants</th>
-                            <th class="text-end">Poids Restant (kg)</th>
-                            <th class="text-center">Statut</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {# Group palettes by client+espece+coldRoom+rayon #}
-                        {% set groups = {} %}
-                        {% for p in palettes %}
-                            {% set key = (p.operation.client.companyName ~ '||' ~ p.espece ~ '||' ~ (p.coldRoom ? p.coldRoom.name : '—') ~ '||' ~ (p.rayon ?? '—')) %}
-                            {% if groups[key] is not defined %}
-                                {% set groups = groups|merge({(key): {client: p.operation.client.companyName, espece: p.espece, coldRoom: (p.coldRoom ? p.coldRoom.name : '—'), rayon: (p.rayon ?? '—'), palettes: [p], nbPalettes: 1, cartonsInitiaux: p.nombreCartons, cartonsRestants: p.cartonsRestants, poidsRestant: p.poidsRestant}}) %}
-                            {% else %}
-                                {% set g = groups[key] %}
-                                {% set groups = groups|merge({(key): {client: g.client, espece: g.espece, coldRoom: g.coldRoom, rayon: g.rayon, palettes: g.palettes|merge([p]), nbPalettes: g.nbPalettes + 1, cartonsInitiaux: g.cartonsInitiaux + p.nombreCartons, cartonsRestants: g.cartonsRestants + p.cartonsRestants, poidsRestant: g.poidsRestant + p.poidsRestant}}) %}
-                            {% endif %}
-                        {% endfor %}
-
-                        {% set totalPalettes = 0 %}
-                        {% set totalCartonsInitiaux = 0 %}
-                        {% set totalCartonsRestants = 0 %}
-                        {% set totalPoidsRestant = 0 %}
-
-                        {% for key, g in groups %}
-                            {% set totalPalettes = totalPalettes + g.nbPalettes %}
-                            {% set totalCartonsInitiaux = totalCartonsInitiaux + g.cartonsInitiaux %}
-                            {% set totalCartonsRestants = totalCartonsRestants + g.cartonsRestants %}
-                            {% set totalPoidsRestant = totalPoidsRestant + g.poidsRestant %}
-
-                            {# Color coding: green >50%, orange <20%, red = 0 #}
-                            {% if g.cartonsRestants <= 0 %}
-                                {% set statusClass = 'bg-danger' %}
-                                {% set statusLabel = '🔴 Épuisé' %}
-                                {% set rowClass = 'table-danger' %}
-                            {% elseif g.cartonsRestants < (g.cartonsInitiaux * 0.2) %}
-                                {% set statusClass = 'bg-warning text-dark' %}
-                                {% set statusLabel = '🟠 Faible' %}
-                                {% set rowClass = 'table-warning' %}
-                            {% else %}
-                                {% set statusClass = 'bg-success' %}
-                                {% set statusLabel = '🟢 Disponible' %}
-                                {% set rowClass = '' %}
-                            {% endif %}
-
-                            <tr class="{{ rowClass }}">
-                                <td>{{ g.client }}</td>
-                                <td>{{ g.espece }}</td>
-                                <td><span class="badge bg-info bg-opacity-25 text-info">{{ g.coldRoom }}</span></td>
-                                <td>{{ g.rayon }}</td>
-                                <td class="text-center">{{ g.nbPalettes }}</td>
-                                <td class="text-center">{{ g.cartonsInitiaux }}</td>
-                                <td class="text-center fw-bold">{{ g.cartonsRestants }}</td>
-                                <td class="text-end fw-bold">{{ (g.poidsRestant * 1000)|number_format(0, ',', ' ') }}</td>
-                                <td class="text-center"><span class="badge {{ statusClass }}">{{ statusLabel }}</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#group-{{ loop.index }}">
-                                        <i class="bi bi-eye"></i> Voir Détails
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr class="collapse" id="group-{{ loop.index }}">
-                                <td colspan="10" class="p-0">
-                                    <table class="table table-sm table-bordered mb-0 bg-light">
-                                        <thead>
-                                            <tr class="table-secondary">
-                                                <th>Palette</th>
-                                                <th>Qualité</th>
-                                                <th>Moule</th>
-                                                <th>Famille</th>
-                                                <th class="text-center">Cartons Init.</th>
-                                                <th class="text-center">Cartons Rest.</th>
-                                                <th class="text-end">Poids Rest. (kg)</th>
-                                                <th class="text-center">Détails</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for p in g.palettes %}
-                                            <tr>
-                                                <td>#{{ p.id }}</td>
-                                                <td>{{ p.qualite ?? '—' }}</td>
-                                                <td>{{ p.moule ?? '—' }}</td>
-                                                <td>{{ p.famille ?? '—' }}</td>
-                                                <td class="text-center">{{ p.nombreCartons }}</td>
-                                                <td class="text-center">{{ p.cartonsRestants }}</td>
-                                                <td class="text-end">{{ (p.poidsRestant * 1000)|number_format(0, ',', ' ') }}</td>
-                                                <td class="text-center">
-                                                    <a href="{{ path('app_stock_palette_details', {id: p.id}) }}" class="btn btn-xs btn-outline-secondary">
-                                                        <i class="bi bi-eye"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                        {% else %}
-                            <tr>
-                                <td colspan="10" class="text-center py-5 text-muted">
-                                    <i class="bi bi-inbox" style="font-size:3rem"></i>
-                                    <p class="mt-2">Aucune palette en stock</p>
-                                </td>
-                            </tr>
-                        {% endfor %}
-
-                        {% if palettes|length > 0 %}
-                        <tr style="background:#1e293b;color:#fff;font-weight:700">
-                            <td colspan="4">TOTAL</td>
-                            <td class="text-center">{{ totalPalettes }}</td>
-                            <td class="text-center">{{ totalCartonsInitiaux }}</td>
-                            <td class="text-center">{{ totalCartonsRestants }}</td>
-                            <td class="text-end">{{ (totalPoidsRestant * 1000)|number_format(0, ',', ' ') }}</td>
-                            <td colspan="2"></td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// Empêcher le collapse de se déclencher sur le bouton "Voir Détails"
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const tr = this.closest('tr');
+    const target = tr.getAttribute('data-bs-target');
+    const el = document.querySelector(target);
+    if (el) {
+      const bsCollapse = bootstrap.Collapse.getOrCreateInstance(el);
+      bsCollapse.toggle();
+    }
+  });
+});
+</script>
 {% endblock %}

@@ -41,6 +41,46 @@ class FicheController extends AbstractController
         return $this->render('fiche/show.html.twig', ['fiche' => $fiche]);
     }
 
+    #[Route('/{id}/chargement', name: 'app_fiche_save_chargement', methods: ['POST'])]
+    #[IsGranted('ROLE_CONTROLEUR')]
+    public function saveChargement(FicheDecharge $fiche, Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('chargement' . $fiche->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('app_fiche_show', ['id' => $fiche->getId()]);
+        }
+
+        $heureDebut      = $request->request->get('heure_debut') ?: null;
+        $heureFin        = $request->request->get('heure_fin') ?: null;
+        $temperature     = $request->request->get('temperature') ?: null;
+        $matricule       = $request->request->get('matricule') ?: null;
+        $numeroConteneur = $request->request->get('numero_conteneur') ?: null;
+        $numeroAgrement  = $request->request->get('numero_agrement') ?: null;
+        $carliste        = $request->request->get('carliste') ?: null;
+
+        $fiche->setHeureDebutChargement($heureDebut);
+        $fiche->setHeureFinChargement($heureFin);
+        $fiche->setTemperature($temperature);
+        $fiche->setMatricule($matricule);
+        $fiche->setNumeroConteneur($numeroConteneur);
+        $fiche->setNumeroAgrement($numeroAgrement);
+        $fiche->setCarliste($carliste);
+
+        // Sync vers l'opération
+        $operation = $fiche->getOperation();
+        $operation->setImmatriculation($matricule);
+        $operation->setNumeroConteneur($numeroConteneur);
+        $operation->setNumeroAgrement($numeroAgrement);
+        $operation->setTemperature($temperature);
+        $operation->setHeureDebutChargement($heureDebut);
+        $operation->setHeureFinChargement($heureFin);
+        $operation->setCarliste($carliste);
+
+        $this->em->flush();
+        $this->addFlash('success', 'Informations de chargement enregistrées.');
+        return $this->redirectToRoute('app_fiche_show', ['id' => $fiche->getId()]);
+    }
+
     #[Route('/{id}/envoyer-validation', name: 'app_fiche_submit', methods: ['POST'])]
     #[IsGranted('ROLE_CONTROLEUR')]
     public function submitForValidation(FicheDecharge $fiche, Request $request): Response
@@ -58,6 +98,12 @@ class FicheController extends AbstractController
             $commentaire = $request->request->get('observation');
         }
         $fiche->setObservation($commentaire);
+
+        // Passer l'opération en attente de validation par le chef de stock
+        $operation = $fiche->getOperation();
+        if ($operation) {
+            $operation->setStatus(StockStatus::EN_ATTENTE_VALIDATION);
+        }
 
         $this->em->flush();
         $this->auditService->log('fiche_submitted', $fiche, $this->getUser(), null, ['numero' => $fiche->getNumero()]);

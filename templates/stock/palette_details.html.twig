@@ -1,105 +1,248 @@
 {% extends 'base.html.twig' %}
+{% block title %}Palette {{ palette.codePalette }} — Détails{% endblock %}
 
-{% block title %}Détails Palette {{ palette.codePalette }}{% endblock %}
+{% block stylesheets %}
+<style>
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+.kpi-card { border-radius:.85rem; padding:1rem 1.25rem; }
+.kpi-val { font-size:2rem; font-weight:800; line-height:1; }
+.kpi-lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; margin-top:.2rem; opacity:.75; }
+.info-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:.75rem; }
+.info-item { background:#f8fafc; border:1px solid #e2e8f0; border-radius:.65rem; padding:.65rem .85rem; }
+.info-item-label { font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; font-weight:700; margin-bottom:.15rem; }
+.info-item-value { font-size:.9rem; font-weight:600; color:#1e293b; }
+.tbl thead th { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; padding:.6rem 1rem; white-space:nowrap; }
+.tbl tbody td { font-size:.85rem; padding:.7rem 1rem; vertical-align:middle; }
+.mv-pill { display:inline-flex; align-items:center; gap:.3rem; font-size:.73rem; font-weight:700; padding:.25em .7em; border-radius:50px; }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1"><i class="bi bi-box me-2"></i>Palette {{ palette.codePalette }}</h2>
-            <small class="text-muted">Détails et historique des mouvements</small>
-        </div>
-        <a href="{{ path('app_stock_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
-    </div>
+<div class="container-fluid py-4 px-4">
 
-    {# Informations générales #}
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-info-circle me-2"></i>Informations générales</div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3"><strong>Client :</strong> {{ palette.operation.client.companyName }}</div>
-                <div class="col-md-3"><strong>Espèce :</strong> {{ palette.espece }}</div>
-                <div class="col-md-3"><strong>Qualité :</strong> {{ palette.qualite ?? '—' }}</div>
-                <div class="col-md-3"><strong>Moule :</strong> {{ palette.moule ?? '—' }}</div>
-                <div class="col-md-3 mt-2"><strong>Famille :</strong> {{ palette.famille ?? '—' }}</div>
-                <div class="col-md-3 mt-2"><strong>Chambre :</strong> {{ palette.coldRoom ? palette.coldRoom.name : '—' }}</div>
-                <div class="col-md-3 mt-2"><strong>Rayon :</strong> {{ palette.rayon ?? '—' }}</div>
-                <div class="col-md-3 mt-2"><strong>Date entrée :</strong> {{ palette.createdAt|date('d/m/Y') }}</div>
-            </div>
-        </div>
+  {# ── Breadcrumb + Header ── #}
+  <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+      <nav aria-label="breadcrumb" class="mb-1">
+        <ol class="breadcrumb" style="font-size:.82rem">
+          <li class="breadcrumb-item">
+            <a href="{{ path('app_stock_index') }}" class="text-primary text-decoration-none">
+              <i class="bi bi-box-seam me-1"></i>État du Stock
+            </a>
+          </li>
+          <li class="breadcrumb-item">
+            <a href="{{ path('app_stock_group_details', {
+                client:    palette.operation.client.id,
+                espece:    palette.espece,
+                cold_room: palette.coldRoom ? palette.coldRoom.id : '',
+                rayon:     palette.rayon ?? ''
+            }) }}" class="text-primary text-decoration-none">
+              {{ palette.espece }} — {{ palette.operation.client.companyName }}
+            </a>
+          </li>
+          <li class="breadcrumb-item active text-secondary">{{ palette.codePalette }}</li>
+        </ol>
+      </nav>
+      <h2 class="mb-1 fw-bold">
+        <i class="bi bi-box me-2 text-primary"></i>Palette
+        <code style="background:rgba(99,102,241,.12);color:#4f46e5;padding:.15em .5em;border-radius:.4rem;font-size:1.1rem">
+          {{ palette.codePalette }}
+        </code>
+      </h2>
+      <p class="text-secondary mb-0 small">Détails et historique complet des mouvements</p>
     </div>
+    <div class="d-flex gap-2">
+      {# Statut badge #}
+      {% if palette.cartonsRestants <= 0 %}
+        <span class="badge fs-6" style="background:rgba(239,68,68,.12);color:#991b1b;border:1px solid rgba(239,68,68,.3)">
+          <i class="bi bi-x-circle-fill me-1"></i>Sortie complète
+        </span>
+      {% elseif palette.cartonsRestants < palette.nombreCartons %}
+        <span class="badge fs-6" style="background:rgba(245,158,11,.12);color:#92400e;border:1px solid rgba(245,158,11,.3)">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>Sortie partielle
+        </span>
+      {% else %}
+        <span class="badge fs-6" style="background:rgba(16,185,129,.12);color:#065f46;border:1px solid rgba(16,185,129,.3)">
+          <i class="bi bi-check-circle-fill me-1"></i>En stock
+        </span>
+      {% endif %}
+      <a href="{{ path('app_stock_group_details', {
+          client:    palette.operation.client.id,
+          espece:    palette.espece,
+          cold_room: palette.coldRoom ? palette.coldRoom.id : '',
+          rayon:     palette.rayon ?? ''
+      }) }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+      </a>
+    </div>
+  </div>
 
-    {# Résumé quantitatif #}
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center p-3">
-                <div class="fw-bold fs-4">{{ palette.nombreCartons }}</div>
-                <small class="text-muted">Cartons Entrés</small>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center p-3">
-                <div class="fw-bold fs-4 text-danger">{{ palette.nombreCartons - palette.cartonsRestants }}</div>
-                <small class="text-muted">Cartons Sortis</small>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center p-3">
-                <div class="fw-bold fs-4 text-success">{{ palette.cartonsRestants }}</div>
-                <small class="text-muted">Cartons Restants</small>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center p-3">
-                <div class="fw-bold fs-4">{{ (palette.poidsRestant * 1000)|number_format(0, ',', ' ') }} kg</div>
-                <small class="text-muted">Poids Restant</small>
-            </div>
-        </div>
+  {# ── Informations générales ── #}
+  <div class="glass p-3 mb-4">
+    <h6 class="fw-semibold mb-3 text-secondary">
+      <i class="bi bi-info-circle me-2"></i>Informations générales
+    </h6>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-item-label"><i class="bi bi-building me-1"></i>Client</div>
+        <div class="info-item-value">{{ palette.operation.client.companyName }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label"><i class="bi bi-fish me-1"></i>Espèce</div>
+        <div class="info-item-value">{{ palette.espece }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label"><i class="bi bi-award me-1"></i>Qualité</div>
+        <div class="info-item-value">{{ palette.qualite ?? '—' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label"><i class="bi bi-grid me-1"></i>Moule</div>
+        <div class="info-item-value">{{ palette.moule ?? '—' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label"><i class="bi bi-tag me-1"></i>Famille</div>
+        <div class="info-item-value">{{ palette.famille ?? '—' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label"><i class="bi bi-snow2 me-1"></i>Chambre</div>
+        <div class="info-item-value">{{ palette.coldRoom ? palette.coldRoom.name : '—' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label"><i class="bi bi-grid-3x3-gap me-1"></i>Rayon</div>
+        <div class="info-item-value">{{ palette.rayon ?? '—' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label"><i class="bi bi-calendar3 me-1"></i>Date entrée</div>
+        <div class="info-item-value">{{ palette.createdAt|date('d/m/Y') }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label"><i class="bi bi-weight me-1"></i>Poids / carton</div>
+        <div class="info-item-value">{{ (palette.poidsCarton * 1000)|number_format(2, ',', ' ') }} kg</div>
+      </div>
     </div>
+  </div>
 
-    {# Historique des transferts #}
-    {% if palette.transfers|length > 0 %}
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-arrow-left-right me-2"></i>Historique des transferts</div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Origine</th>
-                            <th>Destination</th>
-                            <th>Contrôleur</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t in palette.transfers %}
-                        <tr>
-                            <td>{{ t.transferredAt|date('d/m/Y H:i') }}</td>
-                            <td>{{ t.fromColdRoom.name }} / {{ t.fromRayon ?? '—' }}</td>
-                            <td>{{ t.toColdRoom.name }} / {{ t.toRayon ?? '—' }}</td>
-                            <td>{{ t.transferredBy.fullName }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  {# ── KPI cards ── #}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(16,185,129,.08);color:#065f46">
+        <div class="kpi-val">{{ palette.nombreCartons }}</div>
+        <div class="kpi-lbl"><i class="bi bi-box-arrow-in-down me-1"></i>Cartons entrés</div>
+      </div>
     </div>
-    {% endif %}
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(239,68,68,.08);color:#991b1b">
+        <div class="kpi-val">{{ palette.nombreCartons - palette.cartonsRestants }}</div>
+        <div class="kpi-lbl"><i class="bi bi-box-arrow-up me-1"></i>Cartons sortis</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(99,102,241,.08);color:#4f46e5">
+        <div class="kpi-val">{{ palette.cartonsRestants }}</div>
+        <div class="kpi-lbl"><i class="bi bi-boxes me-1"></i>Cartons restants</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card" style="background:rgba(245,158,11,.08);color:#b45309">
+        <div class="kpi-val">{{ (palette.poidsRestant * 1000)|number_format(0, ',', ' ') }}</div>
+        <div class="kpi-lbl"><i class="bi bi-weight me-1"></i>Poids restant (kg)</div>
+      </div>
+    </div>
+  </div>
 
-    {# Statut #}
-    <div class="card">
-        <div class="card-header"><i class="bi bi-flag me-2"></i>Statut</div>
-        <div class="card-body">
-            {% if palette.cartonsRestants <= 0 %}
-                <span class="badge bg-danger fs-6">🔴 Sortie complète</span>
-            {% elseif palette.cartonsRestants < palette.nombreCartons %}
-                <span class="badge bg-warning fs-6">🟠 Sortie partielle</span>
-            {% else %}
-                <span class="badge bg-success fs-6">🟢 En stock (complet)</span>
-            {% endif %}
-        </div>
+  {# ── Historique des mouvements ── #}
+  <div class="glass overflow-hidden">
+    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+      <h6 class="mb-0 fw-semibold">
+        <i class="bi bi-clock-history me-2 text-primary"></i>
+        Historique des mouvements
+        <span class="badge rounded-pill ms-1" style="background:rgba(99,102,241,.12);color:#4f46e5;font-size:.72rem">
+          {{ movements|length }}
+        </span>
+      </h6>
     </div>
+    <div class="table-responsive">
+      <table class="table tbl table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Heure</th>
+            <th>Type</th>
+            <th class="text-center">Quantité (cartons)</th>
+            <th class="text-center">Stock restant</th>
+            <th class="text-end">Poids restant (kg)</th>
+            <th>Contrôleur</th>
+            <th>Détail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in movements %}
+          <tr>
+            <td class="fw-semibold text-nowrap">{{ m.date|date('d/m/Y') }}</td>
+            <td>
+              <span style="background:#f1f5f9;color:#334155;padding:.2em .5em;border-radius:.35rem;font-size:.78rem;font-weight:600">
+                {{ m.date|date('H:i') }}
+              </span>
+            </td>
+            <td>
+              {% if m.type == 'entry' %}
+                <span class="mv-pill" style="background:rgba(16,185,129,.12);color:#065f46">
+                  <i class="bi bi-box-arrow-in-down"></i>Entrée
+                </span>
+              {% elseif m.type == 'exit' %}
+                <span class="mv-pill" style="background:rgba(239,68,68,.12);color:#991b1b">
+                  <i class="bi bi-box-arrow-up"></i>Sortie
+                </span>
+              {% else %}
+                <span class="mv-pill" style="background:rgba(245,158,11,.12);color:#92400e">
+                  <i class="bi bi-arrow-left-right"></i>Transfert
+                </span>
+              {% endif %}
+            </td>
+            <td class="text-center fw-semibold">
+              {% if m.type == 'entry' %}
+                <span style="color:#10b981">+{{ m.cartons }}</span>
+              {% elseif m.type == 'exit' %}
+                <span style="color:#ef4444">-{{ m.cartons }}</span>
+              {% else %}
+                <span class="text-secondary">—</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <span class="fw-bold" style="font-size:.9rem;color:{{ m.restant > 0 ? '#10b981' : '#ef4444' }}">
+                {{ m.restant }}
+              </span>
+            </td>
+            <td class="text-end fw-semibold">
+              {{ (m.poidsRestant * 1000)|number_format(0, ',', ' ') }}
+            </td>
+            <td>
+              {% if m.controleur %}
+                <span style="font-size:.85rem;font-weight:600">{{ m.controleur.fullName }}</span>
+              {% else %}
+                <span class="text-secondary">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if m.detail %}
+                <span style="font-size:.8rem;color:#475569">{{ m.detail }}</span>
+              {% else %}
+                <span class="text-secondary">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center py-5 text-secondary">
+              <i class="bi bi-inbox display-4 d-block mb-2 opacity-25"></i>
+              <div>Aucun mouvement enregistré</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

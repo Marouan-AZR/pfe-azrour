@@ -1,0 +1,704 @@
+{% extends 'base.html.twig' %}
+{% block title %}Contrôle terrain – {{ operation.code }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+.glass { background:#fff; border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+.info-label { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:#94a3b8; font-weight:600; margin-bottom:.15rem; }
+.info-value { font-size:.875rem; font-weight:600; color:#0f172a; }
+.section-title { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; font-weight:700; color:#64748b; }
+.tbl thead th { font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; padding:.55rem .75rem; background:#f8fafc; white-space:nowrap; }
+.tbl tbody td { font-size:.83rem; padding:.6rem .75rem; vertical-align:middle; }
+
+/* Status chips */
+.ctrl-chip { display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;padding:.25em .65em;border-radius:50px; }
+.ctrl-chip.pending   { background:rgba(203,213,225,.3);  color:#475569; }
+.ctrl-chip.done      { background:rgba(16,185,129,.12);  color:#065f46; }
+.ctrl-chip.rejected  { background:rgba(239,68,68,.12);   color:#991b1b; }
+.ctrl-chip.cancelled { background:rgba(30,41,59,.1);     color:#334155; }
+
+/* Input qty row */
+.qty-input { width:80px;text-align:center;font-size:.875rem;font-weight:600;border-radius:.45rem;border:1.5px solid #e2e8f0;padding:.25rem .4rem; }
+.qty-input:focus { outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+.qty-input.over-limit { border-color:#ef4444; background:#fff1f2; }
+
+/* QR scanner area */
+.scan-bar { background:linear-gradient(135deg,#1e3a8a,#3b82f6); border-radius:.75rem; padding:1rem 1.25rem; color:#fff; }
+.scan-bar input { background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:.5rem;font-size:.875rem;font-weight:600; }
+.scan-bar input::placeholder { color:rgba(255,255,255,.6); }
+.scan-bar input:focus { outline:none;border-color:#fff;background:rgba(255,255,255,.25);box-shadow:none; }
+
+/* Progress bar */
+.ctrl-progress { height:6px; border-radius:3px; background:#e2e8f0; overflow:hidden; margin-top:.5rem; }
+.ctrl-progress-fill { height:100%;border-radius:3px;transition:width .4s; }
+
+.sticky-footer { position:sticky; bottom:0; background:#fff; border-top:1px solid #e2e8f0; padding:.75rem 1rem; z-index:10; box-shadow:0 -4px 16px rgba(0,0,0,.06); }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 px-4">
+
+  {# ── Header ── #}
+  <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+      <nav aria-label="breadcrumb" class="mb-1">
+        <ol class="breadcrumb" style="font-size:.8rem">
+          <li class="breadcrumb-item">
+            <a href="{{ path('app_operation_exit_index') }}" class="text-primary text-decoration-none">
+              <i class="bi bi-box-arrow-up me-1"></i>Sorties
+            </a>
+          </li>
+          <li class="breadcrumb-item active">Contrôle terrain</li>
+        </ol>
+      </nav>
+      <h2 class="mb-1 fw-bold"><i class="bi bi-clipboard-check me-2 text-info"></i>Contrôle terrain</h2>
+      <p class="text-secondary mb-0 small">Saisie des quantités réellement sorties pour <strong>{{ operation.code }}</strong></p>
+    </div>
+    <a href="{{ path('app_operation_show', {id: operation.id}) }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-eye me-1"></i>Voir détail
+    </a>
+  </div>
+
+  {# ── Infos opération ── #}
+  <div class="glass p-3 mb-4">
+    <div class="row g-3">
+      <div class="col-6 col-md-2">
+        <div class="info-label">N° BL</div>
+        <div class="info-value"><code style="color:#4f46e5">{{ operation.code }}</code></div>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="info-label">Client</div>
+        <div class="info-value">{{ operation.client.companyName }}</div>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="info-label">Créé le</div>
+        <div class="info-value">{{ operation.createdAt|date('d/m/Y H:i') }}</div>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="info-label">Palettes</div>
+        <div class="info-value">{{ operation.palettes|length }}</div>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="info-label">Contrôleur</div>
+        <div class="info-value">
+          {% if operation.controleur %}
+            {{ operation.controleur.firstName }} {{ operation.controleur.lastName }}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="info-label">Avancement</div>
+        {% set total = operation.palettes|length %}
+        {% set treated = 0 %}
+        {% for p in operation.palettes %}
+          {% if p.cartonsReellementSortis is not null or p.status.value == 'rejetee' or p.status.value == 'annulee' %}
+            {% set treated = treated + 1 %}
+          {% endif %}
+        {% endfor %}
+        {% set pct = total > 0 ? (treated / total * 100)|round(0) : 0 %}
+        <div class="info-value">{{ treated }} / {{ total }} <span class="text-secondary" style="font-size:.78rem">({{ pct }}%)</span></div>
+        <div class="ctrl-progress">
+          <div class="ctrl-progress-fill" style="width:{{ pct }}%;background:{% if pct == 100 %}#10b981{% elseif pct > 50 %}#f59e0b{% else %}#3b82f6{% endif %}"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Informations logistiques (saisies par le contrôleur) ── #}
+  <div class="glass p-3 mb-4">
+    <div class="section-title mb-3">
+      <i class="bi bi-truck me-1"></i>Informations logistiques
+      <span class="ms-2 fw-normal text-secondary" style="font-size:.7rem;text-transform:none;letter-spacing:0">
+        — à compléter avant soumission
+      </span>
+    </div>
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <label class="form-label small fw-semibold mb-1">Matricule véhicule</label>
+        <input type="text" id="log_matricule" class="form-control form-control-sm"
+               placeholder="A-12345-B"
+               value="{{ operation.ficheDecharge ? operation.ficheDecharge.matricule : '' }}">
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small fw-semibold mb-1">N° Conteneur</label>
+        <input type="text" id="log_conteneur" class="form-control form-control-sm"
+               placeholder="CONT-XXXX"
+               value="{{ operation.ficheDecharge ? operation.ficheDecharge.numeroConteneur : '' }}">
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small fw-semibold mb-1">N° Agrément sanitaire</label>
+        <input type="text" id="log_agrement" class="form-control form-control-sm"
+               placeholder="AGR-XXXX"
+               value="{{ operation.ficheDecharge ? operation.ficheDecharge.numeroAgrement : '' }}">
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small fw-semibold mb-1">Température (&deg;C)</label>
+        <input type="number" id="log_temperature" class="form-control form-control-sm"
+               step="0.1" placeholder="-18"
+               value="{{ operation.ficheDecharge ? operation.ficheDecharge.temperature : '' }}">
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label small fw-semibold mb-1">Carliste</label>
+        <input type="text" id="log_carliste" class="form-control form-control-sm"
+               placeholder="Nom du carliste"
+               value="{{ operation.ficheDecharge ? operation.ficheDecharge.carliste : '' }}">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label small fw-semibold mb-1">Heure début chargement</label>
+        <input type="time" id="log_heure_debut" class="form-control form-control-sm"
+               value="{{ operation.ficheDecharge and operation.ficheDecharge.heureDebutChargement ? operation.ficheDecharge.heureDebutChargement : '' }}">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label small fw-semibold mb-1">Heure fin chargement</label>
+        <input type="time" id="log_heure_fin" class="form-control form-control-sm"
+               value="{{ operation.ficheDecharge and operation.ficheDecharge.heureFinChargement ? operation.ficheDecharge.heureFinChargement : '' }}">
+      </div>
+      <div class="col-12 col-md-2 d-flex align-items-end">
+        <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="saveLogistique()">
+          <i class="bi bi-floppy me-1"></i>Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {# ── Avertissement rejets ── #}
+  {% if palettesRejeteesCount >= 5 %}
+  <div class="alert d-flex gap-3 mb-4" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:.75rem;border-left:4px solid #ef4444">
+    <i class="bi bi-exclamation-triangle-fill text-danger mt-1"></i>
+    <div>
+      <strong class="text-danger">Attention :</strong>
+      {{ palettesRejeteesCount }} palettes ont été rejetées. Un motif global peut être requis avant soumission.
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Barre de scan QR ── #}
+  <div class="scan-bar mb-4">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <div>
+        <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem">
+          <i class="bi bi-qr-code-scan me-1"></i>Scan QR / Saisie code palette
+        </div>
+        <div style="font-size:.8rem;opacity:.7">Scannez le QR code ou entrez le code manuellement pour accéder rapidement à une palette</div>
+      </div>
+      <div class="d-flex gap-2 ms-auto" style="min-width:320px">
+        <input type="text" id="scanInput" class="form-control" placeholder="Ex: BS-202506-AB12-01"
+               autocomplete="off" spellcheck="false">
+        <button type="button" class="btn btn-light btn-sm fw-semibold px-3" onclick="lookupPalette()" title="Rechercher">
+          <i class="bi bi-search"></i>
+        </button>
+        <button type="button" class="btn btn-sm fw-semibold px-3" id="btnCameraOpen"
+                onclick="openCameraScanner()" title="Scanner par caméra (PC / téléphone / PDA)"
+                style="background:rgba(255,255,255,.25);border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:.5rem;white-space:nowrap">
+          <i class="bi bi-camera-fill me-1"></i>Caméra
+        </button>
+      </div>
+    </div>
+    <div id="scanResult" class="mt-2" style="display:none">
+      <span style="background:rgba(255,255,255,.2);border-radius:.35rem;padding:.2rem .6rem;font-size:.8rem" id="scanMsg"></span>
+    </div>
+  </div>
+
+  {# ── Tableau des palettes ── #}
+  <div class="glass overflow-hidden mb-20">
+    <div class="table-responsive">
+      <table class="table tbl table-hover mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Code palette</th>
+            <th>Espèce</th>
+            <th>Qualité / Moule</th>
+            <th>Chambre</th>
+            <th>Rayon</th>
+            <th class="text-center">Cartons prévus</th>
+            <th class="text-center">Cartons réels <span class="text-danger">*</span></th>
+            <th class="text-center">Statut contrôle</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for palette in operation.palettes %}
+          {% set pv = palette.status.value %}
+          <tr id="row-{{ palette.id }}" class="{{ pv == 'rejetee' ? 'table-danger' : (pv == 'annulee' ? 'table-secondary' : (palette.cartonsReellementSortis is not null ? 'table-success bg-opacity-10' : '')) }}">
+            <td class="text-secondary">{{ loop.index }}</td>
+            <td>
+              <code id="code-{{ palette.id }}" style="background:rgba(99,102,241,.1);color:#4f46e5;padding:.15em .45em;border-radius:.3rem;font-weight:700">
+                {{ palette.codePalette }}
+              </code>
+            </td>
+            <td class="fw-semibold">{{ palette.espece }}</td>
+            <td>
+              {{ palette.qualite ?? '—' }}
+              {% if palette.moule %}<span class="text-secondary"> / {{ palette.moule }}</span>{% endif %}
+            </td>
+            <td>
+              {% if palette.coldRoom %}
+              <span style="background:rgba(14,165,233,.1);color:#0369a1;padding:.15em .4em;border-radius:.3rem;font-size:.75rem;font-weight:600">
+                <i class="bi bi-snow2" style="font-size:.6rem"></i> {{ palette.coldRoom.name }}
+              </span>
+              {% else %}—{% endif %}
+            </td>
+            <td>{{ palette.rayon ?? '—' }}</td>
+            <td class="text-center">
+              <span style="background:#f1f5f9;color:#334155;padding:.2em .55em;border-radius:.35rem;font-weight:700">
+                {{ palette.nombreCartons }}
+              </span>
+            </td>
+            <td class="text-center">
+              {% if pv == 'rejetee' or pv == 'annulee' %}
+                <span class="text-secondary" style="font-size:.78rem">—</span>
+              {% else %}
+                <form action="{{ path('app_operation_exit_palette_controle', {id: operation.id, paletteId: palette.id}) }}"
+                      method="post" class="d-inline" id="qtyForm-{{ palette.id }}">
+                  <input type="hidden" name="action" value="saisir">
+                  <input type="number"
+                         name="cartons_reellement_sortis"
+                         class="qty-input"
+                         id="qtyInput-{{ palette.id }}"
+                         min="0"
+                         max="{{ palette.nombreCartons }}"
+                         value="{{ palette.cartonsReellementSortis ?? '' }}"
+                         placeholder="{{ palette.nombreCartons }}"
+                         onchange="validateQty(this, {{ palette.nombreCartons }})"
+                         onblur="autoSaveQty({{ palette.id }})">
+                </form>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if pv == 'rejetee' %}
+                <span class="ctrl-chip rejected"><i class="bi bi-x-circle-fill"></i>Rejetée</span>
+              {% elseif pv == 'annulee' %}
+                <span class="ctrl-chip cancelled"><i class="bi bi-arrow-return-left"></i>Retour stock</span>
+              {% elseif palette.cartonsReellementSortis is not null %}
+                <span class="ctrl-chip done"><i class="bi bi-check-circle-fill"></i>Contrôlé</span>
+              {% else %}
+                <span class="ctrl-chip pending"><i class="bi bi-clock"></i>En attente</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if pv == 'rejetee' %}
+              <span class="text-secondary small" title="{{ palette.motifRejet }}">
+                <i class="bi bi-chat-text me-1"></i>{{ palette.motifRejet|slice(0,20) }}{% if palette.motifRejet|length > 20 %}…{% endif %}
+              </span>
+              {% elseif pv == 'annulee' %}
+              <span class="text-muted small"><i class="bi bi-box-arrow-in-left me-1"></i>Non sorti</span>
+              {% else %}
+              <div class="d-flex gap-1 justify-content-center">
+                <button type="button" class="btn btn-sm btn-outline-success" style="border-radius:.45rem"
+                        onclick="document.getElementById('qtyForm-{{ palette.id }}').submit()"
+                        title="Enregistrer">
+                  <i class="bi bi-check2"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" style="border-radius:.45rem"
+                        data-bs-toggle="modal"
+                        data-bs-target="#rejectPaletteModal{{ palette.id }}"
+                        title="Rejeter cette palette">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+
+          {# Modal rejet palette #}
+          {% if pv != 'rejetee' and pv != 'annulee' %}
+          <div class="modal fade" id="rejectPaletteModal{{ palette.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+              <div class="modal-content" style="border-radius:1rem;overflow:hidden">
+                <form action="{{ path('app_operation_exit_palette_controle', {id: operation.id, paletteId: palette.id}) }}" method="post">
+                  <input type="hidden" name="action" value="rejeter">
+                  <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold text-danger" style="font-size:.9rem">
+                      <i class="bi bi-x-circle me-1"></i>Rejeter palette
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body pb-0">
+                    <p class="text-secondary small mb-2"><code style="color:#4f46e5">{{ palette.codePalette }}</code></p>
+                    <textarea name="motif_rejet" class="form-control form-control-sm" rows="3"
+                              required placeholder="Motif de rejet obligatoire…"></textarea>
+                  </div>
+                  <div class="modal-footer border-0 gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button class="btn btn-sm btn-danger"><i class="bi bi-x-circle me-1"></i>Rejeter</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          {% else %}
+          <tr>
+            <td colspan="10" class="text-center py-5 text-secondary">
+              <i class="bi bi-inbox display-4 d-block mb-2 opacity-25"></i>
+              Aucune palette dans cette opération.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# ── Observation globale ── #}
+  <div class="glass p-3 mb-4">
+    <div class="section-title mb-2"><i class="bi bi-chat-text me-1"></i>Observation générale <span class="fw-normal text-secondary" style="text-transform:none;letter-spacing:0">(optionnel)</span></div>
+    <textarea class="form-control" id="globalObs" rows="2"
+              placeholder="Remarques générales sur le contrôle…">{{ operation.ficheDecharge ? operation.ficheDecharge.observation : '' }}</textarea>
+  </div>
+
+</div>
+
+{# ── Modal scan caméra ── #}
+<div class="modal fade" id="cameraScanModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:480px">
+    <div class="modal-content" style="border-radius:1rem;overflow:hidden;border:0;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+
+      <div class="modal-header border-0 pb-2" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6)">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-camera-fill text-white fs-5"></i>
+          <h6 class="modal-title text-white fw-bold mb-0">Scanner QR Code — Caméra</h6>
+        </div>
+        <button type="button" class="btn-close btn-close-white" id="btnCameraClose"></button>
+      </div>
+
+      <div class="modal-body p-0" style="background:#0f172a;min-height:300px">
+        <div id="qr-video-container" style="width:100%"></div>
+        <div id="cam-selector-wrap" class="px-3 pb-2" style="display:none">
+          <label class="text-white-50 small mb-1 d-block"><i class="bi bi-arrow-repeat me-1"></i>Changer de caméra</label>
+          <select id="camSelect" class="form-select form-select-sm" style="background:#1e293b;color:#fff;border-color:#334155"></select>
+        </div>
+      </div>
+
+      <div id="qr-found-msg" class="px-4 py-2 d-flex align-items-center gap-2" style="display:none;background:#d1fae5">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <span class="fw-bold text-success" id="qr-found-code" style="font-family:monospace"></span>
+      </div>
+      <div id="qr-error-msg" class="px-4 py-2 d-flex align-items-center gap-2" style="display:none;background:#fef2f2">
+        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+        <span class="text-danger small" id="qr-error-text">Accès caméra refusé ou non disponible.</span>
+      </div>
+
+      <div class="modal-footer border-0 py-2" style="background:#f8fafc">
+        <small class="text-secondary me-auto">
+          <i class="bi bi-info-circle me-1"></i>Pointez vers le QR code de la palette
+        </small>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCameraClose2">
+          <i class="bi bi-x-lg me-1"></i>Fermer
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{# ── Sticky footer : bouton soumettre ── #}
+<div class="sticky-footer">
+  <div class="d-flex justify-content-between align-items-center px-3">
+    <div class="text-secondary small">
+      <i class="bi bi-info-circle me-1"></i>
+      Les palettes non scannées seront automatiquement retournées au stock.
+      <span id="footerProgress" class="fw-semibold text-dark"></span>
+    </div>
+    <form action="{{ path('app_operation_exit_soumettre', {id: operation.id}) }}" method="post" id="soumettreForm">
+      <input type="hidden" name="_token" value="{{ csrf_token('soumettre' ~ operation.id) }}">
+      <input type="hidden" name="matricule"        id="h_matricule">
+      <input type="hidden" name="numero_conteneur" id="h_conteneur">
+      <input type="hidden" name="numero_agrement"  id="h_agrement">
+      <input type="hidden" name="temperature"      id="h_temperature">
+      <input type="hidden" name="carliste"         id="h_carliste">
+      <input type="hidden" name="heure_debut"      id="h_heure_debut">
+      <input type="hidden" name="heure_fin"        id="h_heure_fin">
+      <input type="hidden" name="observation"      id="h_observation">
+      <button type="button" class="btn btn-warning fw-semibold d-flex align-items-center gap-2" id="soumettreBtn"
+              onclick="openSoumettreModal()">
+        <i class="bi bi-send-fill"></i> Soumettre au Chef de Stock
+      </button>
+    </form>
+  </div>
+</div>
+
+{# ── Modal confirmation soumission ── #}
+<div class="modal fade" id="confirmSoumettreModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:480px">
+    <div class="modal-content" style="border-radius:1.25rem;overflow:hidden;border:0;box-shadow:0 24px 64px rgba(0,0,0,.18)">
+
+      <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:1.4rem 1.5rem">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:52px;height:52px;border-radius:.9rem;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.15)">
+            <i class="bi bi-send-fill text-white" style="font-size:1.35rem"></i>
+          </div>
+          <div>
+            <h5 class="text-white fw-bold mb-0" style="font-size:1.05rem;line-height:1.2">Soumettre au Chef de Stock</h5>
+            <p class="mb-0" style="font-size:.78rem;color:rgba(255,255,255,.7)">Validation finale de l'opération</p>
+          </div>
+          <button type="button" class="btn-close btn-close-white ms-auto flex-shrink-0" data-bs-dismiss="modal"></button>
+        </div>
+      </div>
+
+      <div class="modal-body p-0">
+
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid #f1f5f9">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div style="width:32px;height:32px;border-radius:.55rem;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="bi bi-file-earmark-check" style="color:#2563eb;font-size:.9rem"></i>
+            </div>
+            <span class="fw-semibold" style="font-size:.88rem;color:#0f172a">Opération <code style="color:#2563eb;background:#eff6ff;padding:.1em .4em;border-radius:.3rem">{{ operation.code }}</code></span>
+          </div>
+          <p class="mb-0" style="font-size:.82rem;color:#64748b;line-height:1.5">
+            Une fois soumise, l'opération sera transmise au Chef de Stock pour validation finale.
+            <strong style="color:#334155">Cette action est irréversible.</strong>
+          </p>
+        </div>
+
+        <div id="modalPendingWarn" style="display:none;padding:1rem 1.5rem;background:#fffbeb;border-bottom:1px solid #fde68a">
+          <div class="d-flex gap-3">
+            <div style="width:34px;height:34px;border-radius:.55rem;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="bi bi-exclamation-triangle-fill" style="color:#d97706"></i>
+            </div>
+            <div>
+              <p class="fw-semibold mb-1" style="font-size:.84rem;color:#92400e">
+                <span id="modalPendingCount">0</span> palette(s) non scannée(s) détectée(s)
+              </p>
+              <p class="mb-0" style="font-size:.79rem;color:#78350f;line-height:1.4">
+                Ces palettes seront automatiquement <strong>annulées</strong> et retournées au stock.
+                Vérifiez que toutes les palettes prioritaires ont bien été traitées.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:1.2rem 1.5rem">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-question-circle-fill flex-shrink-0" style="color:#2563eb;margin-top:.1rem"></i>
+            <p class="mb-0" style="font-size:.87rem;color:#334155;line-height:1.5">
+              Confirmez-vous la soumission du contrôle terrain au <strong>Chef de Stock</strong> pour validation finale ?
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer border-0 justify-content-end" style="padding:.9rem 1.5rem;background:#f8fafc;gap:.6rem">
+        <button type="button" class="btn btn-outline-secondary btn-sm px-4" data-bs-dismiss="modal" style="border-radius:.6rem">
+          <i class="bi bi-x-lg me-1"></i>Annuler
+        </button>
+        <button type="button" class="btn btn-sm px-4 fw-semibold text-white" id="btnConfirmSoumettre"
+                style="background:linear-gradient(135deg,#1e40af,#2563eb);border:0;border-radius:.6rem;box-shadow:0 4px 14px rgba(30,64,175,.3);min-width:180px">
+          <span id="btnConfirmLabel"><i class="bi bi-send-fill me-2"></i>Confirmer la soumission</span>
+          <span id="btnConfirmSpinner" style="display:none">
+            <span class="spinner-border spinner-border-sm me-2"></span>Envoi en cours…
+          </span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+// ── Scan caméra ──────────────────────────────────────────────────────────────
+(function () {
+  let qrInstance = null;
+  const modalEl  = document.getElementById('cameraScanModal');
+  if (!modalEl) return;
+  const camModal = new bootstrap.Modal(modalEl);
+
+  function showFound(code) {
+    document.getElementById('qr-found-code').textContent = '✓ ' + code;
+    document.getElementById('qr-found-msg').style.display = 'flex';
+  }
+  function showError(msg) {
+    document.getElementById('qr-error-text').textContent = msg;
+    document.getElementById('qr-error-msg').style.display = 'flex';
+  }
+  function hideMessages() {
+    document.getElementById('qr-found-msg').style.display = 'none';
+    document.getElementById('qr-error-msg').style.display  = 'none';
+  }
+
+  async function stopCamera() {
+    if (qrInstance) {
+      try { if (qrInstance.isScanning) await qrInstance.stop(); } catch (_) {}
+      try { qrInstance.clear(); } catch (_) {}
+      qrInstance = null;
+    }
+  }
+
+  async function startCamera(cameraId) {
+    await stopCamera();
+    hideMessages();
+    document.getElementById('qr-video-container').innerHTML = '';
+    qrInstance = new Html5Qrcode('qr-video-container');
+    const config = { fps: 12, qrbox: { width: 260, height: 260 }, aspectRatio: 1.0 };
+    try {
+      const facingMode = cameraId ? cameraId : { facingMode: 'environment' };
+      await qrInstance.start(facingMode, config,
+        (decoded) => {
+          showFound(decoded);
+          document.getElementById('scanInput').value = decoded;
+          stopCamera();
+          setTimeout(() => { camModal.hide(); lookupPalette(); }, 700);
+        },
+        () => {}
+      );
+    } catch (err) {
+      showError(err.message || 'Accès caméra refusé ou non disponible. Vérifiez les autorisations.');
+    }
+  }
+
+  async function populateCameras() {
+    try {
+      const cameras = await Html5Qrcode.getCameras();
+      const wrap = document.getElementById('cam-selector-wrap');
+      const sel  = document.getElementById('camSelect');
+      if (cameras.length > 1) {
+        sel.innerHTML = '';
+        cameras.forEach((c, i) => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.label || ('Caméra ' + (i + 1));
+          sel.appendChild(opt);
+        });
+        // Prefer back/environment camera on mobile & PDA
+        const backCam = cameras.find(c => /back|rear|environment|arrière/i.test(c.label));
+        if (backCam) sel.value = backCam.id;
+        wrap.style.display = '';
+        sel.addEventListener('change', () => startCamera(sel.value));
+        return sel.value || cameras[0].id;
+      } else if (cameras.length === 1) {
+        return cameras[0].id;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  window.openCameraScanner = function () {
+    hideMessages();
+    camModal.show();
+  };
+
+  modalEl.addEventListener('shown.bs.modal', async () => {
+    const camId = await populateCameras();
+    await startCamera(camId);
+  });
+  modalEl.addEventListener('hide.bs.modal', () => stopCamera());
+
+  ['btnCameraClose', 'btnCameraClose2'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => { stopCamera(); camModal.hide(); });
+  });
+})();
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Input validation : alerte si saisi > max
+function validateQty(input, max) {
+  if (parseInt(input.value) > max) {
+    input.classList.add('over-limit');
+  } else {
+    input.classList.remove('over-limit');
+  }
+}
+
+// Auto-save via form submit on blur
+function autoSaveQty(paletteId) {
+  const form  = document.getElementById('qtyForm-' + paletteId);
+  const input = document.getElementById('qtyInput-' + paletteId);
+  if (!form || !input) return;
+  if (input.value === '' || input.classList.contains('over-limit')) return;
+  form.submit();
+}
+
+// QR scan lookup
+function lookupPalette() {
+  const raw    = (document.getElementById('scanInput').value || '').trim();
+  const val    = raw.split('|')[0].trim(); // QR contient CODE|OP:...|CLIENT:...
+  const result = document.getElementById('scanResult');
+  const msg    = document.getElementById('scanMsg');
+  if (!val) return;
+
+  const rows = document.querySelectorAll('tr[id^="row-"]');
+  let found = false;
+  rows.forEach(row => {
+    const codeEl = row.querySelector('code[id^="code-"]');
+    if (codeEl && codeEl.textContent.trim() === val) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.style.outline = '3px solid #6366f1';
+      row.style.outlineOffset = '-2px';
+      setTimeout(() => { row.style.outline = ''; row.style.outlineOffset = ''; }, 2500);
+      const qtyInput = row.querySelector('input[name="cartons_reellement_sortis"]');
+      if (qtyInput) { qtyInput.focus(); qtyInput.select(); }
+      msg.textContent = '✓ Palette trouvée : ' + val;
+      result.style.display = '';
+      found = true;
+    }
+  });
+  if (!found) {
+    msg.textContent = '✗ Palette "' + val + '" non trouvée dans cette opération.';
+    result.style.display = '';
+  }
+  document.getElementById('scanInput').value = '';
+}
+
+document.getElementById('scanInput')?.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); lookupPalette(); }
+});
+
+// Collecte des champs logistiques dans les inputs cachés avant soumission
+function collectLogistiqueIntoForm() {
+  document.getElementById('h_matricule').value    = document.getElementById('log_matricule')?.value    || '';
+  document.getElementById('h_conteneur').value    = document.getElementById('log_conteneur')?.value    || '';
+  document.getElementById('h_agrement').value     = document.getElementById('log_agrement')?.value     || '';
+  document.getElementById('h_temperature').value  = document.getElementById('log_temperature')?.value  || '';
+  document.getElementById('h_carliste').value     = document.getElementById('log_carliste')?.value     || '';
+  document.getElementById('h_heure_debut').value  = document.getElementById('log_heure_debut')?.value  || '';
+  document.getElementById('h_heure_fin').value    = document.getElementById('log_heure_fin')?.value    || '';
+  document.getElementById('h_observation').value  = document.getElementById('globalObs')?.value        || '';
+}
+
+// Sauvegarde rapide du bloc logistique via AJAX (optionnel — enregistre sans quitter la page)
+function saveLogistique() {
+  collectLogistiqueIntoForm();
+  const btn = document.querySelector('[onclick="saveLogistique()"]');
+  if (btn) { btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Enregistré'; setTimeout(() => { btn.innerHTML = '<i class="bi bi-floppy me-1"></i>Enregistrer'; }, 1800); }
+}
+
+// Ouvre le modal de confirmation de soumission
+function openSoumettreModal() {
+  collectLogistiqueIntoForm();
+  const pending  = document.querySelectorAll('.ctrl-chip.pending').length;
+  const warnEl   = document.getElementById('modalPendingWarn');
+  const countEl  = document.getElementById('modalPendingCount');
+  warnEl.style.display  = pending > 0 ? 'block' : 'none';
+  countEl.textContent   = pending;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmSoumettreModal')).show();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('btnConfirmSoumettre').addEventListener('click', function () {
+    document.getElementById('btnConfirmLabel').style.display   = 'none';
+    document.getElementById('btnConfirmSpinner').style.display = 'inline';
+    this.disabled = true;
+    document.getElementById('soumettreForm').submit();
+  });
+});
+
+// Footer progress display
+(function () {
+  const total   = document.querySelectorAll('tr[id^="row-"]').length;
+  const treated = document.querySelectorAll('.ctrl-chip.done, .ctrl-chip.rejected, .ctrl-chip.cancelled').length;
+  const pending = document.querySelectorAll('.ctrl-chip.pending').length;
+  const fp = document.getElementById('footerProgress');
+  if (fp && total > 0) {
+    fp.textContent = treated + '/' + total + ' traitées'
+      + (pending > 0 ? ' · ' + pending + ' en attente (→ stock)' : '');
+  }
+})();
+</script>
+{% endblock %}

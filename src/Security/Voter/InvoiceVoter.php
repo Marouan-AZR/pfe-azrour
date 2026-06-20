@@ -14,10 +14,12 @@ class InvoiceVoter extends Voter
     public const VIEW = 'INVOICE_VIEW';
     public const VALIDATE = 'INVOICE_VALIDATE';
     public const EXPORT = 'INVOICE_EXPORT';
+    public const DELETE = 'INVOICE_DELETE';
+    public const SEND = 'INVOICE_SEND';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, [self::CREATE, self::VIEW, self::VALIDATE, self::EXPORT])
+        return \in_array($attribute, [self::CREATE, self::VIEW, self::VALIDATE, self::EXPORT, self::DELETE, self::SEND])
             && ($subject instanceof Invoice || $subject === null);
     }
 
@@ -29,37 +31,31 @@ class InvoiceVoter extends Voter
         }
 
         return match ($attribute) {
-            self::CREATE => $this->canCreate($user),
-            self::VIEW => $this->canView($user, $subject),
+            self::CREATE   => $this->canCreate($user),
+            self::VIEW     => $this->canView($user),
             self::VALIDATE => $this->canValidate($user),
-            self::EXPORT => $this->canExport($user),
-            default => false,
+            self::EXPORT   => $this->canExport($user),
+            self::DELETE   => $this->canDelete($user),
+            self::SEND     => $this->canSend($user),
+            default        => false,
         };
     }
 
     private function canCreate(User $user): bool
     {
-        return $user->hasRole(UserRole::CHEF_STOCK->value)
-            || $user->hasRole(UserRole::DIRECTEUR->value);
+        return $user->hasRole(UserRole::CHEF_STOCK->value);
     }
 
-    private function canView(User $user, ?Invoice $invoice): bool
+    private function canView(User $user): bool
     {
-        if ($user->hasRole(UserRole::CHEF_STOCK->value) 
-            || $user->hasRole(UserRole::DIRECTEUR->value)
-            || $user->hasRole(UserRole::PATRON->value)) {
-            return true;
-        }
+        return ($user->hasRole(UserRole::CHEF_STOCK->value)
+            || $user->hasRole(UserRole::DIRECTEUR->value))
+            && !$user->hasRole(UserRole::PATRON->value);
+    }
 
-        // Client can view the list (null subject) and their own invoices
-        if ($user->hasRole(UserRole::CLIENT->value)) {
-            if ($invoice === null) {
-                return true;
-            }
-            return $user->getClient() === $invoice->getClient();
-        }
-
-        return false;
+    private function canSend(User $user): bool
+    {
+        return $user->hasRole(UserRole::CHEF_STOCK->value);
     }
 
     private function canValidate(User $user): bool
@@ -67,10 +63,16 @@ class InvoiceVoter extends Voter
         return $user->hasRole(UserRole::DIRECTEUR->value);
     }
 
+    private function canDelete(User $user): bool
+    {
+        return $user->hasRole(UserRole::CHEF_STOCK->value)
+            || $user->hasRole(UserRole::DIRECTEUR->value);
+    }
+
     private function canExport(User $user): bool
     {
-        return $user->hasRole(UserRole::CHEF_STOCK->value) 
-            || $user->hasRole(UserRole::DIRECTEUR->value)
-            || $user->hasRole(UserRole::PATRON->value);
+        return ($user->hasRole(UserRole::CHEF_STOCK->value)
+            || $user->hasRole(UserRole::DIRECTEUR->value))
+            && !$user->hasRole(UserRole::PATRON->value);
     }
 }

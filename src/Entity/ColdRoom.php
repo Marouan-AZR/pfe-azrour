@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use App\Enum\OperationType;
+use App\Enum\PaletteStatus;
+use App\Enum\StockStatus;
 use App\Repository\ColdRoomRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -116,10 +119,17 @@ class ColdRoom
      */
     public function getUsedCapacity(): float
     {
-        $totalKg = 0.0;
+        $excluded = [PaletteStatus::SORTIE_COMPLETE, PaletteStatus::REJETEE];
+        $totalKg  = 0.0;
         foreach ($this->palettes as $palette) {
-            if ($palette->getCartonsRestants() > 0) {
-                $totalKg += (float)$palette->getPoidsRestant();
+            $op = $palette->getOperation();
+            if (
+                $op->getType()   === OperationType::ENTRY   &&
+                $op->getStatus() === StockStatus::VALIDATED  &&
+                $palette->getCartonsRestants() > 0           &&
+                !in_array($palette->getStatus(), $excluded, true)
+            ) {
+                $totalKg += (float) $palette->getPoidsRestant();
             }
         }
         return $totalKg / 1000.0;

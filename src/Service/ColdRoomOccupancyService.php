@@ -27,15 +27,20 @@ class ColdRoomOccupancyService
         $qb = $this->paletteRepository
             ->createQueryBuilder('p')
             ->select('SUM(p.poidsRestant)')
+            ->join('p.operation', 'o')
             ->where('p.coldRoom = :coldRoom')
             ->setParameter('coldRoom', $coldRoom)
             ->andWhere('p.cartonsRestants > 0')
             ->andWhere('p.status NOT IN (:excludedStatuses)')
-            ->setParameter('excludedStatuses', $excluded);
+            ->setParameter('excludedStatuses', $excluded)
+            ->andWhere('o.type = :entryType')
+            ->setParameter('entryType', 'entry')
+            ->andWhere('o.status = :validated')
+            ->setParameter('validated', 'validated');
 
         $resultKg = (float) ($qb->getQuery()->getSingleScalarResult() ?? 0.0);
 
-        // Convert kg -> tonnes
+        // poidsRestant is stored in kg — convert to tonnes
         return $resultKg / 1000.0;
     }
 

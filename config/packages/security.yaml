@@ -26,15 +26,18 @@ security:
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/inscription, roles: PUBLIC_ACCESS }
+        - { path: ^/mot-de-passe-oublie, roles: PUBLIC_ACCESS }
+        - { path: ^/reinitialiser-mot-de-passe, roles: PUBLIC_ACCESS }
         - { path: ^/accueil, roles: PUBLIC_ACCESS }
         - { path: ^/a-propos, roles: PUBLIC_ACCESS }
         - { path: ^/, roles: ROLE_USER }
 
     role_hierarchy:
-        ROLE_CHEF_STOCK: [ROLE_CONTROLEUR]
-        ROLE_DIRECTEUR: [ROLE_USER]
-        ROLE_PATRON: [ROLE_DIRECTEUR]
-        ROLE_CLIENT: [ROLE_USER]
+        ROLE_CONTROLEUR:  [ROLE_USER]
+        ROLE_CHEF_STOCK:  [ROLE_CONTROLEUR]
+        ROLE_DIRECTEUR:   [ROLE_CHEF_STOCK]
+        ROLE_PATRON:      [ROLE_DIRECTEUR]
+        ROLE_CLIENT:      [ROLE_USER]
 
 when@test:
     security:

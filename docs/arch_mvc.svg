@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L10,3.5 L0,7 Z" fill="#475569"/>
+    </marker>
+    <marker id="ad" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L10,3.5 L0,7 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- Fond -->
+  <rect width="960" height="720" fill="#f8fafc"/>
+  <rect x="6" y="6" width="948" height="708" rx="10" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Titre -->
+  <text x="480" y="38" text-anchor="middle" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#0f172a">Architecture MVC</text>
+  <text x="480" y="57" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#64748b">Modèle – Vue – Contrôleur · Symfony 7 · PHP 8.2</text>
+  <line x1="22" y1="66" x2="938" y2="66" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- ══════════════════════════════
+       CONTRÔLEUR (centre-haut)
+  ══════════════════════════════ -->
+  <rect x="280" y="82" width="400" height="195" rx="12" fill="#1e40af" stroke="#1d4ed8" stroke-width="2"/>
+  <!-- en-tête -->
+  <rect x="280" y="82" width="400" height="38" rx="12" fill="#1d4ed8"/>
+  <rect x="280" y="108" width="400" height="12" fill="#1d4ed8"/>
+  <text x="480" y="106" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">CONTRÔLEUR</text>
+  <!-- contenu -->
+  <text x="298" y="138" font-family="Arial,sans-serif" font-size="9.5" fill="#bfdbfe">▸  Réception et routage des requêtes HTTP</text>
+  <text x="298" y="153" font-family="Arial,sans-serif" font-size="9.5" fill="#bfdbfe">▸  Vérification des autorisations (Voters / Security)</text>
+  <text x="298" y="168" font-family="Arial,sans-serif" font-size="9.5" fill="#bfdbfe">▸  Appel des services métier et repositories</text>
+  <text x="298" y="183" font-family="Arial,sans-serif" font-size="9.5" fill="#bfdbfe">▸  Préparation des données pour la vue</text>
+  <text x="298" y="198" font-family="Arial,sans-serif" font-size="9.5" fill="#bfdbfe">▸  Sélection et rendu du template Twig</text>
+  <text x="298" y="213" font-family="Arial,sans-serif" font-size="9.5" fill="#bfdbfe">▸  Gestion des redirections et messages Flash</text>
+  <text x="298" y="228" font-family="Arial,sans-serif" font-size="9.5" fill="#bfdbfe">▸  22 contrôleurs · Protection CSRF</text>
+  <text x="298" y="243" font-family="Arial,sans-serif" font-size="9.5" fill="#bfdbfe">▸  Gestion des exceptions (400/403/404/500)</text>
+
+  <!-- ══════════════════════════════
+       UTILISATEUR (gauche)
+  ══════════════════════════════ -->
+  <rect x="30" y="128" width="140" height="110" rx="12" fill="#fff" stroke="#cbd5e0" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <!-- cercle avatar -->
+  <circle cx="100" cy="162" r="22" fill="#e2e8f0"/>
+  <circle cx="100" cy="155" r="10" fill="#94a3b8"/>
+  <path d="M74,186 Q100,172 126,186" fill="#94a3b8"/>
+  <text x="100" y="200" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#334155">Utilisateur</text>
+  <text x="100" y="215" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#64748b">Navigateur Web</text>
+  <text x="100" y="228" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#94a3b8">Patron · Directeur · Client</text>
+
+  <!-- Flèche ① Utilisateur → Contrôleur -->
+  <line x1="170" y1="165" x2="278" y2="165" stroke="#475569" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="170" y="148" width="110" height="14" rx="3" fill="#f1f5f9"/>
+  <text x="225" y="158" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#1e40af">① Requête HTTP</text>
+
+  <!-- Flèche ⑥ Contrôleur → Utilisateur (réponse, retour) -->
+  <line x1="278" y1="185" x2="170" y2="185" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#a)"/>
+  <rect x="170" y="188" width="110" height="13" rx="3" fill="#f0f9ff"/>
+  <text x="225" y="198" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#0369a1">⑥ Réponse HTML</text>
+
+  <!-- ══════════════════════════════
+       MODÈLE (bas-gauche)
+  ══════════════════════════════ -->
+  <rect x="30" y="380" width="385" height="215" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <rect x="30" y="380" width="385" height="38" rx="12" fill="#15803d"/>
+  <rect x="30" y="406" width="385" height="12" fill="#15803d"/>
+  <text x="222" y="404" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">MODÈLE</text>
+
+  <!-- sous-blocs internes -->
+  <!-- Entités -->
+  <rect x="42" y="428" width="175" height="158" rx="8" fill="rgba(255,255,255,0.75)" stroke="#bbf7d0" stroke-width="1"/>
+  <rect x="42" y="428" width="175" height="19" rx="8" fill="#dcfce7"/>
+  <rect x="42" y="437" width="175" height="10" fill="#dcfce7"/>
+  <text x="129" y="442" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#166534">Entités (15) + Repositories (14)</text>
+  <text x="52" y="458" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  User · Client · ColdRoom</text>
+  <text x="52" y="470" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  StockEntry · StockExit · StockItem</text>
+  <text x="52" y="482" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Invoice · InvoiceLine · Palette</text>
+  <text x="52" y="494" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  FicheDecharge · AuditLog</text>
+  <text x="52" y="506" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Requêtes QueryBuilder</text>
+  <text x="52" y="518" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Filtres multicritères / Pagination</text>
+  <text x="52" y="530" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  14 Repositories Doctrine</text>
+  <text x="52" y="542" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  7 Énumérations (PHP Enums)</text>
+  <text x="52" y="558" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Relations 1:N · N:M · N:1</text>
+  <text x="52" y="570" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Mapping via attributs PHP 8.x</text>
+
+  <!-- Services -->
+  <rect x="228" y="428" width="178" height="158" rx="8" fill="rgba(255,255,255,0.75)" stroke="#bbf7d0" stroke-width="1"/>
+  <rect x="228" y="428" width="178" height="19" rx="8" fill="#dcfce7"/>
+  <rect x="228" y="437" width="178" height="10" fill="#dcfce7"/>
+  <text x="317" y="442" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#166534">Services Métier (5)</text>
+  <text x="238" y="458" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  StockService</text>
+  <text x="238" y="470" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  InvoiceService</text>
+  <text x="238" y="482" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  AuditService</text>
+  <text x="238" y="494" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  AlertService</text>
+  <text x="238" y="506" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  ColdRoomOccupancyService</text>
+  <text x="238" y="522" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Règles de gestion</text>
+  <text x="238" y="534" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Calculs métier</text>
+  <text x="238" y="546" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Orchestration</text>
+  <text x="238" y="558" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Transactions</text>
+  <text x="238" y="570" font-family="Arial,sans-serif" font-size="8.5" fill="#14532d">▸  Injection de dépendances</text>
+
+  <!-- ══════════════════════════════
+       VUE (bas-droit)
+  ══════════════════════════════ -->
+  <rect x="545" y="380" width="385" height="215" rx="12" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+  <rect x="545" y="380" width="385" height="38" rx="12" fill="#b45309"/>
+  <rect x="545" y="406" width="385" height="12" fill="#b45309"/>
+  <text x="737" y="404" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">VUE</text>
+
+  <!-- sous-blocs internes -->
+  <!-- Templates -->
+  <rect x="557" y="428" width="175" height="158" rx="8" fill="rgba(255,255,255,0.75)" stroke="#fde68a" stroke-width="1"/>
+  <rect x="557" y="428" width="175" height="19" rx="8" fill="#fef3c7"/>
+  <rect x="557" y="437" width="175" height="10" fill="#fef3c7"/>
+  <text x="644" y="442" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#92400e">Templates Twig (22)</text>
+  <text x="567" y="458" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  base.html.twig (layout)</text>
+  <text x="567" y="470" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  auth/ – login · inscription</text>
+  <text x="567" y="482" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  dashboard/ (6 rôles)</text>
+  <text x="567" y="494" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  stock/ · invoice/ · client/</text>
+  <text x="567" y="506" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  cold_room/ · fiche/ · alerts/</text>
+  <text x="567" y="518" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  chatbot/ · shelf_plan/</text>
+  <text x="567" y="530" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  history/ · profile/ · user/</text>
+  <text x="567" y="542" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Héritage de template</text>
+  <text x="567" y="554" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Blocs et macros Twig</text>
+  <text x="567" y="566" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Filtres personnalisés</text>
+
+  <!-- Assets -->
+  <rect x="743" y="428" width="178" height="158" rx="8" fill="rgba(255,255,255,0.75)" stroke="#fde68a" stroke-width="1"/>
+  <rect x="743" y="428" width="178" height="19" rx="8" fill="#fef3c7"/>
+  <rect x="743" y="437" width="178" height="10" fill="#fef3c7"/>
+  <text x="832" y="442" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#92400e">Assets &amp; UI</text>
+  <text x="753" y="458" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Bootstrap 5</text>
+  <text x="753" y="470" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  CSS / SCSS personnalisé</text>
+  <text x="753" y="482" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Stimulus JS</text>
+  <text x="753" y="494" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Turbo (Hotwire)</text>
+  <text x="753" y="506" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Chart.js (graphiques)</text>
+  <text x="753" y="518" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  AuditExtension</text>
+  <text x="753" y="530" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  NotificationsExtension</text>
+  <text x="753" y="542" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Asset Mapper Symfony</text>
+  <text x="753" y="554" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Notifications temps réel</text>
+  <text x="753" y="566" font-family="Arial,sans-serif" font-size="8.5" fill="#78350f">▸  Interface responsive</text>
+
+  <!-- ══════════════════════════════
+       BASE DE DONNÉES (bas-centre)
+  ══════════════════════════════ -->
+  <rect x="195" y="638" width="280" height="60" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="335" y="660" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#065f46">MariaDB 10.4.32</text>
+  <text x="335" y="676" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#047857">15 tables · Doctrine Migrations · UTC+1</text>
+  <text x="335" y="689" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#047857">Transactions ACID · Index optimisés</text>
+
+  <!-- ══════════════════════════════
+       FLÈCHES
+  ══════════════════════════════ -->
+
+  <!-- ② Contrôleur → Modèle -->
+  <line x1="370" y1="277" x2="280" y2="378" stroke="#475569" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="270" y="315" width="112" height="13" rx="3" fill="#f1f5f9"/>
+  <text x="326" y="325" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#1e40af">② Appelle services</text>
+
+  <!-- ③ Modèle → Contrôleur (retour données, offset) -->
+  <line x1="308" y1="378" x2="400" y2="277" stroke="#475569" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#a)"/>
+  <rect x="348" y="330" width="110" height="13" rx="3" fill="#f0fdf4"/>
+  <text x="403" y="340" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#166534">③ Retourne données</text>
+
+  <!-- ④ Contrôleur → Vue -->
+  <line x1="594" y1="277" x2="700" y2="378" stroke="#475569" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="586" y="315" width="126" height="13" rx="3" fill="#f1f5f9"/>
+  <text x="649" y="325" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#b45309">④ render(template, data)</text>
+
+  <!-- ⑤ Vue → Réponse (label en bas) -->
+  <line x1="737" y1="595" x2="737" y2="645" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ad)"/>
+  <rect x="656" y="614" width="162" height="13" rx="3" fill="#fffbeb"/>
+  <text x="737" y="624" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#92400e">⑤ HTML → Navigateur</text>
+
+  <!-- Modèle ↔ BDD -->
+  <line x1="280" y1="595" x2="280" y2="636" stroke="#059669" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="310" y1="636" x2="310" y2="595" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#a)"/>
+  <rect x="318" y="610" width="100" height="12" rx="3" fill="#ecfdf5"/>
+  <text x="368" y="620" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" fill="#065f46">SQL / ORM</text>
+
+  <!-- ══════════════════════════════
+       LÉGENDE du flux (bas de page)
+  ══════════════════════════════ -->
+  <rect x="22" y="618" width="160" height="90" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="102" y="635" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="#334155">Flux MVC Symfony</text>
+  <line x1="32" y1="640" x2="170" y2="640" stroke="#e2e8f0" stroke-width="0.5"/>
+  <text x="32" y="654" font-family="Arial,sans-serif" font-size="8.5" fill="#475569">① HTTP Request (utilisateur)</text>
+  <text x="32" y="666" font-family="Arial,sans-serif" font-size="8.5" fill="#475569">② Appelle services / repositories</text>
+  <text x="32" y="678" font-family="Arial,sans-serif" font-size="8.5" fill="#475569">③ Données retournées au contrôleur</text>
+  <text x="32" y="690" font-family="Arial,sans-serif" font-size="8.5" fill="#475569">④ Rendu du template Twig</text>
+  <text x="32" y="702" font-family="Arial,sans-serif" font-size="8.5" fill="#475569">⑤⑥ Réponse HTML → Navigateur</text>
+</svg>

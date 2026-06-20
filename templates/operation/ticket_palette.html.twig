@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ticket {{ palette.codePalette }}</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+body { background: #dbeafe; }
+
+/* ── Barre navigation écran ── */
+.nav-bar {
+    background: #fff; border-bottom: 1px solid #bfdbfe;
+    padding: .5rem 1.25rem; display: flex; justify-content: space-between;
+    align-items: center; position: sticky; top: 0; z-index: 99;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.nav-bar a, .nav-bar button {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .3rem .75rem; border-radius: .4rem; font-size: .82rem;
+    font-weight: 600; cursor: pointer; text-decoration: none; border: none;
+}
+.nav-bar a      { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.nav-bar button { background: #1e40af; color: #fff; }
+
+/* ══════════════════════════════════
+   TICKET  20 cm × 10 cm
+   ══════════════════════════════════ */
+.ticket-wrap {
+    width:  200mm;
+    height: 100mm;
+    background: #fff;
+    margin: 2rem auto;
+    box-shadow: 0 8px 40px rgba(30,64,175,.25);
+    border-radius: 2mm;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1.5px solid #bfdbfe;
+}
+
+/* ── En-tête pleine largeur ── */
+.tk-header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: #fff;
+    padding: 2mm 3mm;
+    display: flex;
+    align-items: center;
+    gap: 2.5mm;
+    flex-shrink: 0;
+}
+
+/* Logo image */
+.tk-logo-img {
+    height: 11mm;
+    width: auto;
+    max-width: 22mm;
+    object-fit: contain;
+    border-radius: 1.5mm;
+    background: #fff;
+    padding: .8mm 1.2mm;
+    flex-shrink: 0;
+}
+.tk-logo-fallback {
+    width: 11mm; height: 11mm;
+    background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35);
+    border-radius: 1.5mm;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 800; flex-shrink: 0;
+}
+
+/* Séparateur vertical blanc en-tête */
+.tk-header-sep {
+    width: 1px; height: 9mm;
+    background: rgba(255,255,255,.3);
+    flex-shrink: 0;
+}
+
+.tk-company { flex: 1; }
+.tk-company-name { font-size: .75rem; font-weight: 800; line-height: 1.15; letter-spacing: .2px; }
+.tk-company-sub  { font-size: .46rem; opacity: .75; margin-top: .5mm; }
+
+.tk-header-right { text-align: right; flex-shrink: 0; }
+.tk-type-label   { font-size: .42rem; opacity: .75; text-transform: uppercase; letter-spacing: .09em; }
+.tk-code-big     { font-size: .9rem; font-weight: 800; letter-spacing: .4px; line-height: 1.1; }
+
+/* ══════════════════════════════════
+   CORPS
+   ══════════════════════════════════ */
+.tk-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* ─── Côté GAUCHE : informations ─── */
+.tk-left {
+    flex: 1;
+    padding: 2.5mm 3mm;
+    display: flex;
+    flex-direction: column;
+    gap: 2mm;
+    overflow: hidden;
+}
+
+.tk-section-title {
+    font-size: .42rem; text-transform: uppercase; letter-spacing: .08em;
+    color: #93c5fd; font-weight: 700;
+    border-bottom: 1px solid #eff6ff;
+    padding-bottom: .6mm; margin-bottom: 1mm;
+}
+
+.tk-row { display: flex; gap: 2mm; }
+.tk-col { flex: 1; min-width: 0; }
+.tk-col.w2 { flex: 2; }
+.tk-col.w3 { flex: 3; }
+
+.lbl {
+    font-size: .42rem; text-transform: uppercase; letter-spacing: .06em;
+    color: #94a3b8; font-weight: 600; margin-bottom: .4mm;
+}
+.val {
+    font-size: .72rem; font-weight: 700; color: #0f172a;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.val.accent { font-size: .82rem; color: #1e40af; }
+.val.blue   { font-size: .85rem; font-weight: 800; color: #1e3a8a; }
+.val.teal   { font-size: .82rem; font-weight: 800; color: #0369a1; }
+
+/* Blocs quantités */
+.qty-pair { display: flex; gap: 1.5mm; }
+.qty-box  {
+    flex: 1; text-align: center; border-radius: 1.5mm; padding: 1mm 1.5mm;
+    background: #eff6ff; border: 1px solid #bfdbfe;
+}
+.qty-box.kg { background: #f0f9ff; border-color: #7dd3fc; }
+.qty-num    { font-size: .82rem; font-weight: 800; color: #1d4ed8; line-height: 1; }
+.qty-num.kg { color: #0369a1; }
+.qty-sub    { font-size: .4rem; color: #3b82f6; margin-top: .3mm; }
+
+/* Badge lot client */
+.lot-badge {
+    display: inline-block;
+    background: rgba(37,99,235,.1); color: #1d4ed8;
+    border: 1px solid rgba(37,99,235,.25);
+    border-radius: 50px; padding: .3mm 1.8mm;
+    font-size: .55rem; font-weight: 700;
+}
+
+/* ─── Séparateur vertical ─── */
+.tk-divider-v {
+    width: 2px;
+    background: linear-gradient(to bottom,
+        transparent 3%,
+        #bfdbfe 15%,
+        #93c5fd 50%,
+        #bfdbfe 85%,
+        transparent 97%
+    );
+    flex-shrink: 0;
+}
+
+/* ─── Côté DROIT : QR code ─── */
+.tk-right {
+    width: 68mm;
+    flex-shrink: 0;
+    background: linear-gradient(160deg, #eff6ff 0%, #dbeafe 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2mm 2.5mm;
+    gap: 1.5mm;
+}
+#qr-canvas {
+    display: block;
+    border-radius: 2mm;
+    box-shadow: 0 2px 8px rgba(30,64,175,.15);
+}
+.tk-qr-scan-label {
+    font-size: .4rem; text-transform: uppercase; letter-spacing: .08em;
+    color: #93c5fd; font-weight: 700;
+}
+.tk-qr-code {
+    font-size: .48rem; font-weight: 700; color: #1e40af;
+    text-align: center; word-break: break-all;
+    max-width: 62mm; line-height: 1.4;
+    font-family: 'Courier New', monospace;
+}
+
+/* ── Pied de ticket ── */
+.tk-footer {
+    border-top: 1px solid #dbeafe; background: #f8faff;
+    padding: .8mm 3mm;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+}
+.tk-footer span { font-size: .42rem; color: #94a3b8; }
+
+/* ══════════════════════════════════
+   IMPRESSION
+   ══════════════════════════════════ */
+@page { size: 200mm 100mm; margin: 0; }
+@media print {
+    body { background: #fff !important; }
+    .no-print { display: none !important; }
+    .ticket-wrap {
+        width: 200mm !important; height: 100mm !important;
+        margin: 0 !important; box-shadow: none !important; border-radius: 0 !important;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="nav-bar no-print">
+    <a href="{{ path('app_operation_show', {id: operation.id}) }}">&#8592; Retour</a>
+    <button onclick="window.print()">&#128424; Imprimer</button>
+</div>
+
+<div class="ticket-wrap">
+
+    {# ════════ EN-TÊTE ════════ #}
+    <div class="tk-header">
+        <img src="{{ asset('images/Logo essai.png') }}"
+             class="tk-logo-img"
+             alt="Logo"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="tk-logo-fallback" style="display:none">GL</div>
+
+        <div class="tk-header-sep"></div>
+
+        <div class="tk-company">
+            <div class="tk-company-name">Golden Logistics</div>
+            <div class="tk-company-sub">Entr&eacute;p&ocirc;t Frigorifique &mdash; Gestion de Stock</div>
+        </div>
+
+        <div class="tk-header-right">
+            <div class="tk-type-label">Ticket d&rsquo;Entr&eacute;e</div>
+            <div class="tk-code-big">{{ palette.codePalette }}</div>
+        </div>
+    </div>
+
+    {# ════════ CORPS ════════ #}
+    <div class="tk-body">
+
+        {# ─── CÔTÉ GAUCHE : informations ─── #}
+        <div class="tk-left">
+
+            {# Client #}
+            <div>
+                <div class="tk-section-title">Client</div>
+                {# Ligne 1 : Société + N° Agrément + Date réception #}
+                <div class="tk-row" style="margin-bottom:1.2mm">
+                    <div class="tk-col w3">
+                        <div class="lbl">Soci&eacute;t&eacute;</div>
+                        <div class="val accent">{{ operation.client.companyName }}</div>
+                    </div>
+                    <div class="tk-col w2">
+                        <div class="lbl">N&deg; Agr&eacute;ment</div>
+                        <div class="val">
+                            {% if operation.client.numeroAgrement %}
+                                <span class="lot-badge" style="background:rgba(2,132,199,.1);color:#0369a1;border-color:rgba(2,132,199,.25)">
+                                    {{ operation.client.numeroAgrement }}
+                                </span>
+                            {% else %}<span style="color:#94a3b8">&mdash;</span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="tk-col w2">
+                        <div class="lbl">Date r&eacute;ception</div>
+                        <div class="val">{{ operation.dateReception|date('d/m/Y') }}</div>
+                    </div>
+                </div>
+                {# Ligne 2 : Cd Lot Client #}
+                <div class="tk-row">
+                    <div class="tk-col">
+                        <div class="lbl">Cd lot client</div>
+                        <div class="val">
+                            {% if operation.cdLotClient %}
+                                <span class="lot-badge">{{ operation.cdLotClient }}</span>
+                            {% else %}<span style="color:#94a3b8">&mdash;</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Produit #}
+            <div>
+                <div class="tk-section-title">Produit</div>
+                <div class="tk-row">
+                    <div class="tk-col w2">
+                        <div class="lbl">Esp&egrave;ce</div>
+                        <div class="val blue">{{ palette.espece ?? '&mdash;' }}</div>
+                    </div>
+                    <div class="tk-col">
+                        <div class="lbl">Famille</div>
+                        <div class="val">{{ palette.famille ?? '&mdash;' }}</div>
+                    </div>
+                    <div class="tk-col">
+                        <div class="lbl">Qualit&eacute;</div>
+                        <div class="val">{{ palette.qualite ?? '&mdash;' }}</div>
+                    </div>
+                    <div class="tk-col">
+                        <div class="lbl">Moule</div>
+                        <div class="val">{{ palette.moule ?? '&mdash;' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {# Quantités #}
+            <div>
+                <div class="tk-section-title">Quantit&eacute;s</div>
+                <div class="qty-pair">
+                    <div class="qty-box">
+                        <div class="qty-num">{{ palette.nombreCartons }}</div>
+                        <div class="qty-sub">cartons</div>
+                    </div>
+                    <div class="qty-box kg">
+                        <div class="qty-num kg">{{ palette.poidsTotal|number_format(0, ',', ' ') }}</div>
+                        <div class="qty-sub kg">kg</div>
+                    </div>
+                    <div class="qty-box" style="background:#f0f9ff;border-color:#7dd3fc">
+                        <div class="qty-num" style="color:#0369a1">{{ palette.poidsCarton }}</div>
+                        <div class="qty-sub" style="color:#0369a1">kg / carton</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {# ─── Séparateur ─── #}
+        <div class="tk-divider-v"></div>
+
+        {# ─── CÔTÉ DROIT : QR code ─── #}
+        <div class="tk-right">
+            <div class="tk-qr-scan-label">Scanner pour identifier</div>
+            <canvas id="qr-canvas"></canvas>
+            <div class="tk-qr-code">{{ palette.codePalette }}</div>
+        </div>
+
+    </div>
+
+    {# ════════ PIED ════════ #}
+    <div class="tk-footer">
+        <span>Bon&nbsp;: <strong>{{ operation.code }}</strong></span>
+        <span>Client&nbsp;: <strong>{{ operation.client.companyName }}</strong></span>
+        <span style="font-style:italic">G&eacute;n&eacute;r&eacute; le {{ 'now'|date('d/m/Y H:i') }}</span>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+(function () {
+    var text   = '{{ palette.codePalette|e('js') }}|OP:{{ operation.code|e('js') }}|CLIENT:{{ operation.client.companyName|e('js') }}';
+    var canvas = document.getElementById('qr-canvas');
+    if (!canvas || typeof QRCode === 'undefined') return;
+
+    /*
+     * Colonne droite = 68mm, padding 2.5mm chaque côté → utile ≈ 63mm
+     * On réserve ~10mm pour les textes → QR ≈ 53mm
+     * 53mm × 3.7795 px/mm ≈ 200px
+     */
+    var px = Math.round(53 * 3.7795);
+    canvas.width  = px;
+    canvas.height = px;
+
+    QRCode.toCanvas(canvas, text, {
+        width : px,
+        margin: 1,
+        color : { dark: '#1e3a8a', light: '#eff6ff' }
+    });
+})();
+</script>
+</body>
+</html>

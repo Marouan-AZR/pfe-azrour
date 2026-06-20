@@ -1,15 +1,150 @@
-<!DOCTYPE html>
+﻿?<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gestion Stock Frigorifique{% endblock %}</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>❄️</text></svg>">
+    <link rel="icon" href="{{ asset('images/Logo essai.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+    <style>
+    /* ── Sidebar brand header ── */
+    .sb-header-new {
+        padding: 0 !important;
+        margin: 0 !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0 !important;
+    }
+
+    .sb-toggle-new {
+        position: absolute; top: .6rem; right: .6rem; z-index: 3;
+        background: none; border: none;
+        color: rgba(255,255,255,.5); font-size: 1.1rem;
+        cursor: pointer; padding: .2rem .3rem; border-radius: 6px;
+        transition: color .2s;
+    }
+    .sb-toggle-new:hover { color: #fff; }
+
+    /* ── Brand block : juste l'image ── */
+    .sb-brand-new {
+        display: block;
+        text-decoration: none;
+        width: 100%;
+        padding: 0.4rem 3.2rem 0.4rem 0.5rem;
+        margin: 0;
+        box-sizing: border-box;
+    }
+    .sb-logo-box {
+        width: 100%;
+        display: block;
+    }
+    .sb-logo-box img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    .sb-text-block { display: none; }
+    .sb-name { display: none; }
+    .sb-name-sub { display: none; }
+    .sb-sub { display: none; }
+
+    /* ── Collapsed ── */
+    .sidebar.collapsed .sb-header-new {
+        padding: .75rem .25rem !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+    }
+    .sidebar.collapsed .sb-brand-new { display: none; }
+    .sidebar.collapsed .sb-toggle-new { position: static; }
+    .sb-mini { display: none; }
+    .sidebar.collapsed .sb-mini {
+        display: flex; align-items: center; justify-content: center;
+        width: 42px; height: 42px;
+        background: #fff; border-radius: 10px; padding: 5px;
+        text-decoration: none;
+    }
+    .sb-mini img { width: 100%; height: 100%; object-fit: contain; }
+    </style>
     {% block stylesheets %}{% endblock %}
+    <style>
+    /* ══ Notification Bell ══ */
+    .notif-bell {
+        position:relative; background:none; border:none; cursor:pointer;
+        width:40px; height:40px; border-radius:50%;
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.2rem; color:#64748b;
+        transition:background .15s, color .15s;
+    }
+    .notif-bell:hover { background:#f1f5f9; color:#0f172a; }
+    .notif-bell.has-notif { color:#6366f1; }
+    .notif-bell.has-notif:hover { background:rgba(99,102,241,.1); }
+    .notif-badge {
+        position:absolute; top:4px; right:4px;
+        background:#ef4444; color:#fff;
+        font-size:.58rem; font-weight:800; line-height:1;
+        min-width:16px; height:16px; border-radius:50px;
+        display:flex; align-items:center; justify-content:center;
+        padding:0 3px; border:2px solid #fff;
+    }
+
+    /* ══ Dropdown panel ══ */
+    .notif-panel {
+        width: min(360px, calc(100vw - 1rem)); border-radius:1rem !important; overflow:hidden;
+        border:1px solid #e2e8f0 !important;
+        box-shadow:0 16px 48px rgba(0,0,0,.12) !important;
+    }
+    .notif-header {
+        display:flex; align-items:center; justify-content:space-between;
+        padding:.85rem 1.1rem; border-bottom:1px solid #f1f5f9;
+        background:#fff;
+    }
+    .notif-body { max-height:520px; overflow-y:auto; background:#fff; }
+    .notif-body::-webkit-scrollbar { width:4px; }
+    .notif-body::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:2px; }
+
+    .notif-empty {
+        display:flex; flex-direction:column; align-items:center;
+        justify-content:center; padding:2rem 1rem; text-align:center;
+    }
+
+    .notif-group-label {
+        display:flex; align-items:center; justify-content:space-between;
+        padding:.6rem 1.1rem .3rem; background:#fafbfc;
+        border-bottom:1px solid #f1f5f9;
+    }
+    .notif-item {
+        display:flex; align-items:center; gap:.75rem;
+        padding:.7rem 1.1rem; text-decoration:none;
+        transition:background .12s; border-bottom:1px solid #f8fafc;
+    }
+    .notif-item:hover { background:#f8fafc; }
+    .notif-item:last-child { border-bottom:none; }
+    .notif-item-icon {
+        width:36px; height:36px; border-radius:.6rem;
+        display:flex; align-items:center; justify-content:center;
+        font-size:.95rem; flex-shrink:0;
+    }
+    .notif-item-body { flex:1; min-width:0; }
+    .notif-item-code { font-size:.85rem; font-weight:700; color:#0f172a; }
+    .notif-item-meta { font-size:.72rem; color:#94a3b8; margin-top:.1rem; }
+
+    .notif-sep { height:1px; background:#f1f5f9; margin:.25rem 0; }
+
+    .notif-footer {
+        padding:.7rem 1.1rem; border-top:1px solid #f1f5f9;
+        background:#fafbfc; display:flex; flex-direction:column; gap:.3rem;
+    }
+    .notif-footer-link {
+        font-size:.78rem; font-weight:600; text-decoration:none;
+        display:flex; align-items:center;
+        transition:opacity .15s;
+    }
+    .notif-footer-link:hover { opacity:.75; }
+    </style>
 </head>
 <body>
     {% set show_sidebar = app.user and app.request.attributes.get('_route') not in ['app_login', 'app_register', 'app_public_home', 'app_public_about'] %}
@@ -17,15 +152,18 @@
     {% if show_sidebar %}
     <div class="app-wrapper">
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <a href="{{ path('app_dashboard') }}" class="sidebar-brand">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="sidebar-logo" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#fff;padding:2px;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
-                    <i class="bi bi-snow" style="display:none"></i>
-                    <span class="sidebar-brand-text">Golden Logistics</span>
-                </a>
-                <button class="sidebar-toggle" id="sidebarToggle">
+            <div class="sidebar-header sb-header-new">
+                <button class="sidebar-toggle sb-toggle-new" id="sidebarToggle" title="Réduire">
                     <i class="bi bi-list"></i>
                 </button>
+                <a href="{{ path('app_dashboard') }}" class="sb-brand-new">
+                    <div class="sb-logo-box">
+                        <img src="{{ asset('images/logo de l\'application.png') }}" alt="GL Warehouse Suite">
+                    </div>
+                </a>
+                <a href="{{ path('app_dashboard') }}" class="sb-mini">
+                    <img src="{{ asset('images/logo de l\'application.png') }}" alt="GL">
+                </a>
             </div>
 
             <nav class="sidebar-nav">
@@ -45,6 +183,7 @@
                             <span>État du stock</span>
                         </a>
                     </li>
+                    {% if is_granted('ROLE_CONTROLEUR') and not is_granted('ROLE_DIRECTEUR') %}
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ 'operation_entry' in app.request.attributes.get('_route') or 'stock_entry' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_operation_entry_index') }}">
                             <i class="bi bi-box-arrow-in-down"></i>
@@ -57,6 +196,7 @@
                             <span>Sorties</span>
                         </a>
                     </li>
+                    {% endif %}
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ 'cold_room' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_cold_room_index') }}">
                             <i class="bi bi-thermometer-snow"></i>
@@ -89,12 +229,6 @@
                             <span>Mon stock</span>
                         </a>
                     </li>
-                    <li class="sidebar-item">
-                        <a class="sidebar-link {{ 'invoice' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_invoice_index') }}">
-                            <i class="bi bi-receipt"></i>
-                            <span>Mes factures</span>
-                        </a>
-                    </li>
                     {% endif %}
 
 {% if is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_PATRON') %}
@@ -107,16 +241,22 @@
                     </li>
                     {% endif %}
 
-                    {% if is_granted('ROLE_CHEF_STOCK') %}
+                    {% if is_granted('ROLE_CHEF_STOCK') and not is_granted('ROLE_DIRECTEUR') %}
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ 'user' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_user_index') }}">
                             <i class="bi bi-person-gear"></i>
                             <span>Utilisateurs</span>
                         </a>
                     </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ 'chef_stock_transfers' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_chef_stock_transfers') }}">
+                            <i class="bi bi-arrow-left-right"></i>
+                            <span>Suivi Transferts</span>
+                        </a>
+                    </li>
                     {% endif %}
 
-                    {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
+                    {% if is_granted('ROLE_CHEF_STOCK') and not is_granted('ROLE_PATRON') %}
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ 'invoice' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_invoice_index') }}">
                             <i class="bi bi-receipt"></i>
@@ -134,7 +274,16 @@
                     </li>
                     {% endif %}
 
-                    {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') %}
+                    {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ app.request.attributes.get('_route') == 'app_recap' ? 'active' : '' }}" href="{{ path('app_recap') }}">
+                            <i class="bi bi-table"></i>
+                            <span>Récapitulatif</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_CHEF_STOCK') and not is_granted('ROLE_PATRON') %}
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ 'controleur_dashboard' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_controleur_dashboard') }}">
                             <i class="bi bi-bar-chart-line"></i>
@@ -143,7 +292,7 @@
                     </li>
                     {% endif %}
 
-                    {% if is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR') or is_granted('ROLE_PATRON') %}
+                    {% if is_granted('ROLE_CHEF_STOCK') and not is_granted('ROLE_PATRON') %}
                     <li class="sidebar-heading">Système</li>
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ 'alerts' in app.request.attributes.get('_route') ? 'active' : '' }}" href="{{ path('app_alerts') }}">
@@ -158,17 +307,27 @@
                         </a>
                     </li>
                     {% endif %}
+
+                    <li class="sidebar-heading">Aide</li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ app.request.attributes.get('_route') == 'app_help' ? 'active' : '' }}" href="{{ path('app_help') }}">
+                            <i class="bi bi-book"></i>
+                            <span>Documentation</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
             <div class="sidebar-footer">
-                <div class="sidebar-user">
-                    <i class="bi bi-person-circle"></i>
+                <a href="{{ path('app_profile') }}" class="sidebar-user text-decoration-none" style="cursor:pointer;transition:background .18s;border-radius:.5rem;padding:.4rem .5rem" title="Mon profil">
+                    <i class="bi bi-person-circle" style="color:{% if app.request.attributes.get('_route') == 'app_profile' %}#6366f1{% endif %}"></i>
                     <div class="sidebar-user-info">
                         <span class="sidebar-user-name">{{ app.user.fullName }}</span>
-                        <span class="sidebar-user-role">{{ app.user.roles[0]|replace({'ROLE_': ''})|replace({'_': ' '})|capitalize }}</span>
+                        <span class="sidebar-user-role" style="color:{% if app.request.attributes.get('_route') == 'app_profile' %}#6366f1{% else %}rgba(255,255,255,.45){% endif %}">
+                            <i class="bi bi-pencil-fill" style="font-size:.6rem;margin-right:.2rem"></i>Mon profil
+                        </span>
                     </div>
-                </div>
+                </a>
                 <a href="{{ path('app_logout') }}" class="sidebar-link text-danger" title="Déconnexion">
                     <i class="bi bi-box-arrow-right"></i>
                     <span>Déconnexion</span>
@@ -186,6 +345,149 @@
                 </div>
                 <div class="header-actions">
                     {% block header_actions %}{% endblock %}
+
+                    {# ── Icône profil ── #}
+                    {% if app.user %}
+                    <a href="{{ path('app_profile') }}" class="notif-bell" title="Mon profil" style="text-decoration:none">
+                        <i class="bi bi-person-circle"></i>
+                    </a>
+                    {% endif %}
+
+                    {# ── Cloche de notifications ── #}
+                    {% if app.user and (is_granted('ROLE_CONTROLEUR') or is_granted('ROLE_CHEF_STOCK') or is_granted('ROLE_DIRECTEUR')) %}
+                    {% set notif = get_notifications() %}
+                    <div class="dropdown notif-dropdown" id="notifDropdown">
+                        <button class="notif-bell {{ notif.total > 0 ? 'has-notif' : '' }}"
+                                data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                aria-expanded="false" title="Notifications">
+                            <i class="bi bi-bell{{ notif.total > 0 ? '-fill' : '' }}"></i>
+                            {% if notif.total > 0 %}
+                            <span class="notif-badge">{{ notif.total > 9 ? '9+' : notif.total }}</span>
+                            {% endif %}
+                        </button>
+
+                        <div class="dropdown-menu notif-panel shadow-lg p-0">
+                            {# En-tête #}
+                            <div class="notif-header">
+                                <div class="fw-bold" style="font-size:.9rem;color:#0f172a">
+                                    <i class="bi bi-bell-fill me-2" style="color:#6366f1"></i>Notifications
+                                </div>
+                                {% if notif.total > 0 %}
+                                <span class="badge rounded-pill" style="background:#6366f1;color:#fff;font-size:.72rem">
+                                    {{ notif.total }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            {# Corps #}
+                            <div class="notif-body">
+                                {% if notif.total == 0 %}
+                                <div class="notif-empty">
+                                    <i class="bi bi-check-circle-fill" style="font-size:2rem;color:#10b981;margin-bottom:.5rem"></i>
+                                    <div class="fw-semibold" style="color:#0f172a;font-size:.85rem">Tout est à jour</div>
+                                    <div class="text-secondary" style="font-size:.75rem">Aucune action en attente</div>
+                                </div>
+                                {% else %}
+                                    {% for group in notif.groups %}
+                                    {# Label du groupe #}
+                                    <div class="notif-group-label">
+                                        <span style="background:{{ group.bg }};color:{{ group.color }};display:inline-flex;align-items:center;gap:.4rem;padding:.25em .7em;border-radius:50px;font-size:.72rem;font-weight:700">
+                                            <i class="bi {{ group.icon }}"></i>{{ group.label }}
+                                        </span>
+                                        <span class="text-secondary" style="font-size:.72rem">{{ group.items|length }}</span>
+                                    </div>
+
+                                    {# Items du groupe #}
+                                    {% for item in group.items %}
+
+                                    {% if group.subtype is defined and group.subtype == 'stock' %}
+                                    {# ── Stock critique – Directeur ── #}
+                                    <a href="{{ path('app_stock_index') }}" class="notif-item">
+                                        <div class="notif-item-icon" style="background:{{ group.bg }};color:{{ group.color }}">
+                                            <i class="bi {{ group.icon }}"></i>
+                                        </div>
+                                        <div class="notif-item-body">
+                                            <div class="notif-item-code">{{ item.name }}</div>
+                                            <div class="notif-item-meta">
+                                                <i class="bi bi-graph-down-arrow me-1"></i>{{ item.percentage }}% restant
+                                                <span class="mx-1" style="color:#cbd5e1">·</span>
+                                                <i class="bi bi-box-seam me-1"></i>{{ item.restants }}/{{ item.total }} cartons
+                                            </div>
+                                        </div>
+                                        <span class="badge rounded-pill" style="background:#ef4444;color:#fff;font-size:.68rem;flex-shrink:0">critique</span>
+                                    </a>
+
+                                    {% elseif group.subtype is defined and group.subtype == 'cold_room' %}
+                                    {# ── Chambre froide saturée – Directeur ── #}
+                                    <a href="{{ path('app_cold_room_index') }}" class="notif-item">
+                                        <div class="notif-item-icon" style="background:{{ group.bg }};color:{{ group.color }}">
+                                            <i class="bi {{ group.icon }}"></i>
+                                        </div>
+                                        <div class="notif-item-body">
+                                            <div class="notif-item-code">{{ item.code }}</div>
+                                            <div class="notif-item-meta">
+                                                <i class="bi bi-thermometer-high me-1"></i>{{ item.pct }}% d'occupation
+                                            </div>
+                                        </div>
+                                        <span class="badge rounded-pill" style="background:#f97316;color:#fff;font-size:.68rem;flex-shrink:0">saturée</span>
+                                    </a>
+
+                                    {% elseif group.subtype is defined and group.subtype == 'invoice' %}
+                                    {# ── Facture à valider – Directeur ── #}
+                                    <a href="{{ path('app_invoice_show', {id: item.id}) }}" class="notif-item">
+                                        <div class="notif-item-icon" style="background:{{ group.bg }};color:{{ group.color }}">
+                                            <i class="bi {{ group.icon }}"></i>
+                                        </div>
+                                        <div class="notif-item-body">
+                                            <div class="notif-item-code">{{ item.invoiceNumber }}</div>
+                                            <div class="notif-item-meta">
+                                                <i class="bi bi-building me-1"></i>{{ item.client.officialName }}
+                                                <span class="mx-1" style="color:#cbd5e1">·</span>
+                                                <i class="bi bi-cash me-1"></i>{{ item.totalTtc|number_format(2, ',', ' ') }} MAD
+                                            </div>
+                                        </div>
+                                        <span class="badge rounded-pill" style="background:#8b5cf6;color:#fff;font-size:.68rem;flex-shrink:0">à valider</span>
+                                    </a>
+
+                                    {% else %}
+                                    {# ── Opération – Chef de Stock / Contrôleur ── #}
+                                    <a href="{{ path('app_operation_show', {id: item.id}) }}" class="notif-item">
+                                        <div class="notif-item-icon" style="background:{{ group.bg }};color:{{ group.color }}">
+                                            <i class="bi {{ group.icon }}"></i>
+                                        </div>
+                                        <div class="notif-item-body">
+                                            <div class="notif-item-code">{{ item.code }}</div>
+                                            <div class="notif-item-meta">
+                                                <i class="bi bi-building me-1"></i>{{ item.client.companyName }}
+                                                <span class="mx-1" style="color:#cbd5e1">·</span>
+                                                <i class="bi bi-calendar3 me-1"></i>{{ item.createdAt|date('d/m/Y') }}
+                                            </div>
+                                        </div>
+                                        <i class="bi bi-chevron-right" style="color:#cbd5e1;font-size:.75rem;flex-shrink:0"></i>
+                                    </a>
+                                    {% endif %}
+
+                                    {% endfor %}
+
+                                    {% if not loop.last %}<div class="notif-sep"></div>{% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            {# Footer #}
+                            {% if notif.total > 0 %}
+                            <div class="notif-footer">
+                                {% for group in notif.groups %}
+                                <a href="{{ path(group.route) }}" class="notif-footer-link" style="color:{{ group.color }}">
+                                    <i class="bi bi-arrow-right-circle me-1"></i>Voir toutes les {{ group.label|lower }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
                 </div>
             </header>
 
@@ -252,7 +554,8 @@
     });
     </script>
 
-    {# Floating Chatbot Widget #}
+    {# Floating Chatbot Widget (masqué pour les clients) #}
+    {% if not is_granted('ROLE_CLIENT') or is_granted('ROLE_CONTROLEUR') %}
     <div id="chatWidget" class="chat-widget">
         <div class="chat-window" id="chatWindow" style="display:none;">
             <div class="chat-header">
@@ -290,12 +593,14 @@
     .chat-input input:focus{border-color:var(--primary)}
     .chat-input button{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:.5rem .75rem;cursor:pointer}
     @media(max-width:480px){.chat-window{width:calc(100vw - 32px);right:-8px}}
+    @media print{ #chatWidget { display:none !important } }
     </style>
     <script>
     function toggleChat(){var w=document.getElementById('chatWindow'),f=document.getElementById('chatFab'),o=w.style.display==='none';w.style.display=o?'flex':'none';f.innerHTML=o?'<i class="bi bi-x-lg"></i>':'<i class="bi bi-chat-dots-fill"></i>';if(o)document.getElementById('chatInput').focus()}
     document.getElementById('chatForm')?.addEventListener('submit',async function(e){e.preventDefault();var i=document.getElementById('chatInput'),m=i.value.trim();if(!m)return;addMsg(m,'user');i.value='';var fd=new FormData;fd.append('message',m);try{var r=await fetch('{{ path("app_chatbot_ask") }}',{method:'POST',body:fd});var d=await r.json();addMsg(d.reply,'bot')}catch(x){addMsg('❌ Erreur.','bot')}});
     function addMsg(t,y){var b=document.getElementById('chatMessages'),d=document.createElement('div');d.className='chat-msg '+y;d.innerHTML='<div class="chat-bubble '+y+'-bubble">'+t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')+'</div>';b.appendChild(d);b.scrollTop=b.scrollHeight}
     </script>
+    {% endif %}
     {% endif %}
     {% block javascripts %}{% endblock %}
 </body>

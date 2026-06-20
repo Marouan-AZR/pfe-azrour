@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ColdRoom;
 use App\Form\ColdRoomType;
 use App\Repository\ColdRoomRepository;
+use App\Repository\PaletteRepository;
 use App\Service\ColdRoomOccupancyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -57,13 +58,30 @@ class ColdRoomController extends AbstractController
 
     #[Route('/{id}', name: 'app_cold_room_show', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function show(ColdRoom $coldRoom): Response
+    public function show(ColdRoom $coldRoom, PaletteRepository $paletteRepository): Response
     {
         $occupancyStats = $this->occupancyService->getOccupancyStatsForRooms([$coldRoom]);
 
+        $racks      = [];
+        $otherRacks = [];
+        foreach ($paletteRepository->findActivePalettesForColdRoom($coldRoom) as $palette) {
+            $rayon = $palette->getRayon();
+            if ($rayon === null) {
+                continue;
+            }
+            // Standard plan: G1-G22 / D1-D22
+            if (preg_match('/^[GD]\d+$/', $rayon)) {
+                $racks[$rayon][] = $palette;
+            } else {
+                $otherRacks[$rayon][] = $palette;
+            }
+        }
+
         return $this->render('cold_room/show.html.twig', [
-            'coldRoom' => $coldRoom,
-            'occupancyStats' => $occupancyStats[$coldRoom->getId()] ?? null,
+            'coldRoom'     => $coldRoom,
+            'occupancyStats' => $occupancyStats[$coldRoom->getId()] ?? ['usedCapacity' => 0.0, 'availableCapacity' => (float) $coldRoom->getMaxCapacityTons(), 'occupancyRate' => 0.0],
+            'racks'        => $racks,
+            'otherRacks'   => $otherRacks,
         ]);
     }
 

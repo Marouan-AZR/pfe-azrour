@@ -2,85 +2,505 @@
 
 {% block title %}Plan des Rayons{% endblock %}
 
-{% block body %}
-<div class="container-fluid py-4">
-    <h2 class="mb-4"><i class="bi bi-grid-3x3-gap"></i> Plan des Rayons</h2>
+{% block stylesheets %}
+<style>
+    .glass { background:#fff;border:1px solid #e2e8f0;border-radius:1rem;box-shadow:0 4px 24px rgba(0,0,0,.06); }
+    .kpi-icon { width:44px;height:44px;border-radius:.75rem;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0; }
 
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center border-0 shadow-sm">
-                <div class="card-body">
-                    <h3 class="mb-0">{{ totalShelves }}</h3>
-                    <small class="text-muted">Total Rayons</small>
+    /* Rack cards */
+    .rayon-card {
+        border: 2px solid transparent;
+        transition: transform .15s, box-shadow .15s, border-color .15s;
+        min-height: 72px;
+        cursor: pointer;
+        user-select: none;
+    }
+    .rayon-card:hover  { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.14); z-index:2; position:relative; }
+    .rayon-card:active { transform: translateY(0); }
+    .rayon-card.available {
+        background: rgba(16,185,129,.08);
+        border-color: rgba(16,185,129,.35);
+        color: #065f46;
+    }
+    .rayon-card.occupied {
+        background: rgba(239,68,68,.08);
+        border-color: rgba(239,68,68,.35);
+        color: #991b1b;
+    }
+    .rayon-card.selected {
+        border-color: #1e40af !important;
+        background: rgba(30,64,175,.1) !important;
+        color: #1e40af !important;
+        box-shadow: 0 0 0 3px rgba(30,64,175,.2);
+    }
+    .rayon-code { font-size: .85rem; font-weight: 700; line-height:1; }
+    .rayon-sub  { font-size: .68rem; line-height: 1.3; opacity:.85; }
+
+    .legend-dot { width:12px;height:12px;border-radius:3px;display:inline-block; }
+    .section-header {
+        background: linear-gradient(90deg, rgba(30,64,175,.07), transparent);
+        border-radius: .75rem;
+        padding: .6rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Offcanvas overrides */
+    #rayonOffcanvas { width: min(680px, 96vw); }
+    #rayonOffcanvas .offcanvas-header {
+        background: linear-gradient(135deg, #1e40af, #1d4ed8);
+        color: #fff;
+        padding: 1.25rem 1.5rem;
+    }
+    #rayonOffcanvas .offcanvas-header .btn-close { filter: invert(1) brightness(2); }
+
+    /* palette table inside offcanvas */
+    .oc-table thead th {
+        font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
+        color: #64748b; font-weight: 700; white-space: nowrap;
+        background: #f8fafc; border-bottom: 2px solid #e2e8f0;
+        padding: .55rem .75rem;
+    }
+    .oc-table tbody td { font-size: .82rem; padding: .55rem .75rem; vertical-align: middle; }
+    .oc-table tbody tr:hover { background: #f0f7ff; }
+
+    .badge-sm { font-size: .68rem; padding: .28em .55em; border-radius: .4rem; font-weight: 600; }
+    .cold-chip { background: rgba(14,165,233,.12); color:#0369a1; border:1px solid rgba(14,165,233,.25); }
+
+    /* KPI strip inside offcanvas */
+    .oc-kpi { background:#f8fafc; border:1px solid #e2e8f0; border-radius:.65rem; padding:.65rem 1rem; }
+    .oc-kpi .val { font-size:1.2rem; font-weight:800; color:#1e293b; }
+    .oc-kpi .lbl { font-size:.72rem; color:#64748b; }
+
+    /* Empty state */
+    .empty-state { padding:3rem 1rem; text-align:center; color:#94a3b8; }
+    .empty-state i { font-size:3rem; display:block; margin-bottom:1rem; }
+
+    /* Loader */
+    .oc-loader { display:flex; align-items:center; justify-content:center; height:220px; flex-direction:column; gap:.75rem; color:#64748b; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 px-4">
+
+    {# ── Header ── #}
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="mb-1 fw-bold"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Plan des Rayons</h2>
+            <p class="text-secondary mb-0 small">
+                <i class="bi bi-hand-index-thumb me-1"></i>Cliquez sur un rayon pour voir le stock détaillé ·
+                <i class="bi bi-calendar3 ms-2 me-1"></i>{{ 'now'|date('d/m/Y H:i') }}
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-3 small text-secondary">
+            <span><span class="legend-dot me-1" style="background:rgba(16,185,129,.5);border:1px solid rgba(16,185,129,.7)"></span>Disponible</span>
+            <span><span class="legend-dot me-1" style="background:rgba(239,68,68,.5);border:1px solid rgba(239,68,68,.7)"></span>Occupé</span>
+            <span><span class="legend-dot me-1" style="background:rgba(30,64,175,.5);border:1px solid rgba(30,64,175,.7)"></span>Sélectionné</span>
+        </div>
+    </div>
+
+    {# ── KPI Cards ── #}
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="glass p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#1e40af22;color:#1e40af"><i class="bi bi-grid-3x3"></i></div>
+                    <div><small class="text-secondary d-block">Total rayons</small><h5 class="mb-0 fw-bold">{{ totalShelves }}</h5></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-center border-0 shadow-sm">
-                <div class="card-body">
-                    <h3 class="mb-0 text-danger">{{ occupiedShelves }}</h3>
-                    <small class="text-muted">Occupés</small>
+        <div class="col-sm-6 col-xl-3">
+            <div class="glass p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#ef444422;color:#ef4444"><i class="bi bi-box-fill"></i></div>
+                    <div><small class="text-secondary d-block">Rayons occupés</small><h5 class="mb-0 fw-bold">{{ occupiedShelves }}</h5></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-center border-0 shadow-sm">
-                <div class="card-body">
-                    <h3 class="mb-0 text-success">{{ availableShelves }}</h3>
-                    <small class="text-muted">Disponibles</small>
+        <div class="col-sm-6 col-xl-3">
+            <div class="glass p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon" style="background:#10b98122;color:#10b981"><i class="bi bi-check-circle"></i></div>
+                    <div><small class="text-secondary d-block">Rayons disponibles</small><h5 class="mb-0 fw-bold">{{ availableShelves }}</h5></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            {% set globalRate = totalShelves > 0 ? (occupiedShelves / totalShelves * 100)|round(0) : 0 %}
+            <div class="glass p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="kpi-icon"
+                         style="background:{{ globalRate > 80 ? '#ef444422' : globalRate > 50 ? '#f59e0b22' : '#10b98122' }};
+                                color:{{ globalRate > 80 ? '#ef4444' : globalRate > 50 ? '#f59e0b' : '#10b981' }}">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <div><small class="text-secondary d-block">Taux d'occupation</small><h5 class="mb-0 fw-bold">{{ globalRate }} %</h5></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h5 class="text-center mb-3">Côté Gauche (G1 - G22)</h5>
-            <div class="row g-2">
-                {% for i in 1..22 %}
-                    {% set key = 'G' ~ i %}
+    {# ── Grilles G & D ── #}
+    <div class="row g-4">
+        {% for side, sideLabel in {'G': 'Côté Gauche', 'D': 'Côté Droit'} %}
+        <div class="col-lg-6">
+            <div class="glass p-3">
+                <div class="section-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="bi bi-columns-gap me-2 text-primary"></i>{{ sideLabel }} — {{ side }}1 à {{ side }}22
+                    </h6>
+                    {% set sideOccupied = 0 %}
+                    {% for i in 1..22 %}
+                        {% set k = side ~ i %}
+                        {% if shelves[k].occupied > 0 %}{% set sideOccupied = sideOccupied + 1 %}{% endif %}
+                    {% endfor %}
+                    <span class="badge rounded-pill" style="background:rgba(239,68,68,.15);color:#ef4444">
+                        {{ sideOccupied }} / 22 occupés
+                    </span>
+                </div>
+
+                <div class="row g-2">
+                    {% for i in 1..22 %}
+                    {% set key = side ~ i %}
                     {% set info = shelves[key] %}
                     {% set isOccupied = info.occupied > 0 %}
-                    <div class="col-6 col-lg-4 col-xl-3">
-                        <a href="{{ path('app_shelf_plan_detail', {rayon: key}) }}" class="text-decoration-none">
-                            <div class="card text-center border-0 shadow-sm h-100 {{ isOccupied ? 'bg-danger bg-opacity-10 border-danger' : 'bg-success bg-opacity-10 border-success' }}" style="border-left: 4px solid {{ isOccupied ? '#dc3545' : '#198754' }} !important;">
-                                <div class="card-body py-2 px-1">
-                                    <strong>{{ key }}</strong><br>
-                                    <small class="{{ isOccupied ? 'text-danger' : 'text-success' }}">
-                                        {{ isOccupied ? 'Occupé' : 'Disponible' }}
-                                    </small><br>
-                                    <span class="badge {{ isOccupied ? 'bg-danger' : 'bg-success' }}">{{ info.total }} palette{{ info.total != 1 ? 's' : '' }}</span>
-                                </div>
-                            </div>
-                        </a>
+                    <div class="col-4 col-sm-3 col-xl-2">
+                        <div class="rayon-card {{ isOccupied ? 'occupied' : 'available' }} rounded-3 d-flex flex-column align-items-center justify-content-center p-2 text-center"
+                             data-rayon="{{ key }}"
+                             data-occupied="{{ isOccupied ? '1' : '0' }}"
+                             onclick="openRayonPanel('{{ key }}')"
+                             title="{{ key }} — {{ isOccupied ? info.total ~ ' palette(s) · cliquez pour voir le détail' : 'Disponible' }}">
+                            <span class="rayon-code">{{ key }}</span>
+                            {% if isOccupied %}
+                                <span class="rayon-sub">{{ info.total }} pal.</span>
+                                <span class="rayon-sub">{{ (info.totalWeight / 1000)|number_format(1) }} T</span>
+                            {% else %}
+                                <span class="rayon-sub">Libre</span>
+                            {% endif %}
+                        </div>
                     </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+{# ══════════════════════════════════════════
+   OFFCANVAS — Détail du rayon
+══════════════════════════════════════════ #}
+<div class="offcanvas offcanvas-end" tabindex="-1" id="rayonOffcanvas" aria-labelledby="rayonOffcanvasLabel">
+
+    {# Header #}
+    <div class="offcanvas-header">
+        <div>
+            <h5 class="offcanvas-title mb-0 fw-bold" id="rayonOffcanvasLabel">
+                <i class="bi bi-box-seam me-2"></i>Rayon <span id="ocRayonCode">—</span>
+            </h5>
+            <small class="opacity-75" id="ocSubtitle">Chargement…</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 d-flex flex-column" style="overflow:hidden;">
+
+        {# KPI strip #}
+        <div class="px-3 pt-3 pb-2" style="background:#f8fafc;border-bottom:1px solid #e2e8f0;">
+            <div class="row g-2" id="ocKpis">
+                <div class="col-4">
+                    <div class="oc-kpi text-center">
+                        <div class="val" id="ocKpiPalettes">—</div>
+                        <div class="lbl"><i class="bi bi-boxes me-1"></i>Palettes</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="oc-kpi text-center">
+                        <div class="val" id="ocKpiCartons">—</div>
+                        <div class="lbl"><i class="bi bi-inboxes me-1"></i>Cartons</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="oc-kpi text-center">
+                        <div class="val" id="ocKpiPoids">—</div>
+                        <div class="lbl"><i class="bi bi-box-seam me-1"></i>Poids (kg)</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-6">
-            <h5 class="text-center mb-3">Côté Droit (D1 - D22)</h5>
+        {# Filters #}
+        <div class="px-3 py-2" style="background:#fff;border-bottom:1px solid #e2e8f0;">
             <div class="row g-2">
-                {% for i in 1..22 %}
-                    {% set key = 'D' ~ i %}
-                    {% set info = shelves[key] %}
-                    {% set isOccupied = info.occupied > 0 %}
-                    <div class="col-6 col-lg-4 col-xl-3">
-                        <a href="{{ path('app_shelf_plan_detail', {rayon: key}) }}" class="text-decoration-none">
-                            <div class="card text-center border-0 shadow-sm h-100 {{ isOccupied ? 'bg-danger bg-opacity-10 border-danger' : 'bg-success bg-opacity-10 border-success' }}" style="border-left: 4px solid {{ isOccupied ? '#dc3545' : '#198754' }} !important;">
-                                <div class="card-body py-2 px-1">
-                                    <strong>{{ key }}</strong><br>
-                                    <small class="{{ isOccupied ? 'text-danger' : 'text-success' }}">
-                                        {{ isOccupied ? 'Occupé' : 'Disponible' }}
-                                    </small><br>
-                                    <span class="badge {{ isOccupied ? 'bg-danger' : 'bg-success' }}">{{ info.total }} palette{{ info.total != 1 ? 's' : '' }}</span>
-                                </div>
-                            </div>
-                        </a>
+                <div class="col-12 col-sm-5">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-secondary"></i></span>
+                        <input type="text" id="ocSearch" class="form-control border-start-0 ps-0"
+                               placeholder="Code palette, espèce, client…" oninput="filterPalettes()">
                     </div>
-                {% endfor %}
+                </div>
+                <div class="col-6 col-sm-3">
+                    <select id="ocFilterClient" class="form-select form-select-sm" onchange="filterPalettes()">
+                        <option value="">Tous les clients</option>
+                    </select>
+                </div>
+                <div class="col-6 col-sm-3">
+                    <select id="ocFilterEspece" class="form-select form-select-sm" onchange="filterPalettes()">
+                        <option value="">Toutes les espèces</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-1 d-flex align-items-center">
+                    <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearOcFilters()" title="Effacer filtres">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="mt-1">
+                <small class="text-secondary" id="ocFilterInfo"></small>
             </div>
         </div>
+
+        {# Table area (scrollable) #}
+        <div class="flex-fill overflow-auto px-0">
+            <div id="ocLoader" class="oc-loader">
+                <div class="spinner-border text-primary" role="status" style="width:2rem;height:2rem;"></div>
+                <span>Chargement des données…</span>
+            </div>
+            <div id="ocContent" style="display:none;">
+                <div class="table-responsive">
+                    <table class="table oc-table mb-0" style="min-width:640px;">
+                        <thead>
+                            <tr>
+                                <th>Code palette</th>
+                                <th>Client</th>
+                                <th>Espèce</th>
+                                <th>Qualité</th>
+                                <th>Moule</th>
+                                <th>Famille</th>
+                                <th class="text-center">Cartons</th>
+                                <th class="text-end">Poids (kg)</th>
+                                <th>Chambre</th>
+                                <th>Date entrée</th>
+                                <th class="text-center">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ocTableBody"></tbody>
+                        <tfoot id="ocTableFoot" class="table-light fw-semibold" style="display:none;">
+                            <tr>
+                                <td colspan="6" class="text-end text-secondary small">Totaux filtrés</td>
+                                <td class="text-center" id="ocFootCartons"></td>
+                                <td class="text-end" id="ocFootPoids"></td>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div id="ocEmpty" class="empty-state" style="display:none;">
+                    <i class="bi bi-funnel"></i>
+                    <p class="fw-semibold mb-1">Aucune palette ne correspond aux filtres</p>
+                    <small>Modifiez ou effacez les filtres ci-dessus</small>
+                </div>
+            </div>
+        </div>
+
+        {# Footer #}
+        <div class="px-3 py-2 border-top d-flex justify-content-between align-items-center" style="background:#f8fafc;">
+            <small class="text-secondary"><i class="bi bi-info-circle me-1"></i>Stock validé uniquement</small>
+            <a id="ocDetailLink" href="#" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-arrow-up-right-square me-1"></i>Page complète
+            </a>
+        </div>
+
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+    'use strict';
+
+    // ─── state ─────────────────────────────────────────────────────────────────
+    let allPalettes  = [];
+    let currentRayon = '';
+    let offcanvas    = null;
+
+    // ─── open panel ────────────────────────────────────────────────────────────
+    window.openRayonPanel = function (rayon) {
+        currentRayon = rayon;
+
+        // highlight selected card
+        document.querySelectorAll('.rayon-card').forEach(c => c.classList.remove('selected'));
+        const card = document.querySelector(`.rayon-card[data-rayon="${rayon}"]`);
+        if (card) card.classList.add('selected');
+
+        // reset UI
+        document.getElementById('ocRayonCode').textContent    = rayon;
+        document.getElementById('ocSubtitle').textContent     = 'Chargement…';
+        document.getElementById('ocDetailLink').href          = `/plan-rayons/${rayon}`;
+        document.getElementById('ocSearch').value             = '';
+        document.getElementById('ocFilterClient').innerHTML   = '<option value="">Tous les clients</option>';
+        document.getElementById('ocFilterEspece').innerHTML   = '<option value="">Toutes les espèces</option>';
+        document.getElementById('ocFilterInfo').textContent   = '';
+        document.getElementById('ocLoader').style.display     = 'flex';
+        document.getElementById('ocContent').style.display    = 'none';
+        setKpis('—', '—', '—');
+
+        if (!offcanvas) {
+            offcanvas = new bootstrap.Offcanvas(document.getElementById('rayonOffcanvas'));
+        }
+        offcanvas.show();
+
+        // fetch data
+        fetch(`/plan-rayons/${rayon}/data`)
+            .then(r => r.json())
+            .then(data => renderPanel(data))
+            .catch(() => {
+                document.getElementById('ocSubtitle').textContent = 'Erreur lors du chargement';
+                document.getElementById('ocLoader').style.display = 'none';
+            });
+    };
+
+    // ─── render panel with data ─────────────────────────────────────────────────
+    function renderPanel(data) {
+        allPalettes = data.palettes;
+
+        // subtitle
+        const occupied = data.total > 0;
+        document.getElementById('ocSubtitle').innerHTML = occupied
+            ? `<i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#fbbf24"></i>Occupé`
+            : `<i class="bi bi-circle-fill me-1" style="font-size:.45rem;color:#34d399"></i>Disponible`;
+
+        // KPIs
+        setKpis(data.total, data.cartons, data.weight.toLocaleString('fr-FR', {maximumFractionDigits:2}));
+
+        // populate filter dropdowns
+        populateSelect('ocFilterClient', data.clients);
+        populateSelect('ocFilterEspece', data.especes);
+
+        // render table
+        document.getElementById('ocLoader').style.display  = 'none';
+        document.getElementById('ocContent').style.display = 'block';
+        renderTable(allPalettes);
+    }
+
+    function populateSelect(id, values) {
+        const sel = document.getElementById(id);
+        const first = sel.options[0].outerHTML;
+        sel.innerHTML = first;
+        values.sort().forEach(v => {
+            const o = document.createElement('option');
+            o.value = v; o.textContent = v;
+            sel.appendChild(o);
+        });
+    }
+
+    function setKpis(palettes, cartons, poids) {
+        document.getElementById('ocKpiPalettes').textContent = palettes;
+        document.getElementById('ocKpiCartons').textContent  = cartons;
+        document.getElementById('ocKpiPoids').textContent    = poids;
+    }
+
+    // ─── filter ────────────────────────────────────────────────────────────────
+    window.filterPalettes = function () {
+        const search  = document.getElementById('ocSearch').value.toLowerCase().trim();
+        const client  = document.getElementById('ocFilterClient').value;
+        const espece  = document.getElementById('ocFilterEspece').value;
+
+        const filtered = allPalettes.filter(p => {
+            if (client && p.client !== client) return false;
+            if (espece && p.espece !== espece) return false;
+            if (search) {
+                const haystack = [p.codePalette, p.client, p.espece, p.qualite, p.moule, p.famille]
+                    .join(' ').toLowerCase();
+                if (!haystack.includes(search)) return false;
+            }
+            return true;
+        });
+
+        const active = search || client || espece;
+        document.getElementById('ocFilterInfo').textContent = active
+            ? `${filtered.length} / ${allPalettes.length} palette(s) affichée(s)`
+            : '';
+
+        renderTable(filtered);
+    };
+
+    window.clearOcFilters = function () {
+        document.getElementById('ocSearch').value          = '';
+        document.getElementById('ocFilterClient').value   = '';
+        document.getElementById('ocFilterEspece').value   = '';
+        document.getElementById('ocFilterInfo').textContent = '';
+        renderTable(allPalettes);
+    };
+
+    // ─── render table rows ──────────────────────────────────────────────────────
+    function renderTable(rows) {
+        const tbody = document.getElementById('ocTableBody');
+        const foot  = document.getElementById('ocTableFoot');
+        const empty = document.getElementById('ocEmpty');
+
+        if (rows.length === 0) {
+            tbody.innerHTML = '';
+            foot.style.display  = 'none';
+            empty.style.display = 'block';
+            return;
+        }
+
+        empty.style.display = 'none';
+
+        const statusColors = {
+            success:   { bg: 'rgba(16,185,129,.12)', color: '#065f46' },
+            warning:   { bg: 'rgba(245,158,11,.15)',  color: '#92400e' },
+            info:      { bg: 'rgba(6,182,212,.12)',   color: '#155e75' },
+            secondary: { bg: 'rgba(100,116,139,.12)', color: '#334155' },
+            danger:    { bg: 'rgba(239,68,68,.12)',   color: '#991b1b' },
+        };
+
+        tbody.innerHTML = rows.map(p => {
+            const sc = statusColors[p.statusClass] || statusColors.secondary;
+            return `
+            <tr>
+                <td><code class="fw-semibold text-primary">${esc(p.codePalette)}</code></td>
+                <td class="fw-semibold">${esc(p.client)}</td>
+                <td>${esc(p.espece)}</td>
+                <td>${esc(p.qualite) || '<span class="text-secondary">—</span>'}</td>
+                <td>${esc(p.moule)   || '<span class="text-secondary">—</span>'}</td>
+                <td>${esc(p.famille) || '<span class="text-secondary">—</span>'}</td>
+                <td class="text-center">
+                    <span class="badge-sm badge" style="background:rgba(30,64,175,.12);color:#1e40af;">${p.cartonsRestants}</span>
+                </td>
+                <td class="text-end fw-semibold">${p.poidsRestant.toLocaleString('fr-FR',{maximumFractionDigits:2})}</td>
+                <td><span class="badge-sm badge cold-chip"><i class="bi bi-snow2 me-1"></i>${esc(p.coldRoom)}</span></td>
+                <td class="text-secondary" style="font-size:.78rem;white-space:nowrap;">${esc(p.dateEntree)}</td>
+                <td class="text-center">
+                    <span class="badge-sm badge" style="background:${sc.bg};color:${sc.color};">${esc(p.statusLabel)}</span>
+                </td>
+            </tr>`;
+        }).join('');
+
+        // footer totals
+        const totCartons = rows.reduce((s, p) => s + p.cartonsRestants, 0);
+        const totPoids   = rows.reduce((s, p) => s + p.poidsRestant, 0);
+        document.getElementById('ocFootCartons').innerHTML =
+            `<span class="badge" style="background:rgba(30,64,175,.12);color:#1e40af;">${totCartons}</span>`;
+        document.getElementById('ocFootPoids').textContent =
+            totPoids.toLocaleString('fr-FR', {maximumFractionDigits:2});
+        foot.style.display = '';
+    }
+
+    function esc(s) {
+        if (!s) return '';
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // remove selected highlight when offcanvas closes
+    document.getElementById('rayonOffcanvas').addEventListener('hidden.bs.offcanvas', () => {
+        document.querySelectorAll('.rayon-card').forEach(c => c.classList.remove('selected'));
+        currentRayon = '';
+    });
+
+})();
+</script>
 {% endblock %}

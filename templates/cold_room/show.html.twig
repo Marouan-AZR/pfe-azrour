@@ -43,7 +43,7 @@
                     <i class="bi bi-box-seam"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-value">{{ coldRoom.usedCapacity|number_format(1) }} T</div>
+                    <div class="stat-value">{{ occupancyStats.usedCapacity|number_format(1) }} T</div>
                     <div class="stat-label">Stock actuel</div>
                 </div>
             </div>
@@ -54,18 +54,18 @@
                     <i class="bi bi-arrow-down-up"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-value">{{ coldRoom.availableCapacity|number_format(1) }} T</div>
+                    <div class="stat-value">{{ occupancyStats.availableCapacity|number_format(1) }} T</div>
                     <div class="stat-label">Capacité disponible</div>
                 </div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="stat-card">
-                <div class="stat-icon {{ coldRoom.occupancyRate > 90 ? 'bg-danger' : (coldRoom.occupancyRate > 70 ? 'bg-warning' : 'bg-info') }}">
+                <div class="stat-icon {{ occupancyStats.occupancyRate > 90 ? 'bg-danger' : (occupancyStats.occupancyRate > 70 ? 'bg-warning' : 'bg-info') }}">
                     <i class="bi bi-pie-chart"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-value">{{ coldRoom.occupancyRate|number_format(1) }}%</div>
+                    <div class="stat-value">{{ occupancyStats.occupancyRate|number_format(1) }}%</div>
                     <div class="stat-label">Taux d'occupation</div>
                 </div>
             </div>
@@ -88,14 +88,14 @@
         <div class="card-body">
             <div class="d-flex justify-content-between mb-2">
                 <span>Capacité totale: {{ coldRoom.maxCapacityTons }} T</span>
-                <span class="{{ coldRoom.occupancyRate > 90 ? 'text-danger' : (coldRoom.occupancyRate > 70 ? 'text-warning' : 'text-success') }}">
-                    {{ coldRoom.occupancyRate|number_format(1) }}% utilisé
+                <span class="{{ occupancyStats.occupancyRate > 90 ? 'text-danger' : (occupancyStats.occupancyRate > 70 ? 'text-warning' : 'text-success') }}">
+                    {{ occupancyStats.occupancyRate|number_format(1) }}% utilisé
                 </span>
             </div>
             <div class="progress" style="height: 30px;">
-                <div class="progress-bar {{ coldRoom.occupancyRate > 90 ? 'bg-danger' : (coldRoom.occupancyRate > 70 ? 'bg-warning' : 'bg-success') }}" 
-                     style="width: {{ coldRoom.occupancyRate }}%">
-                    {{ coldRoom.usedCapacity|number_format(1) }} T
+                <div class="progress-bar {{ occupancyStats.occupancyRate > 90 ? 'bg-danger' : (occupancyStats.occupancyRate > 70 ? 'bg-warning' : 'bg-success') }}"
+                     style="width: {{ occupancyStats.occupancyRate > 100 ? 100 : occupancyStats.occupancyRate }}%">
+                    {{ occupancyStats.usedCapacity|number_format(1) }} T
                 </div>
             </div>
         </div>
@@ -118,8 +118,11 @@
                                 {% for i in 1..22 %}
                                     {% set rackCode = 'G' ~ i %}
                                     {% set isOccupied = racks[rackCode] is defined and racks[rackCode]|length > 0 %}
-                                    <div class="rack-cell {{ isOccupied ? 'occupied' : 'empty' }}" 
-                                         title="{{ rackCode }}{% if isOccupied %} - Occupé{% endif %}">
+                                    <div class="rack-cell {{ isOccupied ? 'occupied' : 'empty' }}"
+                                         data-rayon="{{ rackCode }}"
+                                         onclick="openRayonPanel('{{ rackCode }}')"
+                                         style="cursor:pointer;"
+                                         title="{{ rackCode }} — {{ isOccupied ? 'Occupé · cliquez pour voir le stock' : 'Disponible' }}">
                                         <span class="rack-code">{{ rackCode }}</span>
                                         {% if isOccupied %}
                                             <i class="bi bi-box-fill"></i>
@@ -143,8 +146,11 @@
                                 {% for i in 1..22 %}
                                     {% set rackCode = 'D' ~ i %}
                                     {% set isOccupied = racks[rackCode] is defined and racks[rackCode]|length > 0 %}
-                                    <div class="rack-cell {{ isOccupied ? 'occupied' : 'empty' }}" 
-                                         title="{{ rackCode }}{% if isOccupied %} - Occupé{% endif %}">
+                                    <div class="rack-cell {{ isOccupied ? 'occupied' : 'empty' }}"
+                                         data-rayon="{{ rackCode }}"
+                                         onclick="openRayonPanel('{{ rackCode }}')"
+                                         style="cursor:pointer;"
+                                         title="{{ rackCode }} — {{ isOccupied ? 'Occupé · cliquez pour voir le stock' : 'Disponible' }}">
                                         <span class="rack-code">{{ rackCode }}</span>
                                         {% if isOccupied %}
                                             <i class="bi bi-box-fill"></i>
@@ -164,45 +170,339 @@
                             <div class="legend-color occupied"></div>
                             <span>Occupé</span>
                         </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:rgba(30,64,175,.25);border:2px solid #1e40af;"></div>
+                            <span>Sélectionné</span>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
 
-        <!-- Stock Items in this room -->
+        <!-- Panneau détail rayon -->
         <div class="col-lg-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <i class="bi bi-boxes me-2"></i>
-                    Stock dans cette chambre
+            <div class="card h-100 d-flex flex-column" id="rayonDetailCard" style="min-height:520px;">
+
+                {# ── En-tête dynamique ── #}
+                <div id="rdHeader" class="card-header d-flex justify-content-between align-items-center"
+                     style="background:linear-gradient(135deg,#1e40af,#1d4ed8);color:#fff;border-bottom:none;">
+                    <div>
+                        <span class="fw-bold" style="font-size:.95rem;">
+                            <i class="bi bi-box-seam me-2"></i><span id="rdRayonLabel">Détail du rayon</span>
+                        </span>
+                        <div class="mt-1" id="rdStatusBadge" style="font-size:.72rem;opacity:.85">
+                            Cliquez sur un rayon pour voir son stock
+                        </div>
+                    </div>
+                    <div id="rdKpisMini" class="text-end" style="display:none!important;">
+                        <div style="font-size:.78rem;opacity:.9"><span id="rdKpiPal" class="fw-bold">0</span> palettes</div>
+                        <div style="font-size:.78rem;opacity:.9"><span id="rdKpiKg" class="fw-bold">0</span> kg</div>
+                    </div>
                 </div>
-                <div class="card-body p-0">
-                    {% if coldRoom.stockItems|length > 0 %}
-                    <div class="stock-list">
-                        {% for item in coldRoom.stockItems %}
-                        <div class="stock-item">
-                            <div class="stock-item-header">
-                                <span class="stock-product">{{ item.productName }}</span>
-                                <span class="badge bg-primary">{{ item.remainingQuantity|number_format(2) }} T</span>
-                            </div>
-                            <div class="stock-item-meta">
-                                <span><i class="bi bi-building me-1"></i>{{ item.client.companyName }}</span>
-                                <span><i class="bi bi-calendar me-1"></i>{{ item.entryDate|date('d/m/Y') }}</span>
+
+                {# ── Filtres (cachés par défaut) ── #}
+                <div id="rdFilters" class="px-3 py-2 border-bottom" style="display:none;background:#f8fafc;">
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="bi bi-search text-secondary"></i>
+                                </span>
+                                <input type="text" id="rdSearch" class="form-control border-start-0 ps-0"
+                                       placeholder="Code palette, espèce, client…" oninput="rdFilter()">
                             </div>
                         </div>
-                        {% endfor %}
+                        <div class="col-6">
+                            <select id="rdClient" class="form-select form-select-sm" onchange="rdFilter()">
+                                <option value="">Tous les clients</option>
+                            </select>
+                        </div>
+                        <div class="col-5">
+                            <select id="rdEspece" class="form-select form-select-sm" onchange="rdFilter()">
+                                <option value="">Toutes espèces</option>
+                            </select>
+                        </div>
+                        <div class="col-1 d-flex align-items-center">
+                            <button class="btn btn-sm btn-outline-secondary p-1" onclick="rdClearFilters()" title="Effacer">
+                                <i class="bi bi-x-lg" style="font-size:.7rem;"></i>
+                            </button>
+                        </div>
                     </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-2 mb-0">Aucun stock dans cette chambre</p>
-                    </div>
-                    {% endif %}
+                    <div class="mt-1"><small class="text-secondary" id="rdFilterInfo"></small></div>
                 </div>
+
+                {# ── Corps ── #}
+                <div class="flex-fill overflow-auto position-relative" style="max-height:520px;">
+
+                    {# État initial : invitation à cliquer #}
+                    <div id="rdEmpty" class="text-center py-5 px-3">
+                        <div style="font-size:3rem;color:#cbd5e1;margin-bottom:1rem;">
+                            <i class="bi bi-hand-index-thumb"></i>
+                        </div>
+                        <p class="fw-semibold text-secondary mb-1">Sélectionnez un rayon</p>
+                        <small class="text-muted">Cliquez sur un rayon dans le plan pour afficher les palettes stockées</small>
+                    </div>
+
+                    {# Loader #}
+                    <div id="rdLoader" style="display:none;" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width:2rem;height:2rem;"></div>
+                        <p class="text-secondary small">Chargement…</p>
+                    </div>
+
+                    {# Rayon vide #}
+                    <div id="rdFreeState" style="display:none;" class="text-center py-5 px-3">
+                        <div style="font-size:3rem;color:#10b981;margin-bottom:1rem;">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <p class="fw-semibold text-success mb-1">Rayon libre</p>
+                        <small class="text-muted">Aucune palette stockée dans ce rayon</small>
+                    </div>
+
+                    {# Aucun résultat filtre #}
+                    <div id="rdNoMatch" style="display:none;" class="text-center py-4 px-3">
+                        <i class="bi bi-funnel text-muted" style="font-size:2rem;"></i>
+                        <p class="text-secondary small mt-2 mb-0">Aucune palette ne correspond aux filtres</p>
+                    </div>
+
+                    {# Table des palettes #}
+                    <div id="rdTableWrap" style="display:none;" class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size:.78rem;">
+                            <thead style="position:sticky;top:0;z-index:2;">
+                                <tr style="background:#f1f5f9;">
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;white-space:nowrap;">Code</th>
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;">Client</th>
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;">Espèce</th>
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;">Qualité</th>
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;">Moule</th>
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;">Famille</th>
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;text-align:center;">Cartons</th>
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;text-align:right;">Poids (kg)</th>
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;white-space:nowrap;">Date entrée</th>
+                                    <th style="padding:.45rem .6rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;text-align:center;">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rdTableBody"></tbody>
+                            <tfoot id="rdTableFoot" style="display:none;background:#f8fafc;">
+                                <tr>
+                                    <td colspan="6" style="padding:.4rem .6rem;font-size:.72rem;color:#64748b;text-align:right;font-weight:600;">Totaux</td>
+                                    <td style="padding:.4rem .6rem;text-align:center;" id="rdFootCartons"></td>
+                                    <td style="padding:.4rem .6rem;text-align:right;font-weight:700;" id="rdFootPoids"></td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                {# ── Pied ── #}
+                <div id="rdFooter" class="card-footer py-2 px-3 d-flex justify-content-between align-items-center"
+                     style="background:#f8fafc;font-size:.75rem;display:none!important;">
+                    <span class="text-secondary"><i class="bi bi-shield-check me-1 text-success"></i>Stock validé uniquement</span>
+                    <a id="rdDetailLink" href="#" class="btn btn-xs btn-outline-primary" style="font-size:.72rem;padding:.2rem .55rem;">
+                        <i class="bi bi-arrow-up-right-square me-1"></i>Page complète
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
+
+<script>
+(function(){
+    'use strict';
+    const COLD_ROOM_ID = {{ coldRoom.id }};
+    let allPalettes  = [];
+
+    // ─── helpers ─────────────────────────────────────────────────────────────
+    function show(id){ document.getElementById(id).style.display = ''; }
+    function hide(id){ document.getElementById(id).style.display = 'none'; }
+    function showFlex(id){ document.getElementById(id).style.cssText += ';display:flex!important;'; }
+    function text(id,v){ document.getElementById(id).textContent = v; }
+
+    function esc(s){
+        if(!s) return '';
+        return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // ─── called by rack cell click ───────────────────────────────────────────
+    window.openRayonPanel = function(rayon){
+        // highlight
+        document.querySelectorAll('.rack-cell').forEach(c => c.classList.remove('selected'));
+        const cell = document.querySelector(`.rack-cell[data-rayon="${rayon}"]`);
+        if(cell) cell.classList.add('selected');
+
+        // header update
+        text('rdRayonLabel', 'Rayon ' + rayon);
+        text('rdStatusBadge', 'Chargement…');
+
+        // reset filters
+        document.getElementById('rdSearch').value  = '';
+        document.getElementById('rdClient').innerHTML  = '<option value="">Tous les clients</option>';
+        document.getElementById('rdEspece').innerHTML  = '<option value="">Toutes espèces</option>';
+        text('rdFilterInfo','');
+
+        // show loader, hide others
+        hide('rdEmpty'); hide('rdFreeState'); hide('rdNoMatch'); hide('rdTableWrap');
+        document.getElementById('rdFilters').style.display = 'none';
+        show('rdLoader');
+
+        // fetch
+        fetch(`/plan-rayons/${rayon}/data?coldRoomId=${COLD_ROOM_ID}`)
+            .then(r => r.json())
+            .then(data => renderPanel(data, rayon))
+            .catch(() => {
+                hide('rdLoader');
+                text('rdStatusBadge', 'Erreur de chargement');
+            });
+    };
+
+    function renderPanel(data, rayon){
+        allPalettes = data.palettes;
+        hide('rdLoader');
+
+        // header subtitle
+        const rdStatusBadge = document.getElementById('rdStatusBadge');
+        if(data.total === 0){
+            rdStatusBadge.innerHTML = '<span style="color:#6ee7b7">● Rayon libre</span>';
+        } else {
+            rdStatusBadge.innerHTML =
+                `<span style="color:#fde68a">● Occupé</span>` +
+                ` &nbsp;·&nbsp; ${data.total} palette(s) &nbsp;·&nbsp; ` +
+                `${data.weight.toLocaleString('fr-FR',{maximumFractionDigits:1})} kg`;
+        }
+
+        // mini KPIs in header
+        const kpiEl = document.getElementById('rdKpisMini');
+        if(data.total > 0){
+            text('rdKpiPal', data.total);
+            text('rdKpiKg',  data.weight.toLocaleString('fr-FR',{maximumFractionDigits:1}));
+            kpiEl.style.cssText = 'display:block!important';
+        } else {
+            kpiEl.style.cssText = 'display:none!important';
+        }
+
+        // detail link
+        document.getElementById('rdDetailLink').href = `/plan-rayons/${rayon}`;
+        document.getElementById('rdFooter').style.cssText = 'background:#f8fafc;font-size:.75rem;display:flex!important;justify-content:space-between;align-items:center;';
+
+        if(data.total === 0){
+            show('rdFreeState');
+            return;
+        }
+
+        // populate filters
+        populateSelect('rdClient', data.clients);
+        populateSelect('rdEspece', data.especes);
+        document.getElementById('rdFilters').style.display = '';
+
+        renderRows(allPalettes);
+    }
+
+    function populateSelect(id, values){
+        const sel = document.getElementById(id);
+        const first = sel.options[0].outerHTML;
+        sel.innerHTML = first;
+        [...values].sort().forEach(v => {
+            const o = document.createElement('option');
+            o.value = v; o.textContent = v;
+            sel.appendChild(o);
+        });
+    }
+
+    // ─── filter ──────────────────────────────────────────────────────────────
+    window.rdFilter = function(){
+        const search = document.getElementById('rdSearch').value.toLowerCase().trim();
+        const client = document.getElementById('rdClient').value;
+        const espece = document.getElementById('rdEspece').value;
+
+        const filtered = allPalettes.filter(p => {
+            if(client && p.client !== client) return false;
+            if(espece && p.espece !== espece) return false;
+            if(search){
+                const h = [p.codePalette, p.client, p.espece, p.qualite, p.moule, p.famille].join(' ').toLowerCase();
+                if(!h.includes(search)) return false;
+            }
+            return true;
+        });
+
+        const active = search || client || espece;
+        text('rdFilterInfo', active ? `${filtered.length} / ${allPalettes.length} palette(s)` : '');
+        renderRows(filtered);
+    };
+
+    window.rdClearFilters = function(){
+        document.getElementById('rdSearch').value = '';
+        document.getElementById('rdClient').value = '';
+        document.getElementById('rdEspece').value = '';
+        text('rdFilterInfo','');
+        renderRows(allPalettes);
+    };
+
+    // ─── render rows ─────────────────────────────────────────────────────────
+    function renderRows(rows){
+        const tbody = document.getElementById('rdTableBody');
+        const foot  = document.getElementById('rdTableFoot');
+        const noMatch = document.getElementById('rdNoMatch');
+        const tableWrap = document.getElementById('rdTableWrap');
+
+        if(rows.length === 0){
+            tableWrap.style.display = 'none';
+            foot.style.display = 'none';
+            show('rdNoMatch');
+            return;
+        }
+
+        hide('rdNoMatch');
+        tableWrap.style.display = '';
+
+        const colors = {
+            success  : {bg:'rgba(16,185,129,.12)', color:'#065f46'},
+            warning  : {bg:'rgba(245,158,11,.15)',  color:'#92400e'},
+            info     : {bg:'rgba(6,182,212,.12)',   color:'#155e75'},
+            secondary: {bg:'rgba(100,116,139,.12)', color:'#334155'},
+            danger   : {bg:'rgba(239,68,68,.12)',   color:'#991b1b'},
+        };
+
+        tbody.innerHTML = rows.map(p => {
+            const sc = colors[p.statusClass] || colors.secondary;
+            const code = `<code style="font-size:.75rem;font-weight:700;color:#1e40af">${esc(p.codePalette)}</code>`;
+            return `<tr>
+                <td style="padding:.4rem .5rem;">${code}</td>
+                <td style="padding:.4rem .5rem;font-weight:600;white-space:nowrap;">${esc(p.client)}</td>
+                <td style="padding:.4rem .5rem;">${esc(p.espece)}</td>
+                <td style="padding:.4rem .5rem;">${esc(p.qualite)||'<span style="color:#94a3b8">—</span>'}</td>
+                <td style="padding:.4rem .5rem;">${esc(p.moule)||'<span style="color:#94a3b8">—</span>'}</td>
+                <td style="padding:.4rem .5rem;">${esc(p.famille)||'<span style="color:#94a3b8">—</span>'}</td>
+                <td style="padding:.4rem .5rem;text-align:center;">
+                    <span style="background:rgba(30,64,175,.1);color:#1e40af;font-size:.7rem;padding:.2em .5em;border-radius:.4rem;font-weight:700;">${p.cartonsRestants}</span>
+                </td>
+                <td style="padding:.4rem .5rem;text-align:right;font-weight:600;">${p.poidsRestant.toLocaleString('fr-FR',{maximumFractionDigits:2})}</td>
+                <td style="padding:.4rem .5rem;color:#64748b;white-space:nowrap;">${esc(p.dateEntree)}</td>
+                <td style="padding:.4rem .5rem;text-align:center;">
+                    <span style="background:${sc.bg};color:${sc.color};font-size:.67rem;padding:.22em .5em;border-radius:.4rem;font-weight:700;white-space:nowrap;">${esc(p.statusLabel)}</span>
+                </td>
+            </tr>`;
+        }).join('');
+
+        // totals
+        const totC = rows.reduce((s,p)=>s+p.cartonsRestants, 0);
+        const totP = rows.reduce((s,p)=>s+p.poidsRestant, 0);
+        document.getElementById('rdFootCartons').innerHTML =
+            `<span style="background:rgba(30,64,175,.1);color:#1e40af;font-size:.7rem;padding:.2em .5em;border-radius:.4rem;font-weight:700;">${totC}</span>`;
+        document.getElementById('rdFootPoids').textContent = totP.toLocaleString('fr-FR',{maximumFractionDigits:2});
+        foot.style.display = '';
+    }
+
+    // deselect on click outside rack grid
+    document.addEventListener('click', e => {
+        if(!e.target.closest('.rack-cell') && !e.target.closest('#rayonDetailCard')){
+            document.querySelectorAll('.rack-cell').forEach(c => c.classList.remove('selected'));
+        }
+    });
+})();
+</script>
 {% endblock %}
 
 {% block stylesheets %}
@@ -293,6 +593,15 @@
 
     .rack-cell:hover {
         transform: scale(1.1);
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    .rack-cell.selected {
+        background: rgba(30,64,175,.2) !important;
+        border: 2px solid #1e40af !important;
+        color: #1e40af !important;
+        transform: scale(1.08);
+        box-shadow: 0 0 0 3px rgba(30,64,175,.2);
         z-index: 10;
     }
 

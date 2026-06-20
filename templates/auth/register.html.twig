@@ -3,512 +3,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription - Golden Logistics</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🏔️</text></svg>">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Inscription — GL Warehouse Suite</title>
+    <link rel="icon" href="{{ asset('images/logo de l\'application.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #0ea5e9;
-            --primary-dark: #0284c7;
-            --secondary: #6366f1;
-            --success: #10b981;
-            --danger: #ef4444;
-            --dark: #f1f5f9;
-            --dark-light: #f8fafc;
-            --dark-lighter: #334155;
-            --text: #1e293b;
-            --text-muted: #64748b;
-            --glass: #ffffff;
-            --glass-border: #e2e8f0;
-        }
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; }
+        body { font-family:'Inter',sans-serif; display:flex; min-height:100vh; background:#f1f5f9; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', sans-serif;
+        /* ── LEFT PANEL ── */
+        .brand-panel {
+            width: 44%;
             min-height: 100vh;
-            display: flex;
-            background: linear-gradient(135deg, #f1f5f9 0%, #dbeafe 50%, #f1f5f9 100%);
-            color: var(--text);
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.2) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        /* Left Panel */
-        .left-panel {
-            flex: 1;
-            display: none;
-            padding: 3rem;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2.5rem 3rem;
         }
-
-        @media (min-width: 992px) {
-            .left-panel { display: flex; flex-direction: column; justify-content: center; }
-        }
-
-        .left-panel::before {
+        .brand-panel::before {
             content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(99, 102, 241, 0.1));
+            position: absolute; inset: 0;
+            background: url("{{ asset('images/Entrepôt Frigorifique de Nouvelle Génération.jpg') }}") center/cover no-repeat;
         }
-
-        .left-content {
-            position: relative;
-            z-index: 10;
-            max-width: 500px;
+        .brand-panel::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(160deg, rgba(10,22,40,.65) 0%, rgba(15,35,82,.78) 60%, rgba(26,58,143,.88) 100%);
         }
+        .brand-panel > * { position: relative; z-index: 1; }
 
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 3rem;
+        .bp-logo { display:flex; align-items:center; margin-bottom:2.5rem; }
+        .bp-logo img { height: 80px; width: auto; object-fit: contain; }
+
+        .bp-middle { display:flex; flex-direction:column; gap:1.1rem; }
+        .bp-badge {
+            display:inline-flex; align-items:center; gap:.5rem;
+            background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+            border-radius:50px; padding:.35rem 1rem; width:fit-content;
         }
+        .bp-badge span { font-size:.75rem; font-weight:700; color:#93c5fd; letter-spacing:.06em; }
+        .bp-title { font-size:1.9rem; font-weight:900; color:#fff; line-height:1.2; letter-spacing:-.02em; }
+        .bp-desc  { font-size:.85rem; color:rgba(255,255,255,.6); line-height:1.7; max-width:290px; }
 
-        .logo-icon {
-            width: 60px; height: 60px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
+        .bp-steps { display:flex; flex-direction:column; gap:.7rem; margin-top:.5rem; }
+        .bp-step  { display:flex; align-items:center; gap:.75rem; }
+        .bp-step-num {
+            width:26px; height:26px; border-radius:50%; flex-shrink:0;
+            background:rgba(37,99,235,.7); border:1px solid rgba(99,155,255,.4);
+            display:flex; align-items:center; justify-content:center;
+            font-size:.7rem; font-weight:800; color:#fff;
         }
+        .bp-step-txt { font-size:.82rem; color:rgba(255,255,255,.75); font-weight:500; }
 
-        .brand-name {
-            font-size: 1.8rem;
-            font-weight: 800;
-        }
+        .bp-footer { font-size:.7rem; color:rgba(255,255,255,.25); }
 
-        .left-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 1.5rem;
-        }
-
-        .left-title .highlight {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .left-description {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            line-height: 1.7;
-            margin-bottom: 2rem;
-        }
-
-        .features-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .features-list li {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            color: var(--text-muted);
-        }
-
-        .features-list li i {
-            width: 30px; height: 30px;
-            background: rgba(16, 185, 129, 0.2);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--success);
-        }
-
-        /* Right Panel */
-        .right-panel {
+        /* ── RIGHT PANEL ── */
+        .form-panel {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            padding: 2rem 2.5rem;
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 60%, #eef2ff 100%);
+            overflow-y: auto;
         }
 
-        .register-card {
-            width: 100%;
-            max-width: 480px;
-            background: var(--glass);
-            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-            border: 1px solid var(--glass-border);
+        .form-card {
+            background: #fff;
             border-radius: 24px;
-            padding: 2.5rem;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-        }
-
-        .register-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .register-header .mobile-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-
-        @media (min-width: 992px) {
-            .register-header .mobile-logo { display: none; }
-        }
-
-        .register-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .register-subtitle {
-            color: var(--text-muted);
-        }
-
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text);
-        }
-
-        .form-control {
+            box-shadow: 0 12px 50px rgba(37,99,235,.1), 0 2px 12px rgba(0,0,0,.06);
+            padding: 2.4rem 2.6rem;
             width: 100%;
-            padding: 0.875rem 1rem;
-            background: var(--dark-light);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: var(--text);
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            max-width: 470px;
+            border: 1px solid rgba(37,99,235,.08);
         }
 
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
-            background: var(--dark-lighter);
+        /* header strip */
+        .fc-header {
+            display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:1.6rem; padding-bottom:1.2rem;
+            border-bottom:1.5px solid #f1f5f9;
+        }
+        .fc-header img { height:90px; width:auto; object-fit:contain; }
+        .fc-step-pill {
+            font-size:.72rem; font-weight:700; color:#2563eb;
+            background:#eff6ff; border:1px solid #bfdbfe;
+            border-radius:50px; padding:.3rem .85rem;
         }
 
-        .form-control::placeholder {
-            color: var(--text-muted);
-        }
+        .fc-title { font-size:1.5rem; font-weight:900; color:#0f172a; letter-spacing:-.03em; margin-bottom:.25rem; }
+        .fc-sub   { font-size:.83rem; color:#64748b; margin-bottom:1.4rem; line-height:1.55; }
 
-        .input-group {
-            position: relative;
+        .notice {
+            display:flex; align-items:flex-start; gap:.55rem;
+            background:linear-gradient(90deg,#eff6ff,#f0fdf4);
+            border:1px solid #bfdbfe; border-radius:12px;
+            padding:.7rem .95rem; margin-bottom:1.3rem;
+            font-size:.78rem; color:#1d4ed8; line-height:1.5;
         }
+        .notice i { flex-shrink:0; margin-top:.1rem; color:#2563eb; }
 
-        .input-group .form-control {
-            padding-left: 3rem;
+        /* section labels */
+        .sec-label {
+            font-size:.68rem; font-weight:800; color:#94a3b8;
+            letter-spacing:.08em; text-transform:uppercase;
+            margin-bottom:.65rem; margin-top:1rem;
+            display:flex; align-items:center; gap:.45rem;
         }
+        .sec-label::after { content:''; flex:1; height:1px; background:#f1f5f9; }
 
-        .input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
+        .row-2 { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
 
-        .password-toggle {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 0;
+        .field       { margin-bottom:.85rem; }
+        .field label { display:block; font-size:.77rem; font-weight:600; color:#374151; margin-bottom:.32rem; }
+        .inp-w { position:relative; }
+        .inp-w .ic {
+            position:absolute; left:.9rem; top:50%; transform:translateY(-50%);
+            color:#94a3b8; font-size:.82rem; pointer-events:none;
         }
+        .inp-w input {
+            width:100%; padding:.75rem 1rem .75rem 2.55rem;
+            border:1.5px solid #e2e8f0; border-radius:11px;
+            font-size:.86rem; font-family:'Inter',sans-serif;
+            color:#0f172a; background:#f8fafc; outline:none;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+        }
+        .inp-w input:focus {
+            border-color:#2563eb;
+            box-shadow:0 0 0 3px rgba(37,99,235,.1);
+            background:#fff;
+        }
+        .inp-w input::placeholder { color:#cbd5e1; }
+        .eye-btn {
+            position:absolute; right:.8rem; top:50%; transform:translateY(-50%);
+            background:none; border:none; color:#94a3b8; cursor:pointer;
+            font-size:.85rem; padding:.15rem;
+            transition:color .2s;
+        }
+        .eye-btn:hover { color:#2563eb; }
 
-        .password-toggle:hover {
-            color: var(--text);
-        }
+        /* strength bar */
+        .pwd-strength { display:flex; gap:.3rem; margin-top:.4rem; }
+        .pwd-bar { height:3px; flex:1; border-radius:2px; background:#e2e8f0; transition:background .3s; }
 
-        .row-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+        .btn-submit {
+            width:100%; padding:.9rem; margin-top:1.2rem;
+            background:linear-gradient(135deg,#2563eb,#4f46e5);
+            color:#fff; border:none; border-radius:12px;
+            font-size:.92rem; font-weight:700; cursor:pointer;
+            font-family:'Inter',sans-serif;
+            display:flex; align-items:center; justify-content:center; gap:.55rem;
+            box-shadow:0 5px 18px rgba(37,99,235,.4);
+            transition:transform .2s, box-shadow .2s;
         }
+        .btn-submit:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(37,99,235,.5); }
 
-        @media (max-width: 576px) {
-            .row-2 { grid-template-columns: 1fr; }
+        .divider {
+            display:flex; align-items:center; gap:.7rem;
+            margin:1.1rem 0 .9rem;
         }
+        .divider::before,.divider::after { content:''; flex:1; height:1px; background:#e2e8f0; }
+        .divider span { font-size:.74rem; color:#94a3b8; white-space:nowrap; }
 
-        /* Button */
-        .btn-register {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+        .bottom-txt { text-align:center; font-size:.82rem; color:#64748b; }
+        .bottom-txt a { color:#2563eb; font-weight:700; text-decoration:none; }
+        .bottom-txt a:hover { text-decoration:underline; }
+        .back-lnk {
+            display:inline-flex; align-items:center; gap:.3rem;
+            font-size:.76rem; color:#94a3b8; text-decoration:none; margin-top:.5rem;
         }
+        .back-lnk:hover { color:#475569; }
 
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.4);
-        }
+        .alert { padding:.75rem 1rem; border-radius:11px; margin-bottom:.85rem; display:flex; align-items:center; gap:.6rem; font-size:.81rem; }
+        .alert-danger  { background:#fef2f2; border:1px solid #fecaca; color:#dc2626; }
+        .alert-success { background:#f0fdf4; border:1px solid #bbf7d0; color:#16a34a; }
 
-        /* Alert */
-        .alert {
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-        }
-
-        .alert-danger {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #dc2626;
-        }
-
-        .alert-success {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #6ee7b7;
-        }
-
-        .alert-info {
-            background: rgba(14, 165, 233, 0.15);
-            border: 1px solid rgba(14, 165, 233, 0.3);
-            color: #7dd3fc;
-        }
-
-        /* Links */
-        .register-footer {
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--glass-border);
-        }
-
-        .register-footer a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .register-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .back-link:hover {
-            color: var(--text);
-        }
-
-        /* Info Box */
-        .info-box {
-            background: rgba(14, 165, 233, 0.1);
-            border: 1px solid rgba(14, 165, 233, 0.2);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .info-box i {
-            color: var(--primary);
-            margin-right: 0.5rem;
-        }
+        @media(max-width:920px) { .brand-panel { display:none; } }
+        @media(max-width:480px)  { .row-2 { grid-template-columns:1fr; } .form-panel { padding:1.25rem; } }
     </style>
 </head>
 <body>
-    <!-- Left Panel -->
-    <div class="left-panel">
-        <div class="left-content">
-            <div class="brand-logo">
-                <div class="logo-icon">🏔️</div>
-                <span class="brand-name">Golden Logistics</span>
-            </div>
-            <h1 class="left-title">
-                Rejoignez notre <span class="highlight">plateforme</span>
-            </h1>
-            <p class="left-description">
-                Créez votre compte pour accéder à notre système de gestion de stock frigorifique 
-                et bénéficier d'un suivi en temps réel de vos marchandises.
-            </p>
-            <ul class="features-list">
-                <li>
-                    <i class="bi bi-check"></i>
-                    Suivi en temps réel de votre stock
-                </li>
-                <li>
-                    <i class="bi bi-check"></i>
-                    Traçabilité complète des opérations
-                </li>
-                <li>
-                    <i class="bi bi-check"></i>
-                    Accès aux factures et historiques
-                </li>
-                <li>
-                    <i class="bi bi-check"></i>
-                    Interface moderne et intuitive
-                </li>
-            </ul>
+
+    <!-- ── Left: Brand Panel ── -->
+    <div class="brand-panel">
+        <div class="bp-logo">
+            <img src="{{ asset('images/logo de l\'application.png') }}" alt="GL Warehouse Suite">
         </div>
+
+        <div class="bp-middle">
+            <div class="bp-badge">
+                <i class="bi bi-box-seam" style="color:#60a5fa;font-size:.8rem"></i>
+                <span>GL WAREHOUSE SUITE — WMS</span>
+            </div>
+            <div class="bp-title">Créez votre<br>espace de travail</div>
+            <p class="bp-desc">Rejoignez la plateforme et gérez votre entrepôt frigorifique en toute simplicité.</p>
+            <div class="bp-steps">
+                <div class="bp-step">
+                    <div class="bp-step-num">1</div>
+                    <span class="bp-step-txt">Créez votre compte</span>
+                </div>
+                <div class="bp-step">
+                    <div class="bp-step-num">2</div>
+                    <span class="bp-step-txt">Validation par l'administrateur</span>
+                </div>
+                <div class="bp-step">
+                    <div class="bp-step-num">3</div>
+                    <span class="bp-step-txt">Accédez à votre tableau de bord</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bp-footer">&copy; {{ "now"|date("Y") }} GL Warehouse Suite — WMS. Tous droits réservés.</div>
     </div>
 
-    <!-- Right Panel -->
-    <div class="right-panel">
-        <div class="register-card">
-            <div class="register-header">
-                <div class="mobile-logo">
-                    <div class="logo-icon" style="width: 45px; height: 45px; font-size: 1.5rem;">🏔️</div>
-                    <span style="font-weight: 800; font-size: 1.3rem;">Golden Logistics</span>
-                </div>
-                <h2 class="register-title">Créer un compte</h2>
-                <p class="register-subtitle">Remplissez le formulaire pour vous inscrire</p>
+    <!-- ── Right: Form Card ── -->
+    <div class="form-panel">
+        <div class="form-card">
+
+            <div class="fc-header">
+                <span class="fc-step-pill"><i class="bi bi-person-plus me-1"></i>Nouveau compte</span>
             </div>
+
+            <div class="fc-title">Créer un compte</div>
+            <p class="fc-sub">Remplissez les informations ci-dessous pour rejoindre GL Warehouse Suite.</p>
 
             {% for message in app.flashes('error') %}
                 <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-circle"></i>
+                    <i class="bi bi-exclamation-circle-fill"></i>
                     <span>{{ message }}</span>
                 </div>
             {% endfor %}
-
             {% for message in app.flashes('success') %}
                 <div class="alert alert-success">
-                    <i class="bi bi-check-circle"></i>
+                    <i class="bi bi-check-circle-fill"></i>
                     <span>{{ message }}</span>
                 </div>
             {% endfor %}
 
-            <div class="info-box">
-                <i class="bi bi-info-circle"></i>
-                Votre compte devra être validé par l'administrateur avant de pouvoir accéder à la plateforme.
+            <div class="notice">
+                <i class="bi bi-shield-check-fill"></i>
+                <span>Votre compte sera validé par l'administrateur avant d'être activé.</span>
             </div>
 
             <form method="post" action="{{ path('app_register') }}">
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
-                
+
+                <div class="sec-label">Identité</div>
                 <div class="row-2">
-                    <div class="form-group">
-                        <label class="form-label">Prénom</label>
-                        <div class="input-group">
-                            <i class="bi bi-person input-icon"></i>
-                            <input type="text" name="firstName" class="form-control" placeholder="Votre prénom" required>
+                    <div class="field">
+                        <label>Prénom</label>
+                        <div class="inp-w">
+                            <i class="bi bi-person ic"></i>
+                            <input type="text" name="firstName" placeholder="Votre prénom" required>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Nom</label>
-                        <div class="input-group">
-                            <i class="bi bi-person input-icon"></i>
-                            <input type="text" name="lastName" class="form-control" placeholder="Votre nom" required>
+                    <div class="field">
+                        <label>Nom</label>
+                        <div class="inp-w">
+                            <i class="bi bi-person ic"></i>
+                            <input type="text" name="lastName" placeholder="Votre nom" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Adresse email</label>
-                    <div class="input-group">
-                        <i class="bi bi-envelope input-icon"></i>
-                        <input type="email" name="email" class="form-control" placeholder="exemple@email.com" required>
+                <div class="sec-label">Contact</div>
+                <div class="field">
+                    <label>Adresse email</label>
+                    <div class="inp-w">
+                        <i class="bi bi-envelope ic"></i>
+                        <input type="email" name="email" placeholder="exemple@email.com" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Téléphone <span style="color:#94a3b8;font-weight:400">(optionnel)</span></label>
+                    <div class="inp-w">
+                        <i class="bi bi-telephone ic"></i>
+                        <input type="tel" name="phone" placeholder="+212 6XX XXX XXX">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Mot de passe</label>
-                    <div class="input-group">
-                        <i class="bi bi-lock input-icon"></i>
-                        <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required minlength="8">
-                        <button type="button" class="password-toggle" onclick="togglePassword('password', this)">
-                            <i class="bi bi-eye"></i>
-                        </button>
+                <div class="sec-label">Sécurité</div>
+                <div class="row-2">
+                    <div class="field">
+                        <label>Mot de passe</label>
+                        <div class="inp-w">
+                            <i class="bi bi-lock ic"></i>
+                            <input type="password" name="password" id="pwd1" placeholder="Min. 8 car." required minlength="8" oninput="checkStrength(this.value)">
+                            <button type="button" class="eye-btn" onclick="togglePwd('pwd1','eye1')">
+                                <i class="bi bi-eye" id="eye1"></i>
+                            </button>
+                        </div>
+                        <div class="pwd-strength">
+                            <div class="pwd-bar" id="bar1"></div>
+                            <div class="pwd-bar" id="bar2"></div>
+                            <div class="pwd-bar" id="bar3"></div>
+                            <div class="pwd-bar" id="bar4"></div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Confirmer</label>
+                        <div class="inp-w">
+                            <i class="bi bi-lock ic"></i>
+                            <input type="password" name="confirmPassword" id="pwd2" placeholder="Répéter" required minlength="8">
+                            <button type="button" class="eye-btn" onclick="togglePwd('pwd2','eye2')">
+                                <i class="bi bi-eye" id="eye2"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Confirmer le mot de passe</label>
-                    <div class="input-group">
-                        <i class="bi bi-lock input-icon"></i>
-                        <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="••••••••" required minlength="8">
-                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-register">
-                    <i class="bi bi-person-plus"></i>
-                    S'inscrire
+                <button type="submit" class="btn-submit">
+                    <i class="bi bi-person-check-fill"></i> Créer mon compte
                 </button>
             </form>
 
-            <div class="register-footer">
-                <p>Vous avez déjà un compte ? <a href="{{ path('app_login') }}">Se connecter</a></p>
-                <a href="{{ path('app_home') }}" class="back-link">
-                    <i class="bi bi-arrow-left"></i>
-                    Retour à l'accueil
+            <div class="divider"><span>Déjà inscrit ?</span></div>
+
+            <div class="bottom-txt">
+                <p><a href="{{ path('app_login') }}"><i class="bi bi-box-arrow-in-right"></i> Se connecter à mon compte</a></p>
+                <a href="{{ path('app_home') }}" class="back-lnk">
+                    <i class="bi bi-arrow-left"></i> Retour à l'accueil
                 </a>
             </div>
         </div>
     </div>
 
     <script>
-        function togglePassword(inputId, button) {
-            const input = document.getElementById(inputId);
-            const icon = button.querySelector('i');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('bi-eye');
-                icon.classList.add('bi-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('bi-eye-slash');
-                icon.classList.add('bi-eye');
-            }
+        function togglePwd(id, ico) {
+            const i = document.getElementById(id);
+            const ic = document.getElementById(ico);
+            const v = i.type === 'password';
+            i.type = v ? 'text' : 'password';
+            ic.className = v ? 'bi bi-eye-slash' : 'bi bi-eye';
+        }
+        function checkStrength(val) {
+            const bars = [document.getElementById('bar1'),document.getElementById('bar2'),document.getElementById('bar3'),document.getElementById('bar4')];
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            const colors = ['#ef4444','#f97316','#eab308','#22c55e'];
+            bars.forEach((b,i) => b.style.background = i < score ? colors[score-1] : '#e2e8f0');
         }
     </script>
 </body>

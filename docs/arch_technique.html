@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>Architecture Technique – Golden Logistics</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#94a3b8;display:flex;flex-direction:column;align-items:center;padding:24px;font-family:Arial,sans-serif}
+.bar{display:flex;gap:12px;margin-bottom:18px}
+button{padding:10px 26px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer}
+.b1{background:#1d4ed8;color:#fff} .b2{background:#fff;color:#374151;border:2px solid #d1d5db}
+#cvs{border-radius:10px;box-shadow:0 12px 48px rgba(0,0,0,.3);overflow:hidden}
+</style>
+</head>
+<body>
+<div class="bar">
+  <button class="b1" onclick="dlPNG()">⬇ PNG</button>
+  <button class="b2" onclick="dlSVG()">⬇ SVG</button>
+</div>
+<div id="cvs"></div>
+<script>
+/* ── helpers ─────────────────────────────────────────────────────── */
+const W=1700, H=950;
+const x=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const rc=(x,y,w,h,f,r=6,s='none',sw=0)=>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${f}" stroke="${s}" stroke-width="${sw}"/>`;
+const tx=(px,py,t,{sz=11,b=false,c='#1e293b',a='start',ls=0,it=false}={})=>
+  `<text x="${px}" y="${py}" font-family="Arial,sans-serif" font-size="${sz}" font-weight="${b?'bold':'normal'}"
+   fill="${c}" text-anchor="${a}"${ls?` letter-spacing="${ls}"`:''}${it?` font-style="italic"`:''}>${x(t)}</text>`;
+const ln=(x1,y1,x2,y2,c='#cbd5e1',w=1,d='')=>
+  `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}"${d?` stroke-dasharray="${d}"`:''}/>`;
+
+/* layer block: colored header + light body */
+function layerBlock(lx,ly,lw,lh,title,hc,bc,sc){
+  let s=rc(lx,ly,lw,lh,bc,7,sc,1.5);
+  s+=rc(lx,ly,lw,30,hc,7,sc,0);
+  s+=rc(lx,ly+24,lw,6,hc,0); // square bottom of header
+  s+=tx(lx+lw/2,ly+20,title,{sz:11,b:true,c:'#fff',a:'middle',ls:.4});
+  return s;
+}
+
+/* small card */
+function card(cx,cy,cw,ch,label,sub,bg,tc,sc){
+  let s=rc(cx,cy,cw,ch,bg,5,sc,1);
+  s+=tx(cx+cw/2,cy+14,label,{sz:9.5,b:true,c:tc,a:'middle'});
+  if(sub) s+=tx(cx+cw/2,cy+27,sub,{sz:8,c:tc,a:'middle'});
+  return s;
+}
+
+/* mini pill */
+function pill(px,py,pw,lbl,bg,tc,sc){
+  let s=rc(px,py,pw,20,bg,4,sc,1);
+  s+=tx(px+pw/2,py+14,lbl,{sz:8.5,b:true,c:tc,a:'middle'});
+  return s;
+}
+
+/* bi-directional arrow between layers */
+function darrow(ax,y1,y2){
+  const mid=(y1+y2)/2;
+  let s=ln(ax,y1+1,ax,y2-1,'#94a3b8',2);
+  s+=`<polygon points="${ax-5},${y1+9} ${ax+5},${y1+9} ${ax},${y1+1}" fill="#94a3b8"/>`;
+  s+=`<polygon points="${ax-5},${y2-9} ${ax+5},${y2-9} ${ax},${y2-1}" fill="#94a3b8"/>`;
+  return s;
+}
+
+/* ── layout constants ────────────────────────────────────────────── */
+const TH=60;   // title height
+const BY=TH+6; // body start y
+const TY=892;  // tech bar y
+const BH=TY-6-BY; // body height = 820
+
+const LX=6,  LW=162;                    // left panel
+const RX=1352, RW=W-RX-6;              // right panel (342)
+const CX=LX+LW+6, CW=RX-6-CX;         // center = 1172
+
+// Layer heights  sum=792  gaps=4×7=28  total=820=BH ✓
+const LH=[112,165,128,88,299];
+const LY=[]; { let y=BY; LH.forEach(h=>{LY.push(y);y+=h+7;}); }
+
+/* ── build SVG ───────────────────────────────────────────────────── */
+let S='';
+
+// defs
+S+=`<defs>
+<linearGradient id="gt" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+  <stop offset="0%" stop-color="#0b1d3a"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient>
+<linearGradient id="gl" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+  <stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e293b"/></linearGradient>
+<linearGradient id="gbot" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+  <stop offset="0%" stop-color="#0b1d3a"/><stop offset="100%" stop-color="#1e3a5f"/></linearGradient>
+<filter id="sh"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.14"/></filter>
+</defs>`;
+
+// background
+S+=rc(0,0,W,H,'#dde3ec',0);
+
+/* ═══════════ TITLE ═══════════ */
+S+=`<rect x="0" y="0" width="${W}" height="${TH}" fill="url(#gt)"/>`;
+S+=tx(W/2,28,'ARCHITECTURE TECHNIQUE — GOLDEN LOGISTICS',{sz:22,b:true,c:'#fff',a:'middle',ls:.8});
+S+=tx(W/2,50,'Application web de gestion logistique pour entrepôt frigorifique  ·  PHP 8.2.12  ·  Symfony 7.0.10  ·  MariaDB 10.4.32',{sz:11,c:'#93c5fd',a:'middle'});
+
+/* ═══════════ LEFT PANEL – Rôles ═══════════ */
+S+=`<rect x="${LX}" y="${BY}" width="${LW}" height="${BH}" rx="8" fill="url(#gl)" filter="url(#sh)"/>`;
+S+=tx(LX+LW/2,BY+16,'UTILISATEURS',{sz:9,b:true,c:'#94a3b8',a:'middle',ls:1.5});
+S+=tx(LX+LW/2,BY+28,'& RÔLES',{sz:9,b:true,c:'#94a3b8',a:'middle',ls:1.5});
+S+=ln(LX+10,BY+34,LX+LW-10,BY+34,'#2d3f55',1);
+
+const roles=[
+  {em:'♛',ec:'#f59e0b',n:'Patron',     r:'ROLE_PATRON',    d:'Accès total'},
+  {em:'📊',ec:'#a78bfa',n:'Directeur',  r:'ROLE_DIRECTEUR', d:'Supervision'},
+  {em:'📦',ec:'#34d399',n:'Chef Stock', r:'ROLE_CHEF_STOCK', d:'Validation'},
+  {em:'🔍',ec:'#fb923c',n:'Contrôleur', r:'ROLE_CONTROLEUR', d:'Terrain'},
+  {em:'🏢',ec:'#60a5fa',n:'Client',     r:'ROLE_CLIENT',    d:'Portail isolé'},
+  {em:'👤',ec:'#94a3b8',n:'Utilisateur',r:'ROLE_USER',      d:'Rôle de base'},
+];
+const rh=Math.floor((BH-46)/6)-4;
+let ry=BY+40;
+roles.forEach((r,i)=>{
+  S+=rc(LX+8,ry,LW-16,rh,'#ffffff0e',6,'#2d3f55',1);
+  S+=`<circle cx="${LX+22}" cy="${ry+rh/2}" r="11" fill="${r.ec}" opacity=".2"/>`;
+  S+=tx(LX+22,ry+rh/2+5,r.em,{sz:12,a:'middle'});
+  S+=tx(LX+38,ry+rh/2-5,r.n, {sz:10,b:true,c:'#f1f5f9'});
+  S+=tx(LX+38,ry+rh/2+7,r.r, {sz:7.5,c:'#f59e0b'});
+  S+=tx(LX+38,ry+rh/2+18,r.d,{sz:7.5,c:'#64748b'});
+  // connector dot
+  if(i<4) S+=`<circle cx="${LX+LW/2}" cy="${ry+rh+3}" r="3" fill="#334155"/>`;
+  ry+=rh+6;
+});
+S+=tx(LX+LW/2,BY+BH-10,'CLIENT > USER  (portail isolé)',{sz:7.5,c:'#60a5fa',a:'middle'});
+
+/* ═══════════ LAYER ARROWS ═══════════ */
+for(let i=0;i<4;i++) S+=darrow(CX+CW/2,LY[i]+LH[i]+1,LY[i+1]-1);
+
+/* ═══════════ LAYER 1 – PRÉSENTATION ═══════════ */
+{
+  const [lx,ly,lw,lh]=[CX,LY[0],CW,LH[0]];
+  S+=layerBlock(lx,ly,lw,lh,'🖥   COUCHE PRÉSENTATION (VUE)','#1d4ed8','#eff6ff','#93c5fd');
+  const items=[
+    {t:'Twig 3.x',       s:'Templates HTML'},
+    {t:'Bootstrap 5',    s:'CSS Responsive'},
+    {t:'Stimulus 3.2.2', s:'JS Controllers'},
+    {t:'Turbo 7.3.0',    s:'Navigation SPA'},
+    {t:'Chart.js',       s:'Graphiques KPI'},
+    {t:'AssetMapper',    s:'Sans npm / Node'},
+  ];
+  const cw=(lw-16)/items.length-5;
+  items.forEach((it,i)=>{
+    const cx=lx+8+i*(cw+5), cy=ly+34;
+    S+=card(cx,cy,cw,lh-42,it.t,it.s,'#dbeafe','#1e40af','#93c5fd');
+  });
+}
+
+/* ═══════════ LAYER 2 – CONTRÔLEURS ═══════════ */
+{
+  const [lx,ly,lw,lh]=[CX,LY[1],CW,LH[1]];
+  S+=layerBlock(lx,ly,lw,lh,'⚙   COUCHE APPLICATIVE — 13 CONTRÔLEURS SYMFONY','#6d28d9','#f5f3ff','#c4b5fd');
+
+  const groups=[
+    {t:'🔐 Authentification',c:'#ede9fe',tc:'#4c1d95',sc:'#c4b5fd',
+     pills:['AuthController','SecurityController']},
+    {t:'📦 Stock & Terrain',c:'#fef9c3',tc:'#78350f',sc:'#fcd34d',
+     pills:['OperationController','StockController','ColdRoomController']},
+    {t:'📄 Documents',c:'#fce7f3',tc:'#831843',sc:'#f9a8d4',
+     pills:['InvoiceController','FicheController']},
+    {t:'📊 Supervision',c:'#dcfce7',tc:'#14532d',sc:'#86efac',
+     pills:['DashboardController','AlertController','ClientController']},
+    {t:'🤖 IA & Historique',c:'#cffafe',tc:'#0e7490',sc:'#67e8f9',
+     pills:['ChatbotController','TransferController','ControleurDashboardController']},
+  ];
+  const gw=(lw-16)/groups.length-5;
+  groups.forEach((g,i)=>{
+    const gx=lx+8+i*(gw+5), gy=ly+34, gh=lh-42;
+    S+=rc(gx,gy,gw,gh,g.c,5,g.sc,1);
+    S+=tx(gx+gw/2,gy+16,g.t,{sz:9,b:true,c:g.tc,a:'middle'});
+    S+=ln(gx+5,gy+22,gx+gw-5,gy+22,g.sc,.8);
+    g.pills.forEach((p,j)=>{
+      const py=gy+28+j*26;
+      S+=rc(gx+6,py,gw-12,21,'#ffffff99',3,g.sc,.8);
+      S+=tx(gx+gw/2,py+14,p,{sz:8,c:g.tc,a:'middle'});
+    });
+  });
+}
+
+/* ═══════════ LAYER 3 – SERVICES ═══════════ */
+{
+  const [lx,ly,lw,lh]=[CX,LY[2],CW,LH[2]];
+  S+=layerBlock(lx,ly,lw,lh,'🔧  COUCHE MÉTIER — SERVICES APPLICATIFS','#b45309','#fffbeb','#fcd34d');
+
+  const svcs=[
+    {t:'📦 StockService',     lines:['Gestion palettes','Calculs tonnage','Disponibilité stock']},
+    {t:'🧾 InvoiceService',   lines:['Génération factures','Calcul TVA / TTC','Numérotation auto']},
+    {t:'📋 AuditService',     lines:['Journal audit auto','oldValues/newValues','Mutations tracées']},
+    {t:'🔔 AlertService',     lines:['Chambres froides','Seuils critiques','INFO/WARNING/CRITICAL']},
+    {t:'❄️  ColdRoomOccupancy',lines:['Taux occupation','Capacité dispo','isNearCapacity()']},
+  ];
+  const sw=(lw-16)/svcs.length-5;
+  svcs.forEach((sv,i)=>{
+    const sx=lx+8+i*(sw+5), sy=ly+34, sh=lh-42;
+    S+=rc(sx,sy,sw,sh,'#fef3c7',5,'#fcd34d',1);
+    S+=tx(sx+sw/2,sy+16,sv.t,{sz:9.5,b:true,c:'#92400e',a:'middle'});
+    S+=ln(sx+5,sy+22,sx+sw-5,sy+22,'#fcd34d',.8);
+    sv.lines.forEach((l,j)=>S+=tx(sx+sw/2,sy+35+j*18,l,{sz:8.5,c:'#78350f',a:'middle'}));
+  });
+}
+
+/* ═══════════ LAYER 4 – REPOSITORIES ═══════════ */
+{
+  const [lx,ly,lw,lh]=[CX,LY[3],CW,LH[3]];
+  S+=layerBlock(lx,ly,lw,lh,'🗄  COUCHE ACCÈS DONNÉES — REPOSITORIES','#0e7490','#ecfeff','#67e8f9');
+
+  const repos=['User','Client','Operation','Palette','Invoice',
+               'FicheDecharge','ColdRoom','AuditLog','PaletteTransfer','StockOperation'];
+  const rw=(lw-16)/5-5;
+  repos.forEach((r,i)=>{
+    const col=i%5, row=Math.floor(i/5);
+    const rx2=lx+8+col*(rw+5), ry2=ly+32+row*26;
+    S+=pill(rx2,ry2,rw,r+'Repository','#cffafe','#0e7490','#67e8f9');
+  });
+}
+
+/* ═══════════ LAYER 5 – DONNÉES ═══════════ */
+{
+  const [lx,ly,lw,lh]=[CX,LY[4],CW,LH[4]];
+  S+=layerBlock(lx,ly,lw,lh,'💾  COUCHE DONNÉES — MODÈLE ENTITÉS','#166534','#f0fdf4','#86efac');
+
+  const colW=Math.floor((lw-28)/3);
+  const by=ly+36, bh=lh-44;
+  const hc='#15803d', hsc='#166534';
+
+  // — Doctrine ORM —
+  {
+    const bx=lx+8;
+    S+=rc(bx,by,colW,bh,'#dcfce7',6,'#86efac',1.5);
+    S+=rc(bx,by,colW,26,hc,6); S+=rc(bx,by+20,colW,6,hc,0);
+    S+=tx(bx+colW/2,by+18,'Doctrine ORM',{sz:11,b:true,c:'#fff',a:'middle'});
+    const ls=['PHP 8.2 Attributes','#[ORM\\Entity]','#[ORM\\Column]','#[ManyToOne]','#[OneToMany]',
+              'PrePersist / PreUpdate','Timestamps automatiques','Doctrine Migrations','QueryBuilder + DQL'];
+    ls.forEach((l,i)=>S+=tx(bx+10,by+36+i*20,l,{sz:9,c:'#14532d'}));
+  }
+
+  // — Entités + Enums —
+  {
+    const bx=lx+8+colW+6;
+    S+=rc(bx,by,colW,bh,'#dcfce7',6,'#86efac',1.5);
+    S+=rc(bx,by,colW,26,hc,6); S+=rc(bx,by+20,colW,6,hc,0);
+    S+=tx(bx+colW/2,by+18,'11 Entités  +  6 Enums',{sz:11,b:true,c:'#fff',a:'middle'});
+    // entity pills
+    const ents=['User','Client','Operation','Palette','ColdRoom',
+                'Invoice','InvoiceLine','FicheDecharge','PaletteTransfer','AuditLog','StockOperation'];
+    const ew=Math.floor((colW-16)/3)-4;
+    ents.forEach((e,i)=>{
+      const col=i%3, row=Math.floor(i/3);
+      const ex=bx+8+col*(ew+4), ey=by+30+row*26;
+      S+=rc(ex,ey,ew,22,'#bbf7d0',4,'#4ade80',1);
+      S+=tx(ex+ew/2,ey+15,e,{sz:8.5,b:true,c:'#14532d',a:'middle'});
+    });
+    // enum pills
+    S+=tx(bx+8,by+148,'PHP 8.1 Backed Enums :',{sz:9,b:true,c:'#166534'});
+    const enums=['StockStatus','OperationType','PaletteStatus','InvoiceStatus','FicheStatus','TypeStockage'];
+    const enumW=Math.floor((colW-16)/2)-4;
+    enums.forEach((e,i)=>{
+      const col=i%2, row=Math.floor(i/2);
+      const ex=bx+8+col*(enumW+4), ey=by+160+row*26;
+      S+=rc(ex,ey,enumW,22,'#86efac',4,'#22c55e',1);
+      S+=tx(ex+enumW/2,ey+15,e,{sz:8,b:true,c:'#14532d',a:'middle'});
+    });
+  }
+
+  // — MariaDB —
+  {
+    const bx=lx+8+(colW+6)*2;
+    S+=rc(bx,by,colW,bh,'#dcfce7',6,'#86efac',1.5);
+    S+=rc(bx,by,colW,26,hc,6); S+=rc(bx,by+20,colW,6,hc,0);
+    S+=tx(bx+colW/2,by+18,'MariaDB 10.4.32',{sz:11,b:true,c:'#fff',a:'middle'});
+    const ls=['SGBD : MariaDB 10.4.32','Base : golden_logistics','Charset : utf8mb4',
+              'Timezone : Africa/Casablanca','Fuseau : UTC+1 (+01:00)','DSN : mysql://127.0.0.1:3306',
+              '','Codes opérations :','  Entrée : BR-YYmm-XXXXXXX','  Sortie : BS-YYmm-XXXXXXX',
+              '','Codes palettes :','  BR-2506-XXXXXXX-01'];
+    ls.forEach((l,i)=>S+=tx(bx+10,by+36+i*18,l,{sz:9,c:'#14532d'}));
+  }
+}
+
+/* ═══════════ RIGHT PANEL – Services Transverses ═══════════ */
+{
+  S+=rc(RX,BY,RW,BH,'#f8fafc',8,'#e2e8f0',1.5);
+  S+=tx(RX+RW/2,BY+16,'SERVICES',     {sz:9.5,b:true,c:'#0f172a',a:'middle',ls:2});
+  S+=tx(RX+RW/2,BY+30,'TRANSVERSES',  {sz:9.5,b:true,c:'#0f172a',a:'middle',ls:2});
+  S+=ln(RX+10,BY+36,RX+RW-10,BY+36,'#e2e8f0',1.5);
+
+  const items=[
+    {ic:'🛡️',t:'Sécurité',c:'#dbeafe',tc:'#1e40af',sc:'#93c5fd',
+     ls:['6 rôles (hiérarchie Symfony)','PATRON > DIRECTEUR > CHEF_STOCK','> CONTROLEUR > USER','CLIENT > USER (portail isolé)','InvoiceVoter (fine-grained)','CSRF Token (tous formulaires POST)','Blocage : 5 essais / 15 minutes']},
+    {ic:'📋',t:'Audit & Traçabilité',c:'#fef9c3',tc:'#78350f',sc:'#fcd34d',
+     ls:['AuditService (auto sur mutations)','action / entityType / entityId','oldValues – newValues (JSON)','Log : create, validate, reject…']},
+    {ic:'🔔',t:'Alertes Temps Réel',c:'#fce7f3',tc:'#831843',sc:'#f9a8d4',
+     ls:['AlertService : surveillance active','Chambres froides (capacité, temp.)','Stock critique (seuils paramétrés)','Niveaux : INFO / WARNING / CRITICAL']},
+    {ic:'📧',t:'Email SMTP',c:'#f0fdf4',tc:'#14532d',sc:'#86efac',
+     ls:['Symfony Mailer','Reset mot de passe','Remember Me : 7 jours (604 800 s)']},
+    {ic:'📄',t:'Génération PDF',c:'#f5f3ff',tc:'#4c1d95',sc:'#c4b5fd',
+     ls:['Bon d\'Entrée  (BR-YYmm-XXXXXX)','Bon de Sortie (BS-YYmm-XXXXXX)','Fiches de charge / décharge','Factures (FAC-YYmmdd-XXXXXX)']},
+    {ic:'🤖',t:'Chatbot IA (NLP)',c:'#cffafe',tc:'#0e7490',sc:'#67e8f9',
+     ls:['NLP PHP natif — sans API externe','Tokenisation + mots-clés métier','Réponses par rôle / contexte DB','AJAX JSON via Turbo Streams']},
+  ];
+
+  let sy=BY+42;
+  items.forEach(it=>{
+    const bh=it.ls.length*16+32;
+    S+=rc(RX+8,sy,RW-16,bh,it.c,6,it.sc,1);
+    S+=tx(RX+14,sy+12,it.ic+' '+it.t,{sz:10,b:true,c:it.tc});
+    S+=ln(RX+10,sy+18,RX+RW-10,sy+18,it.sc,.8);
+    it.ls.forEach((l,i)=>S+=tx(RX+14,sy+30+i*16,l,{sz:8.5,c:'#374151'}));
+    sy+=bh+5;
+  });
+}
+
+/* ═══════════ TECH BAR ═══════════ */
+S+=`<rect x="0" y="${TY}" width="${W}" height="${H-TY}" fill="url(#gbot)"/>`;
+const techs=[
+  {t:'PHP 8.2.12',      c:'#818cf8'},{t:'Symfony 7.0.10',  c:'#34d399'},
+  {t:'Doctrine ORM',    c:'#fb923c'},{t:'MariaDB 10.4.32',  c:'#60a5fa'},
+  {t:'Twig 3.x',        c:'#f472b6'},{t:'Bootstrap 5',      c:'#a78bfa'},
+  {t:'Stimulus 3.2.2',  c:'#34d399'},{t:'Turbo 7.3.0',      c:'#fbbf24'},
+  {t:'Chart.js',        c:'#f87171'},{t:'AssetMapper',       c:'#67e8f9'},
+  {t:'Composer 2.5.1',  c:'#e879f9'},{t:'XAMPP / Apache',    c:'#94a3b8'},
+];
+const tw=W/techs.length;
+techs.forEach((t,i)=>{
+  const txp=i*tw;
+  S+=rc(txp+4,TY+6,tw-8,H-TY-12,'#ffffff0d',5);
+  S+=tx(txp+tw/2,TY+24,t.t,{sz:10,b:true,c:'#fff',a:'middle'});
+  S+=rc(txp+tw/2-22,TY+28,44,4,t.c,2);
+  if(i>0) S+=ln(txp,TY+8,txp,H-8,'#283558',1);
+});
+
+/* ═══════════ ASSEMBLE ═══════════ */
+const SVG=`<svg xmlns="http://www.w3.org/2000/svg" id="MS" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${S}</svg>`;
+document.getElementById('cvs').innerHTML=SVG;
+
+/* ═══════════ DOWNLOADS ═══════════ */
+function dlSVG(){
+  const data=new XMLSerializer().serializeToString(document.getElementById('MS'));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([data],{type:'image/svg+xml'}));
+  a.download='architecture_golden_logistics.svg'; a.click();
+}
+function dlPNG(){
+  const data=new XMLSerializer().serializeToString(document.getElementById('MS'));
+  const url=URL.createObjectURL(new Blob([data],{type:'image/svg+xml'}));
+  const img=new Image();
+  img.onload=()=>{
+    const c=document.createElement('canvas'); c.width=W*2; c.height=H*2;
+    const ctx=c.getContext('2d');
+    ctx.scale(2,2); ctx.fillStyle='#dde3ec'; ctx.fillRect(0,0,W,H);
+    ctx.drawImage(img,0,0,W,H);
+    c.toBlob(b=>{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b); a.download='architecture_golden_logistics.png'; a.click();
+    },'image/png');
+    URL.revokeObjectURL(url);
+  };
+  img.onerror=()=>alert('Clic droit → Enregistrer l\'image sous (Chrome recommandé)');
+  img.src=url;
+}
+</script>
+</body>
+</html>

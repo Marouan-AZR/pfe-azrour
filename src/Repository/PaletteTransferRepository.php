@@ -43,4 +43,42 @@ class PaletteTransferRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function findAllWithFilters(array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->join('t.palette', 'p')
+            ->join('p.operation', 'o')
+            ->orderBy('t.transferredAt', 'DESC');
+
+        if (!empty($filters['client'])) {
+            $qb->andWhere('o.client = :client')->setParameter('client', $filters['client']);
+        }
+        if (!empty($filters['codePalette'])) {
+            $qb->andWhere('p.codePalette LIKE :code')->setParameter('code', '%' . $filters['codePalette'] . '%');
+        }
+        if (!empty($filters['coldRoom'])) {
+            $qb->andWhere('t.toColdRoom = :coldRoom OR t.fromColdRoom = :coldRoom')->setParameter('coldRoom', $filters['coldRoom']);
+        }
+        if (!empty($filters['controleur'])) {
+            $qb->andWhere('t.transferredBy = :ctrl')->setParameter('ctrl', $filters['controleur']);
+        }
+        if (!empty($filters['dateFrom'])) {
+            $qb->andWhere('t.transferredAt >= :dateFrom')->setParameter('dateFrom', $filters['dateFrom'] . ' 00:00:00');
+        }
+        if (!empty($filters['dateTo'])) {
+            $qb->andWhere('t.transferredAt <= :dateTo')->setParameter('dateTo', $filters['dateTo'] . ' 23:59:59');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countByControleur(User $controleur): int
+    {
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.transferredBy = :user')
+            ->setParameter('user', $controleur)
+            ->getQuery()->getSingleScalarResult();
+    }
 }

@@ -3,490 +3,512 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golden Logistics - Entrepôt Frigorifique Dakhla</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🏔️</text></svg>">
+    <title>GL Warehouse Suite — Golden Logistics</title>
+    <link rel="icon" href="{{ asset('images/Logo essai.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #1e40af;
-            --primary-light: #3b82f6;
-            --secondary: #0ea5e9;
-            --accent: #f59e0b;
-            --text: #1e293b;
-            --text-muted: #64748b;
-            --bg: #ffffff;
-            --bg-light: #f8fafc;
-            --bg-section: #f1f5f9;
-            --border: #e2e8f0;
+            --blue:#2563eb; --blue-light:#3b82f6; --blue-dark:#1d4ed8;
+            --text:#111827; --muted:#6b7280; --border:#e5e7eb;
+            --bg:#f9fafb; --white:#ffffff;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior:smooth; }
+        body { font-family:'Inter',sans-serif; color:var(--text); background:var(--white); }
 
-        /* ===== NAVBAR ===== */
-        .navbar-public {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-            padding: 1rem 0; transition: all 0.3s ease; background: transparent;
+        /* ── NAV ── */
+        nav.main-nav {
+            position:fixed; top:0; left:0; right:0; z-index:999;
+            padding:0 2rem; height:68px; display:flex; align-items:center;
+            background:rgba(255,255,255,.92); backdrop-filter:blur(16px);
+            border-bottom:1px solid var(--border);
+            transition:box-shadow .3s;
         }
-        .navbar-public.scrolled {
-            background: #fff; box-shadow: 0 2px 20px rgba(0,0,0,0.08);
-        }
-        .navbar-brand-public {
-            display: flex; align-items: center; gap: 0.75rem;
-            font-weight: 800; font-size: 1.5rem; color: var(--primary); text-decoration: none;
-        }
-        .logo-icon {
-            width: 45px; height: 45px; background: var(--primary);
-            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
-        }
-        .nav-links { display: flex; gap: 2rem; align-items: center; }
-        .nav-link-public { color: var(--text-muted); text-decoration: none; font-weight: 500; transition: color 0.3s; }
-        .nav-link-public:hover { color: var(--primary); }
-        .btn-nav { padding: 0.6rem 1.5rem; border-radius: 50px; font-weight: 600; text-decoration: none; transition: all 0.3s; }
-        .btn-nav-outline { border: 2px solid var(--primary); color: var(--primary); }
-        .btn-nav-outline:hover { background: var(--primary); color: #fff; }
-        .btn-nav-primary { background: var(--primary); color: #fff; border: none; }
-        .btn-nav-primary:hover { background: var(--primary-light); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(30,64,175,0.3); }
+        nav.main-nav.scrolled { box-shadow:0 4px 24px rgba(0,0,0,.08); }
+        .nav-inner { max-width:1200px; width:100%; margin:0 auto; display:flex; align-items:center; justify-content:space-between; }
+        .nav-brand { display:flex; align-items:center; gap:.6rem; text-decoration:none; }
+        .nav-brand img { height:52px; width:auto; object-fit:contain; }
+        .nav-brand span { font-weight:800; font-size:1.2rem; color:var(--text); letter-spacing:-.02em; }
+        .nav-menu { display:flex; align-items:center; gap:1.75rem; }
+        .nav-link { color:var(--muted); text-decoration:none; font-size:.88rem; font-weight:500; transition:color .2s; }
+        .nav-link:hover { color:var(--text); }
+        .nav-cta { display:flex; gap:.6rem; }
+        .btn-ghost { padding:.45rem 1.1rem; border-radius:8px; font-size:.85rem; font-weight:600; border:1.5px solid var(--border); color:var(--text); text-decoration:none; transition:all .2s; }
+        .btn-ghost:hover { border-color:var(--blue); color:var(--blue); }
+        .btn-solid { padding:.45rem 1.1rem; border-radius:8px; font-size:.85rem; font-weight:600; background:var(--blue); color:#fff; text-decoration:none; transition:background .2s; }
+        .btn-solid:hover { background:var(--blue-dark); color:#fff; }
 
-        /* ===== HERO ===== */
+        /* ── HERO ── */
         .hero {
-            min-height: 100vh; display: flex; align-items: center; position: relative;
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 40%, #e0f2fe 100%);
-            overflow: hidden;
+            min-height:100vh; display:flex; align-items:center;
+            padding:100px 2rem 64px;
+            background:linear-gradient(180deg, #eff6ff 0%, var(--white) 65%);
+            position:relative; overflow:hidden;
         }
-        /* 3D animated blobs */
-        .hero-blob {
-            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5;
-            animation: blobFloat 8s ease-in-out infinite;
+        .hero::before {
+            content:''; position:absolute; top:-180px; right:-180px;
+            width:650px; height:650px; border-radius:50%;
+            background:radial-gradient(circle, rgba(59,130,246,.13) 0%, transparent 70%);
+            pointer-events:none;
         }
-        .hero-blob-1 {
-            width: 500px; height: 500px; top: -10%; right: -5%;
-            background: radial-gradient(circle, rgba(59,130,246,0.3), rgba(14,165,233,0.1));
-            animation-delay: 0s;
+        .hero-inner { max-width:1200px; margin:0 auto; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center; }
+        .hero-eyebrow {
+            display:inline-flex; align-items:center; gap:.4rem;
+            background:#eff6ff; border:1px solid #bfdbfe; border-radius:50px;
+            padding:.3rem .9rem; font-size:.77rem; font-weight:700; color:var(--blue);
+            margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:.07em;
         }
-        .hero-blob-2 {
-            width: 400px; height: 400px; bottom: -15%; left: -8%;
-            background: radial-gradient(circle, rgba(99,102,241,0.25), rgba(139,92,246,0.05));
-            animation-delay: -3s;
-        }
-        .hero-blob-3 {
-            width: 300px; height: 300px; top: 30%; left: 40%;
-            background: radial-gradient(circle, rgba(14,165,233,0.2), transparent);
-            animation-delay: -5s;
-        }
-        @keyframes blobFloat {
-            0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
-            25% { transform: translate(30px, -40px) scale(1.05) rotate(5deg); }
-            50% { transform: translate(-20px, 20px) scale(0.95) rotate(-3deg); }
-            75% { transform: translate(15px, 30px) scale(1.03) rotate(2deg); }
-        }
-        /* Floating 3D geometric shapes */
-        .hero-shape {
-            position: absolute; pointer-events: none; opacity: 0.15;
-        }
-        .hero-shape-1 {
-            width: 80px; height: 80px; top: 15%; right: 10%;
-            border: 3px solid var(--primary); border-radius: 16px;
-            animation: shapeRotate 12s linear infinite;
-        }
-        .hero-shape-2 {
-            width: 50px; height: 50px; bottom: 20%; right: 25%;
-            background: var(--secondary); border-radius: 50%;
-            animation: shapeFloat 6s ease-in-out infinite;
-        }
-        .hero-shape-3 {
-            width: 60px; height: 60px; top: 25%; left: 8%;
-            border: 3px solid var(--accent); transform: rotate(45deg);
-            animation: shapeRotate 15s linear infinite reverse;
-        }
-        .hero-shape-4 {
-            width: 40px; height: 40px; bottom: 30%; left: 15%;
-            background: var(--primary); border-radius: 12px; opacity: 0.1;
-            animation: shapeFloat 8s ease-in-out infinite 2s;
-        }
-        .hero-shape-5 {
-            width: 100px; height: 100px; top: 60%; right: 5%;
-            border: 2px dashed rgba(30,64,175,0.2); border-radius: 50%;
-            animation: shapeRotate 20s linear infinite;
-        }
-        @keyframes shapeRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes shapeFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-        /* Grid pattern overlay */
-        .hero-grid {
-            position: absolute; inset: 0; pointer-events: none;
-            background-image:
-                linear-gradient(rgba(30,64,175,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(30,64,175,0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-        }
-        .hero-content { position: relative; z-index: 10; }
-        .hero-badge {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            padding: 0.5rem 1rem; background: rgba(30,64,175,0.1); border: 1px solid rgba(30,64,175,0.2);
-            border-radius: 50px; font-size: 0.85rem; color: var(--primary); margin-bottom: 1.5rem;
-        }
-        .hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; color: var(--text); }
-        .hero-title .highlight { color: var(--primary); }
-        .hero-description { font-size: 1.2rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 2rem; }
-        .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .btn-hero {
-            padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1rem;
-            text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s;
-        }
+        .hero-title { font-size:3.6rem; font-weight:900; line-height:1.06; letter-spacing:-.04em; color:var(--text); margin-bottom:1.25rem; }
+        .hero-title .hi { color:var(--blue); }
+        .hero-desc { font-size:1.05rem; color:var(--muted); line-height:1.78; margin-bottom:2rem; max-width:480px; }
+        .hero-actions { display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:2.75rem; }
         .btn-hero-primary {
-            background: var(--primary); color: #fff; box-shadow: 0 8px 25px rgba(30,64,175,0.25);
+            display:inline-flex; align-items:center; gap:.5rem;
+            padding:.9rem 2.1rem; background:var(--blue); color:#fff;
+            border-radius:10px; font-weight:700; font-size:.93rem; text-decoration:none;
+            box-shadow:0 4px 18px rgba(37,99,235,.38); transition:all .25s;
         }
-        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(30,64,175,0.35); color: #fff; }
-        .btn-hero-secondary { background: #fff; border: 1px solid var(--border); color: var(--text); }
-        .btn-hero-secondary:hover { background: var(--bg-light); color: var(--text); }
+        .btn-hero-primary:hover { background:var(--blue-dark); color:#fff; transform:translateY(-2px); box-shadow:0 8px 26px rgba(37,99,235,.42); }
+        .btn-hero-secondary {
+            display:inline-flex; align-items:center; gap:.5rem;
+            padding:.9rem 1.75rem; color:var(--text); font-weight:600; font-size:.93rem;
+            text-decoration:none; border:1.5px solid var(--border); border-radius:10px; transition:all .2s;
+        }
+        .btn-hero-secondary:hover { border-color:var(--blue); color:var(--blue); }
+        .hero-stats { display:flex; gap:2rem; }
+        .hs { border-left:3px solid var(--blue); padding-left:.85rem; }
+        .hs-num { font-size:1.65rem; font-weight:800; color:var(--text); letter-spacing:-.03em; }
+        .hs-lbl { font-size:.73rem; color:var(--muted); }
 
-        /* Hero card */
-        .hero-visual { position: relative; z-index: 10; }
-        .hero-card {
-            background: #fff; border: 1px solid var(--border); border-radius: 24px;
-            padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+        /* hero image side */
+        .hero-media { position:relative; }
+        .hero-img-wrap {
+            border-radius:22px; overflow:hidden;
+            box-shadow:0 28px 72px rgba(0,0,0,.18);
         }
-        .hero-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-        .hero-card-icon {
-            width: 60px; height: 60px; background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-            border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+        .hero-img-wrap img { width:100%; height:480px; object-fit:cover; display:block; }
+        .hero-badge {
+            position:absolute; bottom:-20px; left:-20px;
+            background:var(--white); border:1px solid var(--border); border-radius:14px;
+            padding:1rem 1.25rem; box-shadow:0 8px 32px rgba(0,0,0,.1);
+            display:flex; align-items:center; gap:.75rem;
         }
-        .hero-card-title { font-size: 1.2rem; font-weight: 700; color: var(--text); }
-        .hero-card-subtitle { color: var(--text-muted); font-size: 0.9rem; }
-        .hero-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-        .hero-stat { background: var(--bg-section); border-radius: 12px; padding: 1rem; text-align: center; }
-        .hero-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
-        .hero-stat-label { font-size: 0.8rem; color: var(--text-muted); }
+        .hb-icon { width:44px; height:44px; background:#ecfdf5; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#10b981; font-size:1.3rem; flex-shrink:0; }
+        .hb-val { font-size:1.2rem; font-weight:800; color:var(--text); }
+        .hb-lbl { font-size:.7rem; color:var(--muted); }
+        .hero-badge2 {
+            position:absolute; top:-16px; right:-16px;
+            background:var(--blue); border-radius:12px;
+            padding:.85rem 1.1rem; box-shadow:0 8px 24px rgba(37,99,235,.42);
+            text-align:center;
+        }
+        .hb2-val { font-size:1.5rem; font-weight:900; color:#fff; line-height:1; }
+        .hb2-lbl { font-size:.68rem; color:rgba(255,255,255,.8); margin-top:.2rem; }
 
-        /* ===== FEATURES ===== */
-        .features { padding: 6rem 0; background: var(--bg); }
-        .section-header { text-align: center; margin-bottom: 4rem; }
-        .section-badge {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            padding: 0.5rem 1rem; background: rgba(30,64,175,0.08); border: 1px solid rgba(30,64,175,0.15);
-            border-radius: 50px; font-size: 0.85rem; color: var(--primary); margin-bottom: 1rem;
+        /* ── STRIP ── */
+        .strip {
+            background:var(--bg); border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+            padding:1.4rem 2rem;
         }
-        .section-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: var(--text); }
-        .section-description { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
-        .feature-card {
-            background: #fff; border: 1px solid var(--border); border-radius: 20px;
-            padding: 2rem; height: 100%; transition: all 0.3s;
-        }
-        .feature-card:hover { transform: translateY(-8px); border-color: var(--primary-light); box-shadow: 0 15px 40px rgba(30,64,175,0.1); }
-        .feature-icon { margin-bottom: 1.5rem; }
-        .feature-icon img { transition: transform 0.3s; }
-        .feature-card:hover .feature-icon img { transform: scale(1.1) rotate(3deg); }
-        .feature-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text); }
-        .feature-description { color: var(--text-muted); line-height: 1.6; }
+        .strip-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
+        .strip-lbl { font-size:.76rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+        .strip-divider { width:1px; height:22px; background:var(--border); }
+        .strip-tags { display:flex; flex-wrap:wrap; gap:.55rem; }
+        .strip-tag { background:var(--white); border:1px solid var(--border); border-radius:50px; padding:.28rem .82rem; font-size:.79rem; font-weight:600; color:var(--muted); }
 
-        /* ===== HOW IT WORKS ===== */
-        .how-it-works { padding: 6rem 0; background: var(--bg-section); }
-        .step-card {
-            padding: 2rem 1.5rem; background: #fff; border: 1px solid var(--border);
-            border-radius: 20px; position: relative; transition: all 0.3s;
+        /* ── STATS BAR ── */
+        .stats-bar { background:var(--text); padding:64px 2rem; }
+        .stats-grid-4 { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); }
+        .stat-cell {
+            padding:2rem; text-align:center;
+            border-right:1px solid #1f2937;
         }
-        .step-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
-        .step-number {
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            width: 32px; height: 32px; background: var(--primary); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 0.9rem; color: #fff;
+        .stat-cell:last-child { border-right:none; }
+        .stat-num { font-size:2.75rem; font-weight:900; color:#fff; letter-spacing:-.04em; line-height:1.1; }
+        .stat-num span { color:#60a5fa; }
+        .stat-lbl { font-size:.78rem; color:#9ca3af; text-transform:uppercase; letter-spacing:.06em; margin-top:.35rem; }
+
+        /* ── SECTIONS ── */
+        section { padding:96px 2rem; }
+        .section-inner { max-width:1200px; margin:0 auto; }
+        .section-label { display:inline-flex; align-items:center; gap:.35rem; font-size:.77rem; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.6rem; }
+        .section-title { font-size:2.4rem; font-weight:800; letter-spacing:-.03em; line-height:1.15; margin-bottom:.75rem; }
+        .section-desc { font-size:.97rem; color:var(--muted); max-width:540px; line-height:1.75; }
+
+        /* ── SERVICES ── */
+        .services-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-top:3rem; }
+        .service-card {
+            padding:1.75rem; border:1px solid var(--border); border-radius:16px;
+            background:var(--white); transition:all .25s;
         }
-        .step-card h5 { color: var(--text); }
-        .step-icon-img { margin: 1rem 0; }
+        .service-card:hover { border-color:#bfdbfe; box-shadow:0 8px 32px rgba(37,99,235,.07); transform:translateY(-4px); }
+        .sc-icon { width:46px; height:46px; background:#eff6ff; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:var(--blue); margin-bottom:1.1rem; }
+        .sc-title { font-size:.95rem; font-weight:700; margin-bottom:.4rem; }
+        .sc-desc { font-size:.83rem; color:var(--muted); line-height:1.65; }
 
-        /* ===== STATS ===== */
-        .stats-section { padding: 6rem 0; background: var(--primary); color: #fff; }
-        .stat-card { text-align: center; padding: 2rem; }
-        .stat-icon {
-            width: 80px; height: 80px; margin: 0 auto 1.5rem;
-            background: rgba(255,255,255,0.15); border-radius: 20px;
-            display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
+        /* ── HOW IT WORKS ── */
+        .how-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; margin-top:3rem; position:relative; }
+        .how-grid::before {
+            content:''; position:absolute; top:27px; left:calc(16% + 28px); right:calc(16% + 28px);
+            height:2px; background:linear-gradient(90deg, var(--blue), #a5b4fc);
         }
-        .stat-value { font-size: 3rem; font-weight: 800; color: #fff; }
-        .stat-label { color: rgba(255,255,255,0.8); font-size: 1rem; margin-top: 0.5rem; }
-
-        /* ===== FOOTER ===== */
-        .footer { padding: 4rem 0 2rem; background: var(--bg-section); border-top: 1px solid var(--border); }
-        .footer-brand {
-            display: flex; align-items: center; gap: 0.75rem;
-            font-weight: 800; font-size: 1.3rem; color: var(--text); margin-bottom: 1rem;
+        .how-card { text-align:center; }
+        .how-num {
+            width:56px; height:56px; border-radius:50%; background:var(--blue); color:#fff;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.25rem; font-weight:800; margin:0 auto 1.25rem;
+            box-shadow:0 4px 16px rgba(37,99,235,.35); position:relative; z-index:1;
         }
-        .footer-description { color: var(--text-muted); max-width: 300px; line-height: 1.6; }
-        .footer-title { font-weight: 700; margin-bottom: 1.5rem; color: var(--text); }
-        .footer-links { list-style: none; padding: 0; }
-        .footer-links li { margin-bottom: 0.75rem; color: var(--text-muted); }
-        .footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.3s; }
-        .footer-links a:hover { color: var(--primary); }
-        .footer-bottom { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); }
+        .how-title { font-weight:700; margin-bottom:.4rem; font-size:.97rem; }
+        .how-desc { font-size:.83rem; color:var(--muted); line-height:1.65; }
+        .how-points { list-style:none; margin-top:.75rem; text-align:left; }
+        .how-points li { font-size:.79rem; color:var(--muted); padding:.28rem 0; border-top:1px solid var(--border); display:flex; align-items:center; gap:.4rem; }
+        .how-points li i { color:var(--blue); font-size:.7rem; }
 
-        /* ===== ANIMATIONS ===== */
-        [data-aos="fade-up"] { opacity: 0; transform: translateY(30px); transition: all 0.6s ease; }
-        [data-aos="fade-up"].aos-animate { opacity: 1; transform: translateY(0); }
+        /* ── GALLERY ── */
+        .gallery-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:2.5rem; }
+        .gallery-item { border-radius:14px; overflow:hidden; border:1px solid var(--border); box-shadow:0 4px 20px rgba(0,0,0,.05); }
+        .gallery-item img { width:100%; height:200px; object-fit:cover; display:block; transition:transform .4s; }
+        .gallery-item:hover img { transform:scale(1.04); }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 992px) { .hero-title { font-size: 2.5rem; } .hero-visual { margin-top: 3rem; } }
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .hero-title { font-size: 2rem; }
-            .hero-buttons { flex-direction: column; }
-            .section-title { font-size: 2rem; }
+        /* ── CTA ── */
+        .cta-section {
+            background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0ea5e9 100%);
+            text-align:center; padding:100px 2rem;
+        }
+        .cta-pre { display:inline-block; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,.65); margin-bottom:1rem; }
+        .cta-title { font-size:2.8rem; font-weight:900; color:#fff; letter-spacing:-.04em; margin-bottom:1rem; line-height:1.1; }
+        .cta-desc { color:rgba(255,255,255,.72); font-size:1rem; margin-bottom:2.5rem; }
+        .btn-cta-white { display:inline-flex; align-items:center; gap:.5rem; padding:.95rem 2.4rem; background:#fff; color:var(--blue); border-radius:10px; font-weight:700; font-size:.93rem; text-decoration:none; box-shadow:0 4px 20px rgba(0,0,0,.18); transition:all .25s; }
+        .btn-cta-white:hover { transform:translateY(-2px); box-shadow:0 10px 32px rgba(0,0,0,.25); color:var(--blue-dark); }
+        .btn-cta-outline { display:inline-flex; align-items:center; gap:.5rem; padding:.95rem 2.4rem; background:transparent; color:#fff; border:2px solid rgba(255,255,255,.32); border-radius:10px; font-weight:600; font-size:.93rem; text-decoration:none; transition:all .25s; }
+        .btn-cta-outline:hover { border-color:rgba(255,255,255,.8); background:rgba(255,255,255,.08); color:#fff; }
+
+        /* ── FOOTER ── */
+        footer { background:#111827; padding:3.5rem 2rem 2rem; }
+        .footer-inner { max-width:1200px; margin:0 auto; }
+        .footer-top { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:2rem; border-bottom:1px solid #1f2937; gap:3rem; flex-wrap:wrap; }
+        .footer-brand img { height:52px; width:auto; object-fit:contain; margin-bottom:.6rem; display:block; }
+        .footer-brand p { font-size:.8rem; color:#6b7280; max-width:250px; line-height:1.65; margin-top:.4rem; }
+        .footer-links { display:flex; gap:3rem; }
+        .fl-group h6 { font-size:.74rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; margin-bottom:.8rem; }
+        .fl-group a { display:block; font-size:.81rem; color:#6b7280; text-decoration:none; margin-bottom:.4rem; transition:color .2s; }
+        .fl-group a:hover { color:#d1d5db; }
+        .footer-bottom { padding-top:1.5rem; display:flex; justify-content:space-between; align-items:center; font-size:.76rem; color:#4b5563; flex-wrap:wrap; gap:.5rem; }
+
+        @media(max-width:1024px) { .hero-inner { grid-template-columns:1fr; } .hero-media { display:none; } }
+        @media(max-width:768px) {
+            .nav-menu { display:none; }
+            .hero-title { font-size:2.3rem; }
+            .stats-grid-4 { grid-template-columns:repeat(2,1fr); }
+            .stat-cell { border-right:none; border-bottom:1px solid #1f2937; }
+            .services-grid, .how-grid, .gallery-grid { grid-template-columns:1fr; }
+            .how-grid::before { display:none; }
+            section { padding:64px 1.25rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar-public" id="navbar">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <a href="{{ path('app_home') }}" class="navbar-brand-public">
-                    <div class="logo-icon">🏔️</div>
-                    Golden Logistics
+
+<!-- ── Navbar ── -->
+<nav class="main-nav" id="mainNav">
+    <div class="nav-inner">
+        <a href="{{ path('app_home') }}" class="nav-brand">
+            <img src="{{ asset('images/Logo essai.png') }}" alt="Golden Logistics">
+            <span>Golden Logistics</span>
+        </a>
+        <div class="nav-menu">
+            <a href="{{ path('app_home') }}" class="nav-link">Accueil</a>
+            <a href="{{ path('app_about') }}" class="nav-link">En savoir plus</a>
+        </div>
+        <div class="nav-cta">
+            <a href="{{ path('app_login') }}" class="btn-ghost">Connexion</a>
+            <a href="{{ path('app_register') }}" class="btn-solid">S'inscrire</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+    <div class="hero-inner">
+        <div>
+            <div class="hero-eyebrow">
+                <i class="bi bi-geo-alt-fill"></i> Dakhla, Maroc — Z.I. Essalam
+            </div>
+            <div style="display:inline-flex;align-items:center;gap:.5rem;background:#111827;border-radius:50px;padding:.35rem 1rem;margin-bottom:1rem;">
+                <i class="bi bi-box-seam" style="color:#60a5fa;font-size:.8rem"></i>
+                <span style="font-size:.78rem;font-weight:700;color:#fff;letter-spacing:.04em">GL WAREHOUSE SUITE</span>
+                <span style="background:#2563eb;color:#fff;font-size:.65rem;font-weight:700;padding:.1rem .45rem;border-radius:50px">WMS</span>
+            </div>
+            <h1 class="hero-title">
+                La plus grande<br>plateforme <span class="hi">frigorifique</span><br>d'Afrique
+            </h1>
+            <p class="hero-desc">
+                12 000 tonnes de capacité, 9 200 palettes, 5 chambres froides à -25°C.
+                GL Warehouse Suite pour une gestion complète de votre stock congelé.
+            </p>
+            <div class="hero-actions">
+                <a href="{{ path('app_login') }}" class="btn-hero-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Accéder à la plateforme
                 </a>
-                <div class="nav-links">
-                    <a href="{{ path('app_home') }}" class="nav-link-public">Accueil</a>
-                    <a href="{{ path('app_about') }}" class="nav-link-public">En savoir plus</a>
-                    <a href="{{ path('app_login') }}" class="btn-nav btn-nav-outline">Connexion</a>
-                    <a href="{{ path('app_register') }}" class="btn-nav btn-nav-primary">S'inscrire</a>
+                <a href="{{ path('app_about') }}" class="btn-hero-secondary">
+                    Découvrir <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hs">
+                    <div class="hs-num">12 000 T</div>
+                    <div class="hs-lbl">Capacité totale</div>
+                </div>
+                <div class="hs">
+                    <div class="hs-num">9 200</div>
+                    <div class="hs-lbl">Palettes</div>
+                </div>
+                <div class="hs">
+                    <div class="hs-num">-25°C</div>
+                    <div class="hs-lbl">Température</div>
                 </div>
             </div>
         </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        {# 3D Animated background elements #}
-        <div class="hero-blob hero-blob-1"></div>
-        <div class="hero-blob hero-blob-2"></div>
-        <div class="hero-blob hero-blob-3"></div>
-        <div class="hero-shape hero-shape-1"></div>
-        <div class="hero-shape hero-shape-2"></div>
-        <div class="hero-shape hero-shape-3"></div>
-        <div class="hero-shape hero-shape-4"></div>
-        <div class="hero-shape hero-shape-5"></div>
-        <div class="hero-grid"></div>
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <div class="hero-content">
-                        <div class="hero-badge">
-                            <i class="bi bi-geo-alt-fill"></i> Dakhla, Maroc
-                        </div>
-                        <h1 class="hero-title">
-                            Entrepôt <span class="highlight">Frigorifique</span> de Nouvelle Génération
-                        </h1>
-                        <p class="hero-description">
-                            Golden Logistics offre des solutions de stockage frigorifique de pointe pour l'industrie halieutique.
-                            Capacité optimale, traçabilité complète et gestion intelligente de vos marchandises.
-                        </p>
-                        <div class="hero-buttons">
-                            <a href="{{ path('app_login') }}" class="btn-hero btn-hero-primary">
-                                <i class="bi bi-box-arrow-in-right"></i> Accéder au système
-                            </a>
-                            <a href="{{ path('app_about') }}" class="btn-hero btn-hero-secondary">
-                                <i class="bi bi-info-circle"></i> En savoir plus
-                            </a>
-                        </div>
-                    </div>
+        <div class="hero-media">
+            <div class="hero-img-wrap">
+                <img src="{{ asset('images/logo.png') }}" alt="Entrepôt Golden Logistics">
+            </div>
+            <div class="hero-badge">
+                <div class="hb-icon"><i class="bi bi-snow2"></i></div>
+                <div>
+                    <div class="hb-val">5 chambres</div>
+                    <div class="hb-lbl">Stockage à -25°C constant</div>
                 </div>
-                <div class="col-lg-6">
-                    <div class="hero-visual">
-                        <div class="hero-card">
-                            <div class="hero-card-header">
-                                <div class="hero-card-icon">❄️</div>
-                                <div>
-                                    <div class="hero-card-title">Stockage Intelligent</div>
-                                    <div class="hero-card-subtitle">Surveillance 24/7</div>
-                                </div>
-                            </div>
-                            <div class="hero-stats">
-                                <div class="hero-stat"><div class="hero-stat-value">5</div><div class="hero-stat-label">Chambres Froides</div></div>
-                                <div class="hero-stat"><div class="hero-stat-value">-25°C</div><div class="hero-stat-label">Température</div></div>
-                                <div class="hero-stat"><div class="hero-stat-value">10K</div><div class="hero-stat-label">Tonnes Capacité</div></div>
-                                <div class="hero-stat"><div class="hero-stat-value">44</div><div class="hero-stat-label">Rayons/Chambre</div></div>
-                            </div>
-                        </div>
-                    </div>
+            </div>
+            <div class="hero-badge2">
+                <div class="hb2-val">80M</div>
+                <div class="hb2-lbl">DH investis</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Strip ── -->
+<div class="strip">
+    <div class="strip-inner">
+        <span class="strip-lbl">Certifications & Standards</span>
+        <div class="strip-divider"></div>
+        <div class="strip-tags">
+            <span class="strip-tag"><i class="bi bi-shield-check me-1"></i>HACCP</span>
+            <span class="strip-tag"><i class="bi bi-thermometer-snow me-1"></i>Chaîne du froid</span>
+            <span class="strip-tag"><i class="bi bi-qr-code me-1"></i>Traçabilité totale</span>
+            <span class="strip-tag"><i class="bi bi-lightning-charge me-1"></i>1 600 KVA</span>
+            <span class="strip-tag"><i class="bi bi-sun me-1"></i>Projet PV 1 MWc</span>
+        </div>
+    </div>
+</div>
+
+<!-- ── Stats bar ── -->
+<div class="stats-bar">
+    <div class="stats-grid-4">
+        <div class="stat-cell">
+            <div class="stat-num">12<span> 000</span></div>
+            <div class="stat-lbl">Tonnes de capacité</div>
+        </div>
+        <div class="stat-cell">
+            <div class="stat-num">9<span> 200</span></div>
+            <div class="stat-lbl">Palettes max.</div>
+        </div>
+        <div class="stat-cell">
+            <div class="stat-num">80<span> M DH</span></div>
+            <div class="stat-lbl">Investissement</div>
+        </div>
+        <div class="stat-cell">
+            <div class="stat-num">50<span>+</span></div>
+            <div class="stat-lbl">Collaborateurs</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Services ── -->
+<section>
+    <div class="section-inner">
+        <div class="row align-items-start">
+            <div class="col-lg-4">
+                <div class="section-label"><i class="bi bi-grid-3x3-gap"></i> Services</div>
+                <h2 class="section-title">Tout ce dont vous<br>avez besoin</h2>
+                <p class="section-desc">Une solution complète de la réception à l'expédition, avec traçabilité digitale à chaque étape.</p>
+            </div>
+        </div>
+        <div class="services-grid">
+            <div class="service-card fade-up">
+                <div class="sc-icon"><i class="bi bi-snow2"></i></div>
+                <div class="sc-title">Stockage frigorifique</div>
+                <div class="sc-desc">5 chambres à -25°C avec rayonnage par accumulation. 12 000 T disponibles 24h/24.</div>
+            </div>
+            <div class="service-card fade-up">
+                <div class="sc-icon"><i class="bi bi-box-arrow-in-down"></i></div>
+                <div class="sc-title">Réception & Entrée</div>
+                <div class="sc-desc">Pesage, déchargement clark électrique, attribution code-barre et bon d'entrée automatisé.</div>
+            </div>
+            <div class="service-card fade-up">
+                <div class="sc-icon"><i class="bi bi-truck"></i></div>
+                <div class="sc-title">Expédition</div>
+                <div class="sc-desc">Préparation commande, chargement, bon de livraison et pesage à la sortie.</div>
+            </div>
+            <div class="service-card fade-up">
+                <div class="sc-icon"><i class="bi bi-bar-chart-line"></i></div>
+                <div class="sc-title">Tableaux de bord</div>
+                <div class="sc-desc">Indicateurs temps réel pour patron, directeur, chef de stock et clients.</div>
+            </div>
+            <div class="service-card fade-up">
+                <div class="sc-icon"><i class="bi bi-receipt"></i></div>
+                <div class="sc-title">Facturation automatique</div>
+                <div class="sc-desc">Calcul des frais de stockage et génération des factures PDF par client.</div>
+            </div>
+            <div class="service-card fade-up">
+                <div class="sc-icon"><i class="bi bi-qr-code-scan"></i></div>
+                <div class="sc-title">Traçabilité complète</div>
+                <div class="sc-desc">Historique complet par palette — entrées, sorties et transferts enregistrés.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── How it works ── -->
+<section style="background:var(--bg);">
+    <div class="section-inner">
+        <div class="text-center" style="margin-bottom:3rem;">
+            <div class="section-label" style="justify-content:center"><i class="bi bi-diagram-3"></i> Processus</div>
+            <h2 class="section-title" style="max-width:420px;margin:0 auto .75rem;">Chaîne de valeur</h2>
+            <p class="section-desc" style="margin:0 auto;">Du quai de réception à l'expédition — un flux maîtrisé.</p>
+        </div>
+        <div class="how-grid">
+            <div class="how-card fade-up">
+                <div class="how-num">1</div>
+                <div class="how-title">Réception</div>
+                <div class="how-desc">Prise en charge de la marchandise à son arrivée.</div>
+                <ul class="how-points">
+                    <li><i class="bi bi-caret-right-fill"></i> Pesage du camion à l'entrée</li>
+                    <li><i class="bi bi-caret-right-fill"></i> Déchargement clark électrique</li>
+                    <li><i class="bi bi-caret-right-fill"></i> Code-barre & bon d'entrée</li>
+                </ul>
+            </div>
+            <div class="how-card fade-up">
+                <div class="how-num">2</div>
+                <div class="how-title">Stockage</div>
+                <div class="how-desc">Gestion intelligente de l'emplacement en temps réel.</div>
+                <ul class="how-points">
+                    <li><i class="bi bi-caret-right-fill"></i> Inspection qualité et froid</li>
+                    <li><i class="bi bi-caret-right-fill"></i> Gerbage sur rayonnage</li>
+                    <li><i class="bi bi-caret-right-fill"></i> Gestion des emplacements WMS</li>
+                </ul>
+            </div>
+            <div class="how-card fade-up">
+                <div class="how-num">3</div>
+                <div class="how-title">Expédition</div>
+                <div class="how-desc">Préparation et livraison dans les meilleures conditions.</div>
+                <ul class="how-points">
+                    <li><i class="bi bi-caret-right-fill"></i> Préparation commande</li>
+                    <li><i class="bi bi-caret-right-fill"></i> Bon de livraison & facturation</li>
+                    <li><i class="bi bi-caret-right-fill"></i> Pesage camion à la sortie</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Gallery ── -->
+<section>
+    <div class="section-inner">
+        <div class="section-label"><i class="bi bi-image"></i> Aperçu</div>
+        <h2 class="section-title">La plateforme en images</h2>
+        <p class="section-desc">Découvrez notre entrepôt et notre système de gestion.</p>
+        <div class="gallery-grid">
+            <div class="gallery-item fade-up">
+                <img src="{{ asset('images/Capture d\'écran 2026-06-11 201422.png') }}" alt="Dashboard">
+            </div>
+            <div class="gallery-item fade-up">
+                <img src="{{ asset('images/Capture d\'écran 2026-06-11 201529.png') }}" alt="Gestion stock">
+            </div>
+            <div class="gallery-item fade-up">
+                <img src="{{ asset('images/Capture d\'écran 2026-06-11 201600.png') }}" alt="Opérations">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+    <div style="max-width:680px;margin:0 auto;">
+        <div class="cta-pre">GL Warehouse Suite</div>
+        <h2 class="cta-title">Optimisez votre<br>stock frigorifique</h2>
+        <p class="cta-desc">Rejoignez Golden Logistics et gérez vos marchandises avec précision, traçabilité et sérénité.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{{ path('app_login') }}" class="btn-cta-white">
+                <i class="bi bi-box-arrow-in-right"></i> Se connecter
+            </a>
+            <a href="{{ path('app_about') }}" class="btn-cta-outline">
+                En savoir plus <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <img src="{{ asset('images/Logo essai.png') }}" alt="Golden Logistics">
+                <p>Plateforme frigorifique de nouvelle génération — Z.I. Essalam, Dakhla, Maroc.</p>
+            </div>
+            <div class="footer-links">
+                <div class="fl-group">
+                    <h6>Navigation</h6>
+                    <a href="{{ path('app_home') }}">Accueil</a>
+                    <a href="{{ path('app_about') }}">En savoir plus</a>
+                </div>
+                <div class="fl-group">
+                    <h6>Compte</h6>
+                    <a href="{{ path('app_login') }}">Connexion</a>
+                    <a href="{{ path('app_register') }}">Inscription</a>
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-badge"><i class="bi bi-stars"></i> Nos Services</div>
-                <h2 class="section-title">Une Plateforme Complète</h2>
-                <p class="section-description">Découvrez nos services de stockage frigorifique et de gestion logistique adaptés à vos besoins.</p>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card" data-aos="fade-up">
-                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/storage.png" alt="Stockage" width="60" height="60"></div>
-                        <h3 class="feature-title">Stockage Frigorifique</h3>
-                        <p class="feature-description">5 chambres froides avec contrôle de température précis de -25°C à +5°C pour tous types de produits.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/open-box.png" alt="Entrées" width="60" height="60"></div>
-                        <h3 class="feature-title">Gestion des Entrées</h3>
-                        <p class="feature-description">Réception et enregistrement des marchandises avec traçabilité complète et génération de bons de réception.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/truck.png" alt="Expédition" width="60" height="60"></div>
-                        <h3 class="feature-title">Préparation d'Expédition</h3>
-                        <p class="feature-description">Organisation des sorties avec fiches de charge, scan PDA et bons de livraison automatisés.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
-                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/combo-chart.png" alt="Suivi" width="60" height="60"></div>
-                        <h3 class="feature-title">Suivi en Temps Réel</h3>
-                        <p class="feature-description">Tableaux de bord personnalisés avec statistiques, graphiques et indicateurs de performance.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
-                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/bill.png" alt="Facturation" width="60" height="60"></div>
-                        <h3 class="feature-title">Facturation Automatique</h3>
-                        <p class="feature-description">Calcul automatique des frais de stockage et manipulation avec génération de factures PDF.</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
-                        <div class="feature-icon"><img src="https://img.icons8.com/3d-fluency/94/lock-2.png" alt="Sécurité" width="60" height="60"></div>
-                        <h3 class="feature-title">Sécurité & Traçabilité</h3>
-                        <p class="feature-description">Historique complet des opérations, gestion des rôles et audit de toutes les actions.</p>
-                    </div>
-                </div>
-            </div>
+        <div class="footer-bottom">
+            <span>&copy; {{ "now"|date("Y") }} Golden Logistics — Dakhla, Maroc</span>
+            <span>80 000 000 DH &nbsp;&bull;&nbsp; 12 000 T &nbsp;&bull;&nbsp; 5 chambres &nbsp;&bull;&nbsp; -25°C</span>
         </div>
-    </section>
+    </div>
+</footer>
 
-    <!-- How it works -->
-    <section class="how-it-works">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-badge" style="background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.2); color: #d97706;">
-                    <i class="bi bi-gear-wide-connected"></i> Processus
-                </div>
-                <h2 class="section-title">Comment ça marche ?</h2>
-                <p class="section-description">Un processus simple et efficace en 4 étapes</p>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-3 text-center">
-                    <div class="step-card">
-                        <div class="step-number">1</div>
-                        <div class="step-icon-img"><img src="https://img.icons8.com/3d-fluency/94/receive-cash.png" alt="" width="64" height="64"></div>
-                        <h5>Réception</h5>
-                        <p class="text-muted small">Le contrôleur saisit les marchandises reçues</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 text-center">
-                    <div class="step-card">
-                        <div class="step-number">2</div>
-                        <div class="step-icon-img"><img src="https://img.icons8.com/3d-fluency/94/checkmark.png" alt="" width="64" height="64"></div>
-                        <h5>Validation</h5>
-                        <p class="text-muted small">Le chef de stock valide et met à jour le stock</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 text-center">
-                    <div class="step-card">
-                        <div class="step-number">3</div>
-                        <div class="step-icon-img"><img src="https://img.icons8.com/3d-fluency/94/pallet.png" alt="" width="64" height="64"></div>
-                        <h5>Stockage</h5>
-                        <p class="text-muted small">Suivi en temps réel dans les chambres froides</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 text-center">
-                    <div class="step-card">
-                        <div class="step-number">4</div>
-                        <div class="step-icon-img"><img src="https://img.icons8.com/3d-fluency/94/delivery.png" alt="" width="64" height="64"></div>
-                        <h5>Expédition</h5>
-                        <p class="text-muted small">Préparation et sortie avec traçabilité complète</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<script>
+    window.addEventListener('scroll', () => {
+        document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive:true });
 
-    <!-- Stats -->
-    <section class="stats-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value">10 000</div><div class="stat-label">Tonnes de Capacité</div></div></div>
-                <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon">🧊</div><div class="stat-value">5</div><div class="stat-label">Chambres Froides</div></div></div>
-                <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon">🌡️</div><div class="stat-value">-25°C</div><div class="stat-label">Température Contrôlée</div></div></div>
-                <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">50+</div><div class="stat-label">Collaborateurs</div></div></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4">
-                    <div class="footer-brand">
-                        <div class="logo-icon" style="width:40px;height:40px;font-size:1.2rem;">🏔️</div>
-                        Golden Logistics
-                    </div>
-                    <p class="footer-description">Votre partenaire de confiance pour le stockage frigorifique à Dakhla. Solutions modernes et traçabilité complète.</p>
-                </div>
-                <div class="col-lg-2 col-md-4 mb-4">
-                    <h5 class="footer-title">Navigation</h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ path('app_home') }}">Accueil</a></li>
-                        <li><a href="{{ path('app_about') }}">En savoir plus</a></li>
-                        <li><a href="{{ path('app_login') }}">Connexion</a></li>
-                        <li><a href="{{ path('app_register') }}">Inscription</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-4 mb-4">
-                    <h5 class="footer-title">Services</h5>
-                    <ul class="footer-links">
-                        <li><a href="#">Stockage frigorifique</a></li>
-                        <li><a href="#">Gestion de stock</a></li>
-                        <li><a href="#">Facturation</a></li>
-                        <li><a href="#">Traçabilité</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-4 mb-4">
-                    <h5 class="footer-title">Contact</h5>
-                    <ul class="footer-links">
-                        <li><i class="bi bi-geo-alt me-2"></i>Dakhla, Maroc</li>
-                        <li><i class="bi bi-envelope me-2"></i>contact@golden-logistics.ma</li>
-                        <li><i class="bi bi-telephone me-2"></i>+212 5XX XX XX XX</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; {{ "now"|date("Y") }} Golden Logistics. Tous droits réservés. | Projet PFE</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        window.addEventListener('scroll', function() {
-            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if(e.isIntersecting) {
+                e.target.style.opacity = '1';
+                e.target.style.transform = 'translateY(0)';
+            }
         });
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    setTimeout(() => entry.target.classList.add('aos-animate'), parseInt(entry.target.dataset.aosDelay || 0));
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('[data-aos]').forEach(el => observer.observe(el));
-    </script>
+    }, { threshold:0.07 });
+
+    document.querySelectorAll('.fade-up').forEach((el, i) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(28px)';
+        el.style.transition = `opacity .5s ease ${i * 60}ms, transform .5s ease ${i * 60}ms`;
+        obs.observe(el);
+    });
+
+    document.querySelectorAll('.stat-cell').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity .5s ease, transform .5s ease';
+        obs.observe(el);
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

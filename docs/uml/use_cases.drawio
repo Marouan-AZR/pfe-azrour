@@ -1,0 +1,751 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-06-15" agent="Claude Code" version="24.0.0">
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE 1 : VUE GLOBALE
+       Acteurs GAUCHE : Client, Contrôleur
+       Acteurs DROITE : Chef de Stock, Directeur, Patron
+       4 zones colorées : Accès | Opérations | Infrastructure | Gestion
+       ══════════════════════════════════════════════════════ -->
+  <diagram id="p1" name="1. Vue Globale">
+    <mxGraphModel dx="1300" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="VUE GLOBALE — Système de Gestion d'Entrepôt Frigorifique" style="text;html=1;align=center;fontStyle=1;fontSize=15;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="170" y="4" width="1130" height="26" as="geometry"/>
+        </mxCell>
+        <!-- Frontière système -->
+        <mxCell id="sb" value="" style="rounded=1;fillColor=none;strokeColor=#334155;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="165" y="34" width="1155" height="870" as="geometry"/>
+        </mxCell>
+        <mxCell id="sbl" value="&lt;&lt;system&gt;&gt;  Système Frigorifique" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#1e293b;" vertex="1" parent="1">
+          <mxGeometry x="490" y="36" width="490" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ZONE 1 : ACCÈS (bleu) ── -->
+        <mxCell id="z1bg" value="" style="rounded=1;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="180" y="62" width="242" height="262" as="geometry"/>
+        </mxCell>
+        <mxCell id="z1lb" value="ACCÈS" style="text;html=1;align=center;fontStyle=1;fontSize=11;fillColor=none;strokeColor=none;fontColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry x="180" y="64" width="242" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="u1a" value="S'authentifier" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="191" y="92" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u1b" value="Consulter Tableau de Bord" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="191" y="154" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u1c" value="Utiliser Chatbot / Centre d'Aide" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="191" y="216" width="210" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ZONE 2 : OPÉRATIONS (orange) ── -->
+        <mxCell id="z2bg" value="" style="rounded=1;fillColor=#fff7ed;strokeColor=#f97316;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="442" y="62" width="242" height="636" as="geometry"/>
+        </mxCell>
+        <mxCell id="z2lb" value="OPÉRATIONS" style="text;html=1;align=center;fontStyle=1;fontSize=11;fillColor=none;strokeColor=none;fontColor=#c2410c;" vertex="1" parent="1">
+          <mxGeometry x="442" y="64" width="242" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="u2a" value="Enregistrer Entrée Palette" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="453" y="92" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u2b" value="Valider Entrée" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="453" y="154" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u2c" value="Préparer Sortie Palette" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="453" y="216" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u2d" value="Valider Sortie" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="453" y="278" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u2e" value="Générer Fiche Charge/Décharge" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="453" y="340" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u2f" value="Transférer Palette" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="453" y="402" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u2g" value="Consulter Alertes" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="453" y="464" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u2h" value="Consulter Historique" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="453" y="526" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u2i" value="Voir Plan des Rayons" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="453" y="588" width="210" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ZONE 3 : INFRASTRUCTURE (vert) ── -->
+        <mxCell id="z3bg" value="" style="rounded=1;fillColor=#dcfce7;strokeColor=#22c55e;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="704" y="62" width="242" height="450" as="geometry"/>
+        </mxCell>
+        <mxCell id="z3lb" value="INFRASTRUCTURE" style="text;html=1;align=center;fontStyle=1;fontSize=11;fillColor=none;strokeColor=none;fontColor=#15803d;" vertex="1" parent="1">
+          <mxGeometry x="704" y="64" width="242" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="u3a" value="Consulter Stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="715" y="92" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u3b" value="Gérer Chambres Froides" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="715" y="154" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u3c" value="Gérer Rayons / Emplacements" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="715" y="216" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u3d" value="Rechercher / Filtrer Palettes" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="715" y="278" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u3e" value="Générer Rapport Stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="715" y="340" width="210" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ZONE 4 : GESTION (violet) ── -->
+        <mxCell id="z4bg" value="" style="rounded=1;fillColor=#f5f3ff;strokeColor=#8b5cf6;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="966" y="62" width="328" height="636" as="geometry"/>
+        </mxCell>
+        <mxCell id="z4lb" value="GESTION" style="text;html=1;align=center;fontStyle=1;fontSize=11;fillColor=none;strokeColor=none;fontColor=#6d28d9;" vertex="1" parent="1">
+          <mxGeometry x="966" y="64" width="328" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="u4a" value="Gérer Clients" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="977" y="92" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u4b" value="Définir Grille Tarifaire" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="977" y="154" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u4c" value="Générer Facture" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="977" y="216" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u4d" value="Valider Facture" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="977" y="278" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u4e" value="Exporter Facture PDF" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="977" y="340" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u4f" value="Gérer Utilisateurs" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="977" y="402" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u4g" value="Générer Rapports / Statistiques" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="977" y="464" width="210" height="42" as="geometry"/>
+        </mxCell>
+        <mxCell id="u4h" value="Consulter Factures Client" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="977" y="526" width="210" height="42" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ACTEURS GAUCHE ── -->
+        <mxCell id="ac1" value="Client" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="62" y="130" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac2" value="Contrôleur" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#ffe6cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="62" y="370" width="50" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ACTEURS DROITE ── -->
+        <mxCell id="ac3" value="Chef de Stock" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1368" y="168" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac4" value="Directeur" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1368" y="430" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac5" value="Patron" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1368" y="660" width="50" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- Patron hérite de Directeur -->
+        <mxCell id="gen" value="" style="endArrow=block;endFill=0;endSize=12;strokeColor=#9673a6;strokeWidth=1.5;" edge="1" source="ac5" target="ac4" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Client connections -->
+        <mxCell id="e1a" value="" style="endArrow=none;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" source="ac1" target="u1b" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e1b" value="" style="endArrow=none;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" source="ac1" target="u1c" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e1c" value="" style="endArrow=none;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" source="ac1" target="u3a" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e1d" value="" style="endArrow=none;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" source="ac1" target="u4h" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Contrôleur connections -->
+        <mxCell id="e2a" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac2" target="u2a" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2b" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac2" target="u2c" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2c" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac2" target="u2e" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2d" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac2" target="u2f" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2e" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac2" target="u2g" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Chef de Stock connections -->
+        <mxCell id="e3a" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac3" target="u2b" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3b" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac3" target="u2d" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3c" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac3" target="u3b" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3d" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac3" target="u4b" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3e" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac3" target="u4c" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Directeur connections -->
+        <mxCell id="e4a" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac4" target="u4a" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4b" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac4" target="u4d" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4c" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac4" target="u2h" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4d" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac4" target="u4g" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4e" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac4" target="u3e" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Patron connections -->
+        <mxCell id="e5a" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac5" target="u4f" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5b" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac5" target="u4g" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Note authentification -->
+        <mxCell id="nt1" value="Note: Tous les acteurs s'authentifient&#xa;au préalable (non représenté ici)" style="rounded=1;fillColor=#fffde7;strokeColor=#f59e0b;fontSize=9;fontStyle=2;align=left;spacingLeft=6;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="778" width="242" height="40" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE 2 : GESTION DES OPÉRATIONS
+       Entrées | Sorties | Fiches
+       Acteur GAUCHE : Contrôleur
+       Acteurs DROITE : Chef de Stock, Directeur
+       ══════════════════════════════════════════════════════ -->
+  <diagram id="p2" name="2. Opérations">
+    <mxGraphModel dx="1200" dy="750" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="GESTION DES OPÉRATIONS" style="text;html=1;align=center;fontStyle=1;fontSize=15;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="160" y="4" width="1050" height="26" as="geometry"/>
+        </mxCell>
+        <mxCell id="sb" value="" style="rounded=1;fillColor=none;strokeColor=#334155;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="155" y="34" width="1050" height="720" as="geometry"/>
+        </mxCell>
+        <mxCell id="sbl" value="&lt;&lt;system&gt;&gt;  Module Opérations" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="430" y="36" width="360" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ZONE ENTRÉES (orange clair) ── -->
+        <mxCell id="z1bg" value="" style="rounded=1;fillColor=#fff7ed;strokeColor=#f97316;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="170" y="62" width="300" height="512" as="geometry"/>
+        </mxCell>
+        <mxCell id="z1lb" value="ENTRÉES" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#c2410c;" vertex="1" parent="1">
+          <mxGeometry x="170" y="64" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua1" value="Enregistrer Entrée Palette" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="94" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua2" value="Saisir Informations Palette" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="158" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua3" value="Affecter Chambre Froide / Rayon" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="222" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua4" value="Valider Entrée (Chef de Stock)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="286" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua5" value="Générer Bon d'Entrée" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="350" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua6" value="Imprimer Bon d'Entrée" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="414" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua7" value="Annuler Entrée" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="478" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_a1a2" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#f97316;" edge="1" source="ua1" target="ua2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_a1a3" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#f97316;" edge="1" source="ua1" target="ua3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_a4a5" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#f97316;" edge="1" source="ua4" target="ua5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_a5a6" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#f97316;" edge="1" source="ua5" target="ua6" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ext_a4a7" value="&lt;&lt;extend&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#94a3b8;" edge="1" source="ua4" target="ua7" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ZONE SORTIES (rouge clair) ── -->
+        <mxCell id="z2bg" value="" style="rounded=1;fillColor=#fee2e2;strokeColor=#ef4444;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="500" y="62" width="300" height="512" as="geometry"/>
+        </mxCell>
+        <mxCell id="z2lb" value="SORTIES" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#b91c1c;" vertex="1" parent="1">
+          <mxGeometry x="500" y="64" width="300" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ub1" value="Préparer Sortie Palette" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="513" y="94" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ub2" value="Vérifier Palette / Bon de Livraison" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="513" y="158" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ub3" value="Confirmer Sortie Terrain" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="513" y="222" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ub4" value="Valider Sortie (Chef de Stock)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="513" y="286" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ub5" value="Générer Bon de Sortie" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="513" y="350" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ub6" value="Imprimer Bon de Sortie" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="513" y="414" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ub7" value="Annuler / Rejeter Sortie" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="513" y="478" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_b1b2" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#ef4444;" edge="1" source="ub1" target="ub2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_b3b4" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#ef4444;" edge="1" source="ub3" target="ub4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_b4b5" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#ef4444;" edge="1" source="ub4" target="ub5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_b5b6" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#ef4444;" edge="1" source="ub5" target="ub6" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ext_b4b7" value="&lt;&lt;extend&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#94a3b8;" edge="1" source="ub4" target="ub7" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ZONE FICHES (bleu clair) ── -->
+        <mxCell id="z3bg" value="" style="rounded=1;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="830" y="62" width="355" height="384" as="geometry"/>
+        </mxCell>
+        <mxCell id="z3lb" value="FICHES DE CHARGE / DÉCHARGE" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry x="830" y="64" width="355" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc1" value="Générer Fiche de Charge" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="843" y="94" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc2" value="Générer Fiche de Décharge" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="843" y="158" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc3" value="Consulter Détail Fiche" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="843" y="222" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc4" value="Imprimer / Exporter Fiche" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="843" y="286" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc5" value="Consulter Historique Opérations" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="843" y="350" width="270" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_c1c4" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="uc1" target="uc4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_c2c4" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="uc2" target="uc4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ACTEURS ── -->
+        <mxCell id="ac1" value="Contrôleur" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#ffe6cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="56" y="300" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac2" value="Chef de Stock" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1258" y="200" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac3" value="Directeur" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1258" y="500" width="50" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- Contrôleur connections -->
+        <mxCell id="e_c_ua1" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac1" target="ua1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e_c_ub1" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac1" target="ub1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e_c_ub3" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac1" target="ub3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e_c_uc1" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac1" target="uc1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e_c_uc2" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac1" target="uc2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Chef de Stock connections -->
+        <mxCell id="e_cs_ua4" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac2" target="ua4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e_cs_ua7" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac2" target="ua7" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e_cs_ub4" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac2" target="ub4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e_cs_ub7" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac2" target="ub7" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Directeur connections -->
+        <mxCell id="e_d_uc3" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac3" target="uc3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e_d_uc5" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac3" target="uc5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE 3 : STOCK & INFRASTRUCTURE
+       Stock | Chambres Froides | Rayons & Plan
+       Acteur GAUCHE : Chef de Stock
+       Acteur DROITE : Directeur
+       ══════════════════════════════════════════════════════ -->
+  <diagram id="p3" name="3. Stock et Infrastructure">
+    <mxGraphModel dx="1200" dy="750" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="STOCK &amp; INFRASTRUCTURE" style="text;html=1;align=center;fontStyle=1;fontSize=15;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="155" y="4" width="1020" height="26" as="geometry"/>
+        </mxCell>
+        <mxCell id="sb" value="" style="rounded=1;fillColor=none;strokeColor=#334155;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="155" y="34" width="1020" height="660" as="geometry"/>
+        </mxCell>
+        <mxCell id="sbl" value="&lt;&lt;system&gt;&gt;  Module Stock &amp; Infrastructure" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="380" y="36" width="420" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ZONE STOCK (vert) ── -->
+        <mxCell id="z1bg" value="" style="rounded=1;fillColor=#dcfce7;strokeColor=#22c55e;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="170" y="62" width="296" height="452" as="geometry"/>
+        </mxCell>
+        <mxCell id="z1lb" value="GESTION DU STOCK" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#15803d;" vertex="1" parent="1">
+          <mxGeometry x="170" y="64" width="296" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="us1" value="Consulter Stock Général" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="94" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="us2" value="Rechercher / Filtrer Palettes" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="158" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="us3" value="Voir Statut Palette" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="222" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="us4" value="Consulter Stock par Client" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="286" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="us5" value="Générer Rapport de Stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="350" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="us6" value="Exporter Données Stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="414" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_s2s3" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#22c55e;" edge="1" source="us2" target="us3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_s5s6" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#22c55e;" edge="1" source="us5" target="us6" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ZONE CHAMBRES FROIDES (cyan) ── -->
+        <mxCell id="z2bg" value="" style="rounded=1;fillColor=#e0f2fe;strokeColor=#0ea5e9;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="496" y="62" width="296" height="452" as="geometry"/>
+        </mxCell>
+        <mxCell id="z2lb" value="CHAMBRES FROIDES" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#0369a1;" vertex="1" parent="1">
+          <mxGeometry x="496" y="64" width="296" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ucf1" value="Voir Toutes Chambres Froides" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0f9ff;strokeColor=#0ea5e9;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="94" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ucf2" value="Voir Détail Chambre Froide" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0f9ff;strokeColor=#0ea5e9;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="158" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ucf3" value="Voir Taux d'Occupation" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0f9ff;strokeColor=#0ea5e9;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="222" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ucf4" value="Gérer Chambre (Créer / Modifier)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0f9ff;strokeColor=#0ea5e9;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="286" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ucf5" value="Gérer Alertes Capacité" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0f9ff;strokeColor=#0ea5e9;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="350" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ucf6" value="Transférer Palette (inter-chambres)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0f9ff;strokeColor=#0ea5e9;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="414" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_cf2cf3" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#0ea5e9;" edge="1" source="ucf2" target="ucf3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ZONE RAYONS (jaune) ── -->
+        <mxCell id="z3bg" value="" style="rounded=1;fillColor=#fef9c3;strokeColor=#eab308;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="822" y="62" width="326" height="390" as="geometry"/>
+        </mxCell>
+        <mxCell id="z3lb" value="RAYONS &amp; PLAN DE STOCKAGE" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#713f12;" vertex="1" parent="1">
+          <mxGeometry x="822" y="64" width="326" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ur1" value="Voir Plan des Rayons (2D)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fefce8;strokeColor=#eab308;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="94" width="295" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ur2" value="Voir Rayons Gauche / Droite" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fefce8;strokeColor=#eab308;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="158" width="295" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ur3" value="Affecter Palette à Rayon" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fefce8;strokeColor=#eab308;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="222" width="295" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ur4" value="Gérer Rayons (Créer / Modifier)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fefce8;strokeColor=#eab308;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="286" width="295" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ur5" value="Voir Occupation par Rayon" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fefce8;strokeColor=#eab308;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="350" width="295" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_r1r2" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#eab308;" edge="1" source="ur1" target="ur2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ACTEURS ── -->
+        <mxCell id="ac1" value="Chef de Stock" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="58" y="250" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac2" value="Directeur" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1234" y="300" width="50" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- Chef de Stock connections -->
+        <mxCell id="e1" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="us1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="us2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="ucf1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="ucf4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="ucf6" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="ur3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="ur4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Directeur connections -->
+        <mxCell id="e8" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="us4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="us5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="ucf3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e11" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="ucf5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e12" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="ur1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e13" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="ur5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE 4 : TRANSFERTS, ALERTES & SUPPORT
+       Acteurs GAUCHE : Contrôleur, Client
+       Acteurs DROITE : Chef de Stock, Directeur
+       ══════════════════════════════════════════════════════ -->
+  <diagram id="p4" name="4. Transferts, Alertes et Support">
+    <mxGraphModel dx="1200" dy="750" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="TRANSFERTS, ALERTES &amp; SUPPORT" style="text;html=1;align=center;fontStyle=1;fontSize=15;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="155" y="4" width="1020" height="26" as="geometry"/>
+        </mxCell>
+        <mxCell id="sb" value="" style="rounded=1;fillColor=none;strokeColor=#334155;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="155" y="34" width="1020" height="620" as="geometry"/>
+        </mxCell>
+        <mxCell id="sbl" value="&lt;&lt;system&gt;&gt;  Module Transferts, Alertes &amp; Support" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="350" y="36" width="480" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ZONE TRANSFERTS (orange) ── -->
+        <mxCell id="z1bg" value="" style="rounded=1;fillColor=#fff7ed;strokeColor=#f97316;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="170" y="62" width="296" height="388" as="geometry"/>
+        </mxCell>
+        <mxCell id="z1lb" value="TRANSFERTS DE PALETTES" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#c2410c;" vertex="1" parent="1">
+          <mxGeometry x="170" y="64" width="296" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ut1" value="Initier Transfert Palette" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="94" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ut2" value="Sélectionner Chambre Destination" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="158" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ut3" value="Confirmer Transfert" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="222" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ut4" value="Annuler Transfert" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="286" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ut5" value="Voir Historique Transferts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#f97316;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="350" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_t1t2" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#f97316;" edge="1" source="ut1" target="ut2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ext_t3t4" value="&lt;&lt;extend&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#94a3b8;" edge="1" source="ut3" target="ut4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ZONE ALERTES (rouge) ── -->
+        <mxCell id="z2bg" value="" style="rounded=1;fillColor=#fee2e2;strokeColor=#ef4444;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="496" y="62" width="296" height="388" as="geometry"/>
+        </mxCell>
+        <mxCell id="z2lb" value="GESTION DES ALERTES" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#b91c1c;" vertex="1" parent="1">
+          <mxGeometry x="496" y="64" width="296" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua1" value="Voir Toutes les Alertes" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="94" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua2" value="Voir Alertes Capacité Dépassée" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="158" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua3" value="Voir Alertes Stock Faible" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="222" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua4" value="Acquitter / Résoudre Alerte" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="286" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ua5" value="Filtrer Alertes par Type" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#ef4444;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="350" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_a1a5" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#ef4444;" edge="1" source="ua1" target="ua5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ZONE SUPPORT (bleu) ── -->
+        <mxCell id="z3bg" value="" style="rounded=1;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="822" y="62" width="326" height="388" as="geometry"/>
+        </mxCell>
+        <mxCell id="z3lb" value="CHATBOT &amp; CENTRE D'AIDE" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry x="822" y="64" width="326" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="us1" value="Accéder au Chatbot" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="94" width="295" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="us2" value="Poser une Question / Obtenir Aide" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="158" width="295" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="us3" value="Consulter Centre d'Aide / FAQ" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="222" width="295" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="us4" value="Obtenir Réponse IA (Claude)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="286" width="295" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_s1s2" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="us1" target="us2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_s2s4" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="us2" target="us4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ACTEURS GAUCHE ── -->
+        <mxCell id="ac1" value="Contrôleur" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#ffe6cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="56" y="190" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac2" value="Client" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="56" y="420" width="50" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ACTEURS DROITE ── -->
+        <mxCell id="ac3" value="Chef de Stock" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1232" y="190" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac4" value="Directeur" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1232" y="390" width="50" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- Contrôleur connections -->
+        <mxCell id="e1" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac1" target="ut1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac1" target="ua1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="" style="endArrow=none;strokeColor=#d6b656;strokeWidth=1;" edge="1" source="ac1" target="us1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Client connections -->
+        <mxCell id="e4" value="" style="endArrow=none;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" source="ac2" target="ua1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="" style="endArrow=none;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" source="ac2" target="us1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="" style="endArrow=none;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" source="ac2" target="us3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Chef de Stock connections -->
+        <mxCell id="e7" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac3" target="ut3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac3" target="ut4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac3" target="ua2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac3" target="ua4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Directeur connections -->
+        <mxCell id="e11" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac4" target="ua2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e12" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac4" target="ut5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE 5 : FACTURATION
+       Consultation | Génération | Validation & Envoi
+       Acteur GAUCHE : Chef de Stock
+       Acteurs DROITE : Directeur, Client
+       ══════════════════════════════════════════════════════ -->
+  <diagram id="p5" name="5. Facturation">
+    <mxGraphModel dx="1200" dy="750" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="FACTURATION" style="text;html=1;align=center;fontStyle=1;fontSize=15;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="160" y="4" width="1060" height="26" as="geometry"/>
+        </mxCell>
+        <mxCell id="sb" value="" style="rounded=1;fillColor=none;strokeColor=#334155;strokeWidth=2.5;" vertex="1" parent="1">
+          <mxGeometry x="155" y="34" width="1060" height="720" as="geometry"/>
+        </mxCell>
+        <mxCell id="sbl" value="&lt;&lt;system&gt;&gt;  Module Facturation" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="430" y="36" width="360" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ZONE CONSULTATION (violet) ── -->
+        <mxCell id="z1bg" value="" style="rounded=1;fillColor=#f5f3ff;strokeColor=#8b5cf6;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="170" y="62" width="296" height="518" as="geometry"/>
+        </mxCell>
+        <mxCell id="z1lb" value="CONSULTATION" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#6d28d9;" vertex="1" parent="1">
+          <mxGeometry x="170" y="64" width="296" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="uf1" value="Voir Récapitulatif Mensuel" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="94" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uf2" value="Voir Grille Tarifaire" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="158" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uf3" value="Définir / Modifier Tarif Client" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="222" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uf4" value="Consulter Liste des Factures" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="286" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uf5" value="Voir Détail Facture" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="350" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uf6" value="Voir Factures par Client" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="414" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uf7" value="Exporter Facture PDF" style="ellipse;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#8b5cf6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="183" y="478" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_f2f3" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#8b5cf6;" edge="1" source="uf2" target="uf3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_f4f5" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#8b5cf6;" edge="1" source="uf4" target="uf5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_f5f7" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#8b5cf6;" edge="1" source="uf5" target="uf7" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ZONE GÉNÉRATION (bleu) ── -->
+        <mxCell id="z2bg" value="" style="rounded=1;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="496" y="62" width="296" height="582" as="geometry"/>
+        </mxCell>
+        <mxCell id="z2lb" value="GÉNÉRATION DE FACTURE" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#1d4ed8;" vertex="1" parent="1">
+          <mxGeometry x="496" y="64" width="296" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ug1" value="Sélectionner Client et Mois" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="94" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ug2" value="Choisir Mode : Séjour ou Forfait" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="158" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ug3" value="Calculer Manipulations Entrée" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="222" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ug4" value="Calculer Manipulations Sortie" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="286" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ug5" value="Calculer Séjour (par durée) ou Forfait" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="350" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ug6" value="Générer Facture (brouillon)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="414" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ug7" value="Calculer Totaux HT / TVA / TTC" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="478" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="ug8" value="Numéroter la Facture" style="ellipse;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="509" y="542" width="265" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="inc_g6g1" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="ug6" target="ug1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_g6g2" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="ug6" target="ug2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_g6g3" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="ug6" target="ug3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_g6g4" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="ug6" target="ug4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_g6g5" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="ug6" target="ug5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_g6g7" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="ug6" target="ug7" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="inc_g6g8" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#3b82f6;" edge="1" source="ug6" target="ug8" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ── ZONE VALIDATION (vert) ── -->
+        <mxCell id="z3bg" value="" style="rounded=1;fillColor=#dcfce7;strokeColor=#22c55e;strokeWidth=1.5;opacity=60;" vertex="1" parent="1">
+          <mxGeometry x="822" y="62" width="366" height="390" as="geometry"/>
+        </mxCell>
+        <mxCell id="z3lb" value="VALIDATION &amp; ENVOI" style="text;html=1;align=center;fontStyle=1;fontSize=12;fillColor=none;strokeColor=none;fontColor=#15803d;" vertex="1" parent="1">
+          <mxGeometry x="822" y="64" width="366" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="uv1" value="Soumettre Facture (Brouillon vers Attente)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="94" width="335" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uv2" value="Valider Facture (Directeur)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="158" width="335" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uv3" value="Envoyer Facture au Client" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="222" width="335" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="uv4" value="Supprimer Facture (Brouillon)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#22c55e;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="835" y="286" width="335" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="flow_v1v2" value="" style="endArrow=open;endFill=0;strokeColor=#22c55e;strokeWidth=1;" edge="1" source="uv1" target="uv2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="flow_v2v3" value="" style="endArrow=open;endFill=0;strokeColor=#22c55e;strokeWidth=1;" edge="1" source="uv2" target="uv3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ext_v1v4" value="&lt;&lt;extend&gt;&gt;" style="dashed=1;endArrow=open;endFill=0;fontSize=9;fontStyle=2;strokeColor=#94a3b8;" edge="1" source="uv1" target="uv4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Note métier -->
+        <mxCell id="note_sej" value="Mode Séjour : PU x palettes x nb jours&#xa;(groupement par durée identique)&#xa;&#xa;Mode Forfait : montant mensuel fixe" style="rounded=1;fillColor=#fffde7;strokeColor=#f59e0b;fontSize=9;fontStyle=2;align=left;spacingLeft=6;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="822" y="470" width="280" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ACTEURS ── -->
+        <mxCell id="ac1" value="Chef de Stock" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="58" y="250" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac2" value="Directeur" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1274" y="220" width="50" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac3" value="Client" style="shape=mxgraph.flowchart.actor;whiteSpace=wrap;html=1;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1274" y="460" width="50" height="72" as="geometry"/>
+        </mxCell>
+
+        <!-- Chef de Stock connections -->
+        <mxCell id="e1" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="uf1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="uf2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="uf3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="ug6" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="uf7" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="" style="endArrow=none;strokeColor=#82b366;strokeWidth=1;" edge="1" source="ac1" target="uv1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Directeur connections -->
+        <mxCell id="e7" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="uv2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="uv3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="uf4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" value="" style="endArrow=none;strokeColor=#9673a6;strokeWidth=1;" edge="1" source="ac2" target="uf5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Client connections -->
+        <mxCell id="e11" value="" style="endArrow=none;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" source="ac3" target="uf6" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e12" value="" style="endArrow=none;strokeColor=#6c8ebf;strokeWidth=1;" edge="1" source="ac3" target="uf5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+</mxfile>

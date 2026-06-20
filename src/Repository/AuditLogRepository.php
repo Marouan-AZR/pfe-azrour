@@ -14,9 +14,16 @@ class AuditLogRepository extends ServiceEntityRepository
         parent::__construct($registry, AuditLog::class);
     }
 
-    public function findByFilters(?string $action, ?string $entityType, ?User $user, ?\DateTimeInterface $from, ?\DateTimeInterface $to): array
-    {
-        $qb = $this->createQueryBuilder('a');
+    public function findByFilters(
+        ?string $action,
+        ?string $entityType,
+        ?User $user,
+        ?\DateTimeInterface $from,
+        ?\DateTimeInterface $to,
+        ?string $search = null
+    ): array {
+        $qb = $this->createQueryBuilder('a')
+            ->leftJoin('a.user', 'u');
 
         if ($action) {
             $qb->andWhere('a.action = :action')->setParameter('action', $action);
@@ -32,6 +39,13 @@ class AuditLogRepository extends ServiceEntityRepository
         }
         if ($to) {
             $qb->andWhere('a.createdAt <= :to')->setParameter('to', $to);
+        }
+        if ($search) {
+            $qb->andWhere($qb->expr()->orX(
+                'a.newValues LIKE :search',
+                'a.oldValues LIKE :search',
+                'LOWER(CONCAT(u.firstName, \' \', u.lastName)) LIKE :search'
+            ))->setParameter('search', '%' . strtolower($search) . '%');
         }
 
         return $qb->orderBy('a.createdAt', 'DESC')->getQuery()->getResult();

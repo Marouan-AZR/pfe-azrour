@@ -3,112 +3,197 @@
 {% block title %}Assistant Golden Logistics{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-xl-6">
-            <div class="card" style="height: calc(100vh - 180px); display: flex; flex-direction: column;">
-                <div class="card-header d-flex align-items-center gap-2">
-                    <i class="bi bi-robot" style="font-size:1.5rem; color: var(--primary);"></i>
-                    <div>
-                        <strong>Assistant Golden Logistics</strong>
-                        <br><small class="text-muted">En ligne • Posez vos questions</small>
-                    </div>
-                </div>
-                <div class="card-body" id="chatMessages" style="overflow-y: auto; flex: 1;">
-                    <div class="chat-msg bot">
-                        <div class="chat-bubble bot-bubble">
-                            Bonjour {{ app.user.firstName }} ! 👋<br>
-                            Je suis l'assistant Golden Logistics. Comment puis-je vous aider ?<br><br>
-                            Essayez : <em>"état du stock"</em>, <em>"combien de clients"</em>, ou <em>"aide"</em>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <form id="chatForm" class="d-flex gap-2">
-                        <input type="text" id="chatInput" class="form-control" placeholder="Tapez votre message..." autocomplete="off">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
-                    </form>
+<div class="container-fluid py-3 px-3" style="max-width:960px;margin:0 auto;">
+
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1e40af,#3b82f6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-robot text-white" style="font-size:1.25rem;"></i>
+        </div>
+        <div>
+            <h5 class="mb-0 fw-bold" style="color:#1e293b;">Assistant Golden Logistics</h5>
+            <small style="color:#10b981;font-weight:600;"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;"></i>En ligne · Données + Guide d'utilisation</small>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:1rem;display:flex;flex-direction:column;height:calc(100vh - 195px);min-height:500px;">
+
+        {# Messages area #}
+        <div id="chatMessages" style="overflow-y:auto;flex:1;padding:1.25rem 1.25rem .5rem;display:flex;flex-direction:column;gap:.75rem;">
+
+            {# Welcome message #}
+            <div class="chat-msg bot">
+                <div class="avatar-bot"><i class="bi bi-robot"></i></div>
+                <div class="chat-bubble bot-bubble">
+                    Bonjour <strong>{{ app.user.firstName }}</strong> ! 👋<br>
+                    Je suis votre assistant Golden Logistics. Je peux :<br>
+                    <span style="color:#1e40af;">📊</span> Répondre à vos questions sur les données (stock, chambres, palettes…)<br>
+                    <span style="color:#059669;">📖</span> Vous guider pas à pas dans l'application
                 </div>
             </div>
+
+            {# Quick actions — two rows #}
+            <div id="quickActions" style="margin-left:2.6rem;display:flex;flex-direction:column;gap:.45rem;">
+                <div style="font-size:.72rem;color:#94a3b8;font-weight:600;letter-spacing:.04em;">DONNÉES</div>
+                <div style="display:flex;flex-wrap:wrap;gap:.35rem;">
+                    <button class="quick-btn data" onclick="sendQuick('état du stock')">📦 Stock global</button>
+                    <button class="quick-btn data" onclick="sendQuick('occupation chambres')">🏭 Chambres froides</button>
+                    <button class="quick-btn data" onclick="sendQuick('sorties en attente')">⏳ En attente</button>
+                    <button class="quick-btn data" onclick="sendQuick('dernière opération')">📋 Dernière opération</button>
+                </div>
+                <div style="font-size:.72rem;color:#94a3b8;font-weight:600;letter-spacing:.04em;margin-top:.25rem;">GUIDES</div>
+                <div style="display:flex;flex-wrap:wrap;gap:.35rem;">
+                    <button class="quick-btn guide" onclick="sendQuick('comment créer une entrée')">📥 Créer une entrée</button>
+                    <button class="quick-btn guide" onclick="sendQuick('comment créer une sortie')">📤 Créer une sortie</button>
+                    <button class="quick-btn guide" onclick="sendQuick('comment valider une opération')">✅ Valider</button>
+                    <button class="quick-btn guide" onclick="sendQuick('comment générer une facture')">🧾 Facturer</button>
+                    <button class="quick-btn guide" onclick="sendQuick('aide')">🔍 Toutes les commandes</button>
+                </div>
+            </div>
+        </div>
+
+        {# Input #}
+        <div style="padding:.75rem 1rem;border-top:1px solid #e2e8f0;background:#f8fafc;border-radius:0 0 1rem 1rem;">
+            <form id="chatForm" class="d-flex gap-2">
+                <input type="text" id="chatInput" class="form-control"
+                       placeholder="Ex: comment créer une entrée, stock client MFQE, palette P001…"
+                       autocomplete="off"
+                       style="border-radius:.6rem;font-size:.875rem;">
+                <button type="submit" class="btn btn-primary px-3" style="border-radius:.6rem;">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
 <style>
-.chat-msg { margin-bottom: 1rem; display: flex; }
-.chat-msg.bot { justify-content: flex-start; }
-.chat-msg.user { justify-content: flex-end; }
+.chat-msg { display:flex; align-items:flex-start; gap:.6rem; }
+.chat-msg.user { flex-direction:row-reverse; }
+
+.avatar-bot {
+    width:32px; height:32px; border-radius:50%;
+    background:linear-gradient(135deg,#1e40af,#3b82f6);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:.85rem; flex-shrink:0; margin-top:3px;
+}
+.avatar-user {
+    width:32px; height:32px; border-radius:50%;
+    background:#e2e8f0; color:#475569;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.85rem; flex-shrink:0; margin-top:3px;
+}
+
 .chat-bubble {
-    max-width: 80%;
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    white-space: pre-line;
+    max-width:80%; padding:.65rem .95rem;
+    border-radius:1rem; font-size:.875rem; line-height:1.65;
 }
-.bot-bubble {
-    background: #f1f5f9;
-    color: var(--text);
-    border-bottom-left-radius: 4px;
+.bot-bubble  { background:#f1f5f9; color:#1e293b; border-bottom-left-radius:.25rem; }
+.user-bubble { background:linear-gradient(135deg,#1e40af,#3b82f6); color:#fff; border-bottom-right-radius:.25rem; }
+
+/* Quick buttons */
+.quick-btn {
+    border-radius:2rem; padding:.28rem .75rem;
+    font-size:.775rem; cursor:pointer; white-space:nowrap;
+    transition:all .15s; border:1.5px solid;
 }
-.user-bubble {
-    background: var(--primary);
-    color: #fff;
-    border-bottom-right-radius: 4px;
-}
-.typing { opacity: 0.6; font-style: italic; }
+.quick-btn.data  { background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
+.quick-btn.data:hover  { background:#1e40af; color:#fff; border-color:#1e40af; }
+.quick-btn.guide { background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+.quick-btn.guide:hover { background:#059669; color:#fff; border-color:#059669; }
+
+/* Typing dots */
+.typing-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#94a3b8; animation:blink 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay:.2s; }
+.typing-dot:nth-child(3) { animation-delay:.4s; }
+@keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
 </style>
 {% endblock %}
 
 {% block javascripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('chatForm');
-    const input = document.getElementById('chatInput');
+document.addEventListener('DOMContentLoaded', function () {
+    const form     = document.getElementById('chatForm');
+    const input    = document.getElementById('chatInput');
     const messages = document.getElementById('chatMessages');
+    const askUrl   = '{{ path("app_chatbot_ask") }}';
 
-    form.addEventListener('submit', async function(e) {
+    form.addEventListener('submit', function (e) {
         e.preventDefault();
         const msg = input.value.trim();
         if (!msg) return;
-
-        addMessage(msg, 'user');
         input.value = '';
-
-        // Typing indicator
-        const typing = document.createElement('div');
-        typing.className = 'chat-msg bot';
-        typing.innerHTML = '<div class="chat-bubble bot-bubble typing">En train d\'écrire...</div>';
-        messages.appendChild(typing);
-        scrollDown();
-
-        try {
-            const formData = new FormData();
-            formData.append('message', msg);
-            const res = await fetch('{{ path("app_chatbot_ask") }}', { method: 'POST', body: formData });
-            const data = await res.json();
-            typing.remove();
-            addMessage(data.reply, 'bot');
-        } catch (err) {
-            typing.remove();
-            addMessage('❌ Erreur de connexion. Réessayez.', 'bot');
-        }
+        sendMessage(msg);
     });
 
-    function addMessage(text, type) {
-        const div = document.createElement('div');
-        div.className = 'chat-msg ' + type;
-        div.innerHTML = `<div class="chat-bubble ${type}-bubble">${escapeHtml(text)}</div>`;
-        messages.appendChild(div);
+    window.sendQuick = function (text) {
+        const qa = document.getElementById('quickActions');
+        if (qa) qa.style.display = 'none';
+        sendMessage(text);
+    };
+
+    async function sendMessage(msg) {
+        appendMessage(msg, 'user');
+        const typingEl = appendTyping();
+        try {
+            const fd = new FormData();
+            fd.append('message', msg);
+            const res  = await fetch(askUrl, { method: 'POST', body: fd });
+            const data = await res.json();
+            typingEl.remove();
+            appendMessage(data.reply, 'bot');
+        } catch {
+            typingEl.remove();
+            appendMessage('❌ Erreur de connexion. Réessayez.', 'bot');
+        }
+    }
+
+    function appendMessage(text, type) {
+        const wrap   = document.createElement('div');
+        wrap.className = 'chat-msg ' + type;
+
+        const avatar = document.createElement('div');
+        avatar.className = type === 'bot' ? 'avatar-bot' : 'avatar-user';
+        avatar.innerHTML = type === 'bot' ? '<i class="bi bi-robot"></i>' : '<i class="bi bi-person-fill"></i>';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble ' + type + '-bubble';
+        bubble.innerHTML  = escapeHtml(text);
+
+        if (type === 'bot') {
+            wrap.appendChild(avatar);
+            wrap.appendChild(bubble);
+        } else {
+            wrap.appendChild(bubble);
+            wrap.appendChild(avatar);
+        }
+
+        messages.appendChild(wrap);
         scrollDown();
     }
 
-    function scrollDown() {
-        messages.scrollTop = messages.scrollHeight;
+    function appendTyping() {
+        const wrap = document.createElement('div');
+        wrap.className = 'chat-msg bot';
+        wrap.innerHTML = `
+            <div class="avatar-bot"><i class="bi bi-robot"></i></div>
+            <div class="chat-bubble bot-bubble" style="padding:.55rem .9rem;">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>`;
+        messages.appendChild(wrap);
+        scrollDown();
+        return wrap;
     }
 
+    function scrollDown() { messages.scrollTop = messages.scrollHeight; }
+
     function escapeHtml(text) {
-        return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\n/g, '<br>');
     }
 
     input.focus();

@@ -16,17 +16,29 @@ class AlertController extends AbstractController
     #[Route('', name: 'app_alerts')]
     public function index(AlertService $alertService): Response
     {
+        if ($this->isGranted('ROLE_PATRON')) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $alerts = $alertService->getAlerts();
+        $stats  = $alertService->getStats($alerts);
+
         return $this->render('alerts/index.html.twig', [
-            'alerts' => $alertService->getAlerts(),
+            'alerts'        => $alerts,
+            'stats'         => $stats,
+            'lastRefreshed' => new \DateTime(),
         ]);
     }
 
     #[Route('/api', name: 'app_alerts_api', methods: ['GET'])]
     public function api(AlertService $alertService): JsonResponse
     {
+        $alerts = $alertService->getAlerts();
+
         return $this->json([
-            'alerts' => $alertService->getAlerts(),
-            'count' => $alertService->getAlertCount(),
+            'alerts' => $alerts,
+            'count'  => $alertService->getAlertCount(),
+            'stats'  => $alertService->getStats($alerts),
         ]);
     }
 }

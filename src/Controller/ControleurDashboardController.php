@@ -8,16 +8,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class ControleurDashboardController extends AbstractController
 {
     #[Route('/controleurs/performances', name: 'app_controleur_dashboard')]
-    #[IsGranted('ROLE_CONTROLEUR')]
     public function index(Request $request, OperationRepository $operationRepo, UserRepository $userRepo): Response
     {
-        // Only Chef de stock and Directeur
-        if (!$this->isGranted('ROLE_CHEF_STOCK') && !$this->isGranted('ROLE_DIRECTEUR')) {
+        if ($this->isGranted('ROLE_PATRON') || (!$this->isGranted('ROLE_CHEF_STOCK') && !$this->isGranted('ROLE_DIRECTEUR'))) {
             throw $this->createAccessDeniedException();
         }
 
@@ -62,11 +59,26 @@ class ControleurDashboardController extends AbstractController
         usort($stats, fn($a, $b) => $b['total'] - $a['total']);
         $top5 = array_slice($stats, 0, 5);
 
+        $maxOps      = max(1, max(array_column($stats, 'total')   ?: [0]));
+        $maxTonnage  = max(1, max(array_column($stats, 'tonnage') ?: [0]));
+        $maxCartons  = max(1, max(array_column($stats, 'cartons') ?: [0]));
+        $totalOps    = array_sum(array_column($stats, 'total'));
+        $totalTonnage = round(array_sum(array_column($stats, 'tonnage')), 2);
+        $totalCartons = array_sum(array_column($stats, 'cartons'));
+        $avgOps      = count($stats) > 0 ? round($totalOps / count($stats), 1) : 0;
+
         return $this->render('controleur_dashboard/index.html.twig', [
-            'stats' => $stats,
-            'top5' => $top5,
-            'month' => $month,
-            'year' => $year,
+            'stats'        => $stats,
+            'top5'         => $top5,
+            'month'        => $month,
+            'year'         => $year,
+            'maxOps'       => $maxOps,
+            'maxTonnage'   => $maxTonnage,
+            'maxCartons'   => $maxCartons,
+            'totalOps'     => $totalOps,
+            'totalTonnage' => $totalTonnage,
+            'totalCartons' => $totalCartons,
+            'avgOps'       => $avgOps,
         ]);
     }
 }

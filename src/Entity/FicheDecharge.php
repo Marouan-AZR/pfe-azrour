@@ -55,6 +55,15 @@ class FicheDecharge
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $numeroAgrement = null;
 
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $carliste = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $heureDebutChargement = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $heureFinChargement = null;
+
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
@@ -103,6 +112,15 @@ class FicheDecharge
 
     public function getNumeroAgrement(): ?string { return $this->numeroAgrement; }
     public function setNumeroAgrement(?string $numeroAgrement): static { $this->numeroAgrement = $numeroAgrement; return $this; }
+
+    public function getCarliste(): ?string { return $this->carliste; }
+    public function setCarliste(?string $carliste): static { $this->carliste = $carliste; return $this; }
+
+    public function getHeureDebutChargement(): ?string { return $this->heureDebutChargement; }
+    public function setHeureDebutChargement(?string $heureDebutChargement): static { $this->heureDebutChargement = $heureDebutChargement; return $this; }
+
+    public function getHeureFinChargement(): ?string { return $this->heureFinChargement; }
+    public function setHeureFinChargement(?string $heureFinChargement): static { $this->heureFinChargement = $heureFinChargement; return $this; }
 
     public function getCreatedAt(): \DateTimeInterface { return $this->createdAt; }
     public function getUpdatedAt(): \DateTimeInterface { return $this->updatedAt; }

@@ -35,7 +35,7 @@ class Invoice
     private string $totalHt = '0.00';
 
     #[ORM\Column(type: 'decimal', precision: 5, scale: 2)]
-    private string $vatRate = '20.00';
+    private string $vatRate = '0.00';
 
     #[ORM\Column(type: 'decimal', precision: 12, scale: 2)]
     private string $totalTtc = '0.00';
@@ -237,8 +237,8 @@ class Invoice
             fn(float $sum, InvoiceLine $line) => $sum + (float)$line->getLineTotal(),
             0.0
         );
-        $this->totalHt = number_format($totalHt, 2, '.', '');
-        $this->totalTtc = number_format($totalHt * (1 + (float)$this->vatRate / 100), 2, '.', '');
+        $this->totalHt  = number_format($totalHt, 2, '.', '');
+        $this->totalTtc = $this->totalHt;
     }
 
     public function isDraft(): bool

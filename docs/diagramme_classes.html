@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>Diagramme de Classes – Golden Logistics</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#e2e8f0;font-family:Arial,sans-serif;padding:20px}
+h1{text-align:center;font-size:20px;color:#0f172a;margin-bottom:4px}
+.sub{text-align:center;font-size:12px;color:#64748b;margin-bottom:16px}
+.bar{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+button{padding:9px 22px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer}
+.b1{background:#2563eb;color:#fff} .b2{background:#fff;color:#374151;border:1.5px solid #ccc} .b3{background:#15803d;color:#fff}
+.wrap{background:#fff;border-radius:12px;padding:24px;box-shadow:0 4px 24px #0002;overflow:auto}
+svg text{font-family:Arial,sans-serif}
+</style>
+</head>
+<body>
+<h1>Diagramme de Classes — Golden Logistics</h1>
+<p class="sub">Symfony 7 · PHP 8.2 · MariaDB · 10 entités · 6 énumérations · 22 associations</p>
+<div class="bar">
+  <button class="b1" onclick="dlPNG()">PNG</button>
+  <button class="b2" onclick="dlSVG()">SVG</button>
+  <button class="b3" onclick="window.print()">Imprimer</button>
+</div>
+<div class="wrap"><div id="out"></div></div>
+
+<script>
+// ── helpers ──────────────────────────────────────────────────────────────
+const e = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const LH=16, TH=34, SH=18, PL=9;
+
+function boxH(attrs,meths){ return TH + SH + attrs.length*LH + 4 + SH + meths.length*LH + 6; }
+
+function drawBox(x,y,w,color,bg,name,stereo,attrs,meths){
+  const h=boxH(attrs,meths);
+  let s='';
+  // shadow
+  s+=`<rect x="${x+3}" y="${y+3}" width="${w}" height="${h}" rx="5" fill="#00000018"/>`;
+  // body
+  s+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${bg}" stroke="${color}" stroke-width="1.5"/>`;
+  // title bar
+  s+=`<rect x="${x}" y="${y}" width="${w}" height="${TH}" rx="5" fill="${color}"/>`;
+  s+=`<rect x="${x}" y="${y+TH-5}" width="${w}" height="5" fill="${color}"/>`;
+  if(stereo){
+    s+=`<text x="${x+w/2}" y="${y+12}" text-anchor="middle" font-size="9" fill="#ffffffcc" font-style="italic">&laquo;${stereo}&raquo;</text>`;
+    s+=`<text x="${x+w/2}" y="${y+TH-9}" text-anchor="middle" font-size="13" font-weight="bold" fill="white">${e(name)}</text>`;
+  } else {
+    s+=`<text x="${x+w/2}" y="${y+TH/2+5}" text-anchor="middle" font-size="13" font-weight="bold" fill="white">${e(name)}</text>`;
+  }
+  // attrs
+  let cy=y+TH+SH-3;
+  s+=`<text x="${x+PL}" y="${y+TH+12}" font-size="9" fill="#64748b" font-style="italic">Attributs</text>`;
+  for(const a of attrs){
+    s+=`<text x="${x+PL}" y="${cy}" font-family="Consolas,monospace" font-size="10" fill="#1e293b">${e(a)}</text>`;
+    cy+=LH;
+  }
+  cy+=4;
+  // divider
+  s+=`<line x1="${x}" y1="${cy}" x2="${x+w}" y2="${cy}" stroke="${color}" stroke-width="0.5" opacity="0.3"/>`;
+  cy+=SH-2;
+  s+=`<text x="${x+PL}" y="${cy-4}" font-size="9" fill="#64748b" font-style="italic">Méthodes</text>`;
+  cy+=4;
+  for(const m of meths){
+    s+=`<text x="${x+PL}" y="${cy}" font-family="Consolas,monospace" font-size="10" fill="#1e293b">${e(m)}</text>`;
+    cy+=LH;
+  }
+  return {s,h,l:x,r:x+w,t:y,b:y+h,cx:x+w/2,cy:y+h/2,mx:x+w/2,my:y};
+}
+
+// ── Classes data ──────────────────────────────────────────────────────────
+const D={
+ User:{color:'#1e40af',bg:'#eff6ff',x:20,y:30,w:330,
+  a:['- id : int','- email : String','- password : String','- roles : Array',
+     '- firstName : String','- lastName : String','- isActive : bool',
+     '- failedLoginAttempts : int','- lockedUntil : DateTime',
+     '- phone : String','- resetToken : String',
+     '- resetTokenExpiresAt : DateTimeImmutable',
+     '- createdAt : DateTime','- updatedAt : DateTime'],
+  m:['+ getFullName() : String','+ getRoles() : Array',
+     '+ hasRole(role) : bool','+ isActive() : bool',
+     '+ isLocked() : bool','+ incrementFailedLoginAttempts()',
+     '+ resetFailedLoginAttempts()','+ getUserIdentifier() : String']},
+
+ Client:{color:'#0e7490',bg:'#ecfeff',x:380,y:30,w:320,
+  a:['- id : int','- code : String','- companyName : String',
+     '- nomInterne : String','- nomCommercial : String',
+     '- numeroAgrement : String','- rc : String','- ice : String',
+     '- address : String','- phone : String','- email : String',
+     '- isActive : bool','- createdAt : DateTime','- updatedAt : DateTime'],
+  m:['+ getDisplayName() : String','+ getOfficialName() : String',
+     '+ hasStock() : bool','+ getTotalStockTonnage() : float',
+     '+ generateCode() : String']},
+
+ ColdRoom:{color:'#15803d',bg:'#f0fdf4',x:730,y:30,w:300,
+  a:['- id : int','- name : String','- maxCapacityTons : decimal',
+     '- targetTemperature : decimal','- isActive : bool','- createdAt : DateTime'],
+  m:['+ getUsedCapacity() : float','+ getAvailableCapacity() : float',
+     '+ getOccupancyRate() : float','+ hasAvailableCapacity(t) : bool',
+     '+ isNearCapacity() : bool','+ canBeDeactivated() : bool']},
+
+ Palette:{color:'#166534',bg:'#f0fdf4',x:20,y:0,w:340,
+  a:['- id : int','- codePalette : String','- espece : String',
+     '- famille : String','- qualite : String','- moule : String',
+     '- nombreCartons : int','- poidsCarton : decimal','- poidsTotal : decimal',
+     '- rayon : String','- status : PaletteStatus',
+     '- cartonsRestants : int','- poidsRestant : decimal',
+     '- cartonsReellementSortis : int','- typeStockage : TypeStockage',
+     '- observation : String','- motifRejet : String',
+     '- createdAt / updatedAt : DateTime'],
+  m:['+ getClient() : Client','+ isStockAvailable() : bool',
+     '+ sortir(cartons: int) : void','+ generateCode(opCode,idx) : String']},
+
+ Operation:{color:'#b45309',bg:'#fffbeb',x:390,y:0,w:365,
+  a:['- id : int','- code : String','- type : OperationType',
+     '- status : StockStatus','- cdLotClient : String',
+     '- dateReception : DateTime','- transporteur : String',
+     '- immatriculation : String','- temperature : decimal',
+     '- numeroConteneur : String','- numeroAgrement : String',
+     '- carliste : String','- heureDebutChargement : String',
+     '- heureFinChargement : String','- bonNumber : String',
+     '- typeStockage : TypeStockage','- rejectionReason : String',
+     '- validatedAt : DateTime','- createdAt : DateTime','- updatedAt : DateTime'],
+  m:['+ getNombrePalettes() : int','+ getTotalCartons() : int',
+     '+ getPoidsTotal() / getTonnes() : float','+ getEspeces() : Array',
+     '+ getTotalCartonsSortis() : int','+ getPoidsTotalSortis() : float',
+     '+ getEspecesSorties() : Array','+ isPending() : bool',
+     '+ isValidated() : bool','+ isRejected() : bool',
+     '+ generateCode(type) : String']},
+
+ FicheDecharge:{color:'#7c3aed',bg:'#faf5ff',x:785,y:0,w:320,
+  a:['- id : int','- numero : String','- status : FicheStatus',
+     '- observation : String','- commentaireRejet : String',
+     '- temperature : decimal','- matricule : String',
+     '- numeroConteneur : String','- numeroAgrement : String',
+     '- carliste : String','- heureDebutChargement : String',
+     '- heureFinChargement : String','- validatedAt : DateTime',
+     '- createdAt : DateTime','- updatedAt : DateTime'],
+  m:['+ getTotalCartons() : int','+ getPoidsTotal() : float',
+     '+ getClient() : Client','+ isEnCoursControle() : bool',
+     '+ isEnAttenteValidation() : bool','+ isValidee() : bool',
+     '+ isRejetee() : bool','+ generateNumero() : String']},
+
+ Invoice:{color:'#b91c1c',bg:'#fff1f2',x:785,y:0,w:310,
+  a:['- id : int','- invoiceNumber : String',
+     '- periodStart : Date','- periodEnd : Date',
+     '- totalHt : decimal','- vatRate : decimal',
+     '- totalTtc : decimal','- status : InvoiceStatus',
+     '- validatedAt : DateTime','- createdAt : DateTime'],
+  m:['+ getVatAmount() : float','+ calculateTotals() : void',
+     '+ isDraft() : bool','+ isEditable() : bool',
+     '+ generateInvoiceNumber() : String']},
+
+ InvoiceLine:{color:'#991b1b',bg:'#fff1f2',x:1125,y:0,w:295,
+  a:['- id : int','- designation : String','- quantity : decimal',
+     '- unitPrice : decimal','- lineTotal : decimal',
+     '- quantityJours : int','- unitPriceDisplay : String'],
+  m:['+ getQuantity() : float','+ getUnitPrice() : float',
+     '+ getLineTotal() : String']},
+
+ PaletteTransfer:{color:'#6d28d9',bg:'#f5f3ff',x:20,y:0,w:295,
+  a:['- id : int','- fromRayon : String',
+     '- toRayon : String','- transferredAt : DateTime'],
+  m:['+ getFromRayon() : String','+ getToRayon() : String',
+     '+ getTransferredAt() : DateTime']},
+
+ AuditLog:{color:'#374151',bg:'#f9fafb',x:345,y:0,w:290,
+  a:['- id : int','- action : String','- entityType : String',
+     '- entityId : int','- oldValues : Array',
+     '- newValues : Array','- createdAt : DateTime'],
+  m:['+ getActionLabel() : String']},
+
+ // Enums
+ StockStatus:{color:'#92400e',bg:'#fff7ed',x:1450,y:30,w:245,stereo:'enumeration',
+  a:['EN_ATTENTE_CONTROLE','EN_ATTENTE_VALIDATION',
+     'PENDING','VALIDATED','REJECTED'],
+  m:['+ label() : String','+ cssClass() : String']},
+
+ OperationType:{color:'#92400e',bg:'#fff7ed',x:1450,y:0,w:245,stereo:'enumeration',
+  a:['ENTRY','EXIT'],
+  m:['+ label() : String']},
+
+ PaletteStatus:{color:'#92400e',bg:'#fff7ed',x:1450,y:0,w:245,stereo:'enumeration',
+  a:['EN_ATTENTE','VALIDEE','REJETEE',
+     'SORTIE_PARTIELLE','SORTIE_COMPLETE','ANNULEE'],
+  m:['+ label() : String','+ cssClass() : String']},
+
+ InvoiceStatus:{color:'#92400e',bg:'#fff7ed',x:1450,y:0,w:245,stereo:'enumeration',
+  a:['DRAFT','PENDING_VALIDATION','VALIDATED','SENT'],
+  m:['+ label() : String','+ isEditable() : bool']},
+
+ FicheStatus:{color:'#92400e',bg:'#fff7ed',x:1450,y:0,w:245,stereo:'enumeration',
+  a:['EN_COURS_CONTROLE','EN_ATTENTE_VALIDATION','VALIDEE','REJETEE'],
+  m:['+ label() : String','+ cssClass() : String']},
+
+ TypeStockage:{color:'#92400e',bg:'#fff7ed',x:1450,y:0,w:245,stereo:'enumeration',
+  a:['FORFAIT','SEJOUR'],
+  m:['+ label() : String']},
+};
+
+// ── Compute layout ────────────────────────────────────────────────────────
+const GAP=38;
+const boxes={};
+
+// Row 1: User, Client, ColdRoom
+// Row 2: Palette, Operation, FicheDecharge
+// Row 3: PaletteTransfer, AuditLog, Invoice, InvoiceLine
+
+const hUser=boxH(D.User.a,D.User.m);
+const hClient=boxH(D.Client.a,D.Client.m);
+const hColdRoom=boxH(D.ColdRoom.a,D.ColdRoom.m);
+const row1H=Math.max(hUser,hClient,hColdRoom);
+
+// Row 2 y
+const row2Y=30+row1H+GAP;
+D.Palette.y=row2Y; D.Operation.y=row2Y; D.FicheDecharge.y=row2Y;
+
+const hPalette=boxH(D.Palette.a,D.Palette.m);
+const hOperation=boxH(D.Operation.a,D.Operation.m);
+const hFicheDecharge=boxH(D.FicheDecharge.a,D.FicheDecharge.m);
+const row2H=Math.max(hPalette,hOperation,hFicheDecharge);
+
+// Row 3 y
+const row3Y=row2Y+row2H+GAP;
+D.PaletteTransfer.y=row3Y; D.AuditLog.y=row3Y; D.Invoice.y=row3Y; D.InvoiceLine.y=row3Y;
+const hInvoice=boxH(D.Invoice.a,D.Invoice.m);
+const hInvoiceLine=boxH(D.InvoiceLine.a,D.InvoiceLine.m);
+
+// Enums: stack vertically at x=1450
+let enumY=30;
+for(const n of['StockStatus','OperationType','PaletteStatus','InvoiceStatus','FicheStatus','TypeStockage']){
+  D[n].y=enumY; enumY+=boxH(D[n].a,D[n].m)+20;
+}
+
+// Total SVG dimensions
+const svgW=1450+245+25;
+const svgH=row3Y+Math.max(hInvoice,boxH(D.PaletteTransfer.a,D.PaletteTransfer.m),boxH(D.AuditLog.a,D.AuditLog.m))+40;
+
+// ── Render boxes ─────────────────────────────────────────────────────────
+let bodyS='';
+for(const [name,d] of Object.entries(D)){
+  const r=drawBox(d.x,d.y,d.w,d.color,d.bg,name,d.stereo||null,d.a,d.m);
+  bodyS+=r.s;
+  boxes[name]={l:d.x,r:d.x+d.w,t:d.y,b:d.y+r.h,cx:d.x+d.w/2,cy:d.y+r.h/2,h:r.h};
+}
+
+// ── Arrow helpers ─────────────────────────────────────────────────────────
+function pt(bname,side){
+  const b=boxes[bname];
+  if(side==='t') return [b.cx,b.t];
+  if(side==='b') return [b.cx,b.b];
+  if(side==='l') return [b.l,b.cy];
+  if(side==='r') return [b.r,b.cy];
+}
+
+// edge of box closest to target
+function edge(from,to){
+  const f=boxes[from],t=boxes[to];
+  const dx=t.cx-f.cx, dy=t.cy-f.cy;
+  if(Math.abs(dx)>Math.abs(dy)) return dx>0?'r':'l';
+  return dy>0?'b':'t';
+}
+
+function arrow(from,to,label,mult1,mult2,style){
+  const fe=edge(from,to); const te=edge(to,from);
+  const [x1,y1]=pt(from,fe); const [x2,y2]=pt(to,te);
+  const dash=style==='dep'?'stroke-dasharray="6,3"':'';
+  const mid=[(x1+x2)/2,(y1+y2)/2];
+  let s=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#475569" stroke-width="1.2" ${dash} marker-end="url(#arr)"/>`;
+  if(label) s+=`<rect x="${mid[0]-label.length*3.5-2}" y="${mid[1]-8}" width="${label.length*7+4}" height="12" fill="white" opacity="0.85"/>
+  <text x="${mid[0]}" y="${mid[1]+1}" text-anchor="middle" font-size="9" fill="#334155">${e(label)}</text>`;
+  if(mult1) s+=`<text x="${x1+(x2>x1?8:-8)}" y="${y1+(y2>y1?-4:12)}" font-size="9" fill="#64748b" text-anchor="middle">${e(mult1)}</text>`;
+  if(mult2) s+=`<text x="${x2+(x1>x2?8:-8)}" y="${y2+(y1>y2?-4:12)}" font-size="9" fill="#64748b" text-anchor="middle">${e(mult2)}</text>`;
+  return s;
+}
+
+function compArrow(from,to,label,mult1,mult2){
+  const fe=edge(from,to); const te=edge(to,from);
+  const [x1,y1]=pt(from,fe); const [x2,y2]=pt(to,te);
+  const mid=[(x1+x2)/2,(y1+y2)/2];
+  let s=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#475569" stroke-width="1.2" marker-start="url(#diam)" marker-end="url(#arr)"/>`;
+  if(label) s+=`<rect x="${mid[0]-label.length*3.5-2}" y="${mid[1]-8}" width="${label.length*7+4}" height="12" fill="white" opacity="0.85"/>
+  <text x="${mid[0]}" y="${mid[1]+1}" text-anchor="middle" font-size="9" fill="#334155">${e(label)}</text>`;
+  if(mult1) s+=`<text x="${x1+(x2>x1?8:-8)}" y="${y1+(y2>y1?-4:12)}" font-size="9" fill="#64748b" text-anchor="middle">${e(mult1)}</text>`;
+  if(mult2) s+=`<text x="${x2+(x1>x2?8:-8)}" y="${y2+(y1>y2?-4:12)}" font-size="9" fill="#64748b" text-anchor="middle">${e(mult2)}</text>`;
+  return s;
+}
+
+// ── Relations ─────────────────────────────────────────────────────────────
+let relS='';
+relS+=arrow('User','Client','client','0..*','0..1');
+relS+=arrow('Operation','Client','client','0..*','1');
+relS+=arrow('Operation','User','createdBy','0..*','1');
+relS+=arrow('FicheDecharge','User','controleur','0..*','1');
+relS+=arrow('Invoice','User','createdBy','0..*','1');
+relS+=arrow('PaletteTransfer','User','transferredBy','0..*','1');
+relS+=arrow('AuditLog','User','user','0..*','1');
+relS+=compArrow('Operation','Palette','palettes','1','1..*');
+relS+=arrow('Operation','FicheDecharge','ficheDecharge','1','0..1');
+relS+=arrow('Palette','ColdRoom','coldRoom','0..*','0..1');
+relS+=arrow('Palette','Palette','sourcePalette','0..*','0..1');
+relS+=compArrow('Palette','PaletteTransfer','transfers','1','0..*');
+relS+=arrow('PaletteTransfer','ColdRoom','fromColdRoom','','');
+relS+=compArrow('Invoice','InvoiceLine','lines','1','1..*');
+relS+=arrow('Invoice','Client','client','0..*','1');
+// enum deps (dashed)
+relS+=arrow('Operation','StockStatus','use','','','dep');
+relS+=arrow('Operation','OperationType','use','','','dep');
+relS+=arrow('Operation','TypeStockage','use','','','dep');
+relS+=arrow('Palette','PaletteStatus','use','','','dep');
+relS+=arrow('Invoice','InvoiceStatus','use','','','dep');
+relS+=arrow('FicheDecharge','FicheStatus','use','','','dep');
+
+// ── SVG assembly ──────────────────────────────────────────────────────────
+const markers=`<defs>
+  <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+  </marker>
+  <marker id="diam" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
+    <polygon points="5,0 10,5 5,10 0,5" fill="#475569"/>
+  </marker>
+</defs>`;
+
+const legend=`<g transform="translate(20,${svgH-60})">
+  <text font-size="11" font-weight="bold" fill="#334155">Légende :</text>
+  <line x1="80" y1="-5" x2="130" y2="-5" stroke="#475569" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="135" y="-1" font-size="10" fill="#475569">Association</text>
+  <line x1="230" y1="-5" x2="280" y2="-5" stroke="#475569" stroke-width="1.2" marker-start="url(#diam)" marker-end="url(#arr)"/>
+  <text x="285" y="-1" font-size="10" fill="#475569">Composition</text>
+  <line x1="395" y1="-5" x2="445" y2="-5" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+  <text x="450" y="-1" font-size="10" fill="#475569">Dépendance</text>
+</g>`;
+
+const title=`<text x="${svgW/2}" y="18" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">Diagramme de Classes — Golden Logistics</text>`;
+
+const finalSVG=`<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH+10}" id="theSVG">
+${markers}
+<rect width="${svgW}" height="${svgH+10}" fill="#f8fafc"/>
+${relS}
+${bodyS}
+${legend}
+</svg>`;
+
+document.getElementById('out').innerHTML=finalSVG;
+
+// ── Download ──────────────────────────────────────────────────────────────
+function dlSVG(){
+  const svg=document.getElementById('theSVG');
+  const data=new XMLSerializer().serializeToString(svg);
+  const blob=new Blob([data],{type:'image/svg+xml;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='diagramme_classes.svg'; a.click();
+}
+
+function dlPNG(){
+  const svg=document.getElementById('theSVG');
+  const data=new XMLSerializer().serializeToString(svg);
+  const blob=new Blob([data],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const img=new Image();
+  img.onload=function(){
+    const c=document.createElement('canvas');
+    c.width=svg.width.baseVal.value*2; c.height=svg.height.baseVal.value*2;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#f8fafc'; ctx.fillRect(0,0,c.width,c.height);
+    ctx.drawImage(img,0,0,c.width,c.height);
+    c.toBlob(b=>{
+      const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='diagramme_classes.png'; a.click();
+      URL.revokeObjectURL(url);
+    },'image/png');
+  };
+  img.onerror=()=>alert('Utilisez le bouton SVG puis convertissez sur cloudconvert.com');
+  img.src=url;
+}
+</script>
+</body>
+</html>

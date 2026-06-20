@@ -1,87 +1,186 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Historique des Transferts{% endblock %}
+{% block title %}Transferts de palettes{% endblock %}
+
+{% block stylesheets %}
+<style>
+.transfer-nav { display:flex; gap:.5rem; margin-bottom:1.5rem; }
+.tnav-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.45rem 1.1rem; border-radius:7px; font-size:.84rem; font-weight:600; text-decoration:none; transition:opacity .15s; }
+.tnav-btn:hover { opacity:.85; }
+.tnav-new     { background:#2563eb; color:#fff; }
+.tnav-active  { background:#f59e0b; color:#fff; }
+</style>
+<style>
+.filter-card { border-radius: .875rem; box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+.table-card  { border-radius: .875rem; box-shadow: 0 2px 16px rgba(0,0,0,.06); }
+.tbl thead th {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #64748b;
+    font-weight: 700;
+    background: #f8fafc;
+    padding: .6rem .9rem;
+    white-space: nowrap;
+}
+.tbl tbody td { font-size: .85rem; padding: .65rem .9rem; vertical-align: middle; }
+.location-arrow { color: #94a3b8; margin: 0 .35rem; }
+.loc-from { color: #475569; }
+.loc-to   { color: #16a34a; font-weight: 700; }
+.stat-card { border-radius: .875rem; border: 0; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+</style>
+{% endblock %}
 
 {% block body %}
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1"><i class="bi bi-arrow-left-right me-2"></i>Historique des Transferts</h2>
-            <small class="text-muted">Consultez vos transferts de palettes</small>
+
+    {# En-tête #}
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:44px;height:44px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="bi bi-arrow-left-right text-primary" style="font-size:1.2rem"></i>
         </div>
-        <a href="{{ path('app_transfer_new') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Nouveau Transfert
+        <div>
+            <h2 class="mb-0 fw-bold fs-5">Transferts</h2>
+            <small class="text-muted">Historique de tous les transferts internes</small>
+        </div>
+    </div>
+
+    {# Onglets #}
+    <div class="transfer-nav">
+        <a href="{{ path('app_transfer_new') }}" class="tnav-btn tnav-new">
+            <i class="bi bi-arrow-left-right"></i> Nouveau Transfert
+        </a>
+        <a href="{{ path('app_transfer_index') }}" class="tnav-btn tnav-active">
+            <i class="bi bi-bookmark-fill"></i> Transferts Enregistrés
         </a>
     </div>
 
+    {# Stat : total #}
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4 col-lg-3">
+            <div class="card stat-card text-center py-3 px-2">
+                <div class="fs-1 fw-bold text-primary">{{ transfers|length }}</div>
+                <div class="text-muted" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.04em">
+                    {% if filters.client or filters.codePalette or filters.coldRoom %}transferts filtrés{% else %}transferts au total{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     {# Filtres #}
-    <div class="card mb-4">
+    <div class="card filter-card mb-4 border-0">
         <div class="card-body">
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label">Client</label>
+                    <label class="form-label fw-semibold">Client</label>
                     <select name="client" class="form-select">
-                        <option value="">Tous</option>
+                        <option value="">Tous les clients</option>
                         {% for c in clients %}
-                            <option value="{{ c.id }}" {{ filters.client == c.id ? 'selected' }}>{{ c.companyName }}</option>
+                            <option value="{{ c.id }}" {{ filters.client == (c.id ~ '') ? 'selected' }}>{{ c.companyName }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Code palette</label>
-                    <input type="text" name="code_palette" class="form-control" placeholder="Ex: BR-..." value="{{ filters.codePalette }}">
+                    <label class="form-label fw-semibold">Code palette</label>
+                    <input type="text" name="code_palette" class="form-control"
+                           placeholder="Ex: BR-2024-01…"
+                           value="{{ filters.codePalette ?? '' }}">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Chambre</label>
+                    <label class="form-label fw-semibold">Chambre (origine ou destination)</label>
                     <select name="cold_room" class="form-select">
-                        <option value="">Toutes</option>
+                        <option value="">Toutes les chambres</option>
                         {% for room in coldRooms %}
-                            <option value="{{ room.id }}" {{ filters.coldRoom == room.id ? 'selected' }}>{{ room.name }}</option>
+                            <option value="{{ room.id }}" {{ filters.coldRoom == (room.id ~ '') ? 'selected' }}>{{ room.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrer</button>
+                    <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                        <i class="bi bi-search me-1"></i> Filtrer
+                    </button>
                 </div>
                 <div class="col-md-1">
-                    <a href="{{ path('app_transfer_index') }}" class="btn btn-outline-secondary w-100"><i class="bi bi-x-lg"></i></a>
+                    <a href="{{ path('app_transfer_index') }}" class="btn btn-outline-secondary w-100" title="Réinitialiser les filtres">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
                 </div>
             </form>
         </div>
     </div>
 
     {# Tableau #}
-    <div class="card">
+    <div class="card table-card border-0">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover mb-0 tbl">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Code Palette</th>
+                            <th>Date &amp; Heure</th>
+                            <th>Code palette</th>
                             <th>Client</th>
-                            <th>Localisation d'origine</th>
-                            <th>Nouvelle localisation</th>
+                            <th>Produit</th>
+                            <th>Localisation origine</th>
+                            <th>Localisation destination</th>
                             <th>Contrôleur</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for t in transfers %}
                         <tr>
-                            <td>{{ t.transferredAt|date('d/m/Y H:i') }}</td>
-                            <td><code>{{ t.palette.codePalette }}</code></td>
+                            <td>
+                                <span class="fw-semibold">{{ t.transferredAt|date('d/m/Y') }}</span>
+                                <br><small class="text-muted">{{ t.transferredAt|date('H:i') }}</small>
+                            </td>
+                            <td>
+                                <code class="text-primary fw-bold">{{ t.palette.codePalette }}</code>
+                            </td>
                             <td>{{ t.palette.operation.client.companyName }}</td>
-                            <td>{{ t.fromColdRoom.name }} / {{ t.fromRayon ?? '—' }}</td>
-                            <td><strong>{{ t.toColdRoom.name }} / {{ t.toRayon ?? '—' }}</strong></td>
-                            <td>{{ t.transferredBy.fullName }}</td>
+                            <td>
+                                <span class="fw-semibold">{{ t.palette.espece }}</span>
+                                {% if t.palette.qualite %}<br><small class="text-muted">{{ t.palette.qualite }}</small>{% endif %}
+                            </td>
+                            <td class="loc-from">
+                                <i class="bi bi-geo-alt me-1 text-warning"></i>
+                                {{ t.fromColdRoom.name }}
+                                {% if t.fromRayon %}
+                                    <span class="badge bg-light text-dark border">{{ t.fromRayon }}</span>
+                                {% else %}
+                                    <span class="text-muted">/ —</span>
+                                {% endif %}
+                            </td>
+                            <td class="loc-to">
+                                <i class="bi bi-geo-alt-fill me-1 text-success"></i>
+                                {{ t.toColdRoom.name }}
+                                {% if t.toRayon %}
+                                    <span class="badge bg-success">{{ t.toRayon }}</span>
+                                {% else %}
+                                    <span class="text-muted fw-normal">/ —</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-person me-1"></i>{{ t.transferredBy.fullName }}
+                                </span>
+                            </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2rem"></i><p>Aucun transfert</p></td></tr>
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:.5rem"></i>
+                                Aucun transfert trouvé
+                                {% if filters.client or filters.codePalette or filters.coldRoom %}
+                                    pour ces critères.
+                                    <a href="{{ path('app_transfer_index') }}" class="ms-2">Réinitialiser</a>
+                                {% endif %}
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}

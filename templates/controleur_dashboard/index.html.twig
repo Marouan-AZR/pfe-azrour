@@ -2,138 +2,617 @@
 
 {% block title %}Performances des Contrôleurs{% endblock %}
 
+{% block stylesheets %}
+<style>
+/* ── KPI ── */
+.kpi-grad {
+    border-radius:.875rem; padding:.9rem 1.1rem;
+    position:relative; overflow:hidden;
+    box-shadow:0 6px 20px rgba(0,0,0,.09);
+    transition:transform .2s, box-shadow .2s;
+}
+.kpi-grad:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(0,0,0,.14); }
+.kpi-grad::before {
+    content:''; position:absolute; top:-30%; right:-20%;
+    width:140px; height:140px; border-radius:50%;
+    background:rgba(255,255,255,.12); pointer-events:none;
+}
+.kpi-grad .kpi-val  { font-size:1.6rem; font-weight:800; color:#fff; line-height:1; display:block; margin-bottom:.15rem; }
+.kpi-grad .kpi-lbl  { color:rgba(255,255,255,.8); font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+.kpi-grad .kpi-ico  { position:absolute; right:1rem; top:50%; transform:translateY(-50%); font-size:1.9rem; color:rgba(255,255,255,.18); }
+.grad-indigo  { background:linear-gradient(135deg,#6366f1,#4f46e5); }
+.grad-emerald { background:linear-gradient(135deg,#10b981,#059669); }
+.grad-amber   { background:linear-gradient(135deg,#f59e0b,#d97706); }
+.grad-rose    { background:linear-gradient(135deg,#ef4444,#dc2626); }
+
+/* ── Cards ── */
+.glass      { background:#fff; border:1px solid #e2e8f0; border-radius:.875rem; box-shadow:0 2px 12px rgba(0,0,0,.05); }
+.chart-card { border-radius:.875rem; overflow:hidden; transition:box-shadow .2s; }
+.chart-card:hover { box-shadow:0 8px 28px rgba(0,0,0,.09); }
+.chart-header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:.65rem 1rem; border-bottom:1px solid #f1f5f9;
+}
+.chart-header h6 { font-size:.82rem; }
+.chart-badge { background:rgba(99,102,241,.1); color:#4f46e5; font-size:.65rem; font-weight:700; padding:.18em .6em; border-radius:50px; }
+
+/* ── Filtre ── */
+.period-pill {
+    display:inline-flex; align-items:center; gap:.4rem;
+    background:rgba(99,102,241,.08); border:1.5px solid rgba(99,102,241,.2);
+    border-radius:50px; padding:.28em .85em; font-size:.8rem; font-weight:600; color:#4f46e5;
+}
+.month-form .form-select,
+.month-form .btn { border-radius:50px !important; }
+.month-form .form-select { font-size:.8rem; padding:.32rem .8rem; border-color:#e2e8f0; }
+
+/* ── Tableau ── */
+.table thead th { font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; padding:.55rem .85rem; }
+.table tbody td { font-size:.82rem; padding:.55rem .85rem; vertical-align:middle; }
+.table tbody tr { transition:background .12s; }
+.table tbody tr:hover { background:rgba(99,102,241,.03); }
+.table tfoot td { font-size:.78rem; font-weight:700; color:#0f172a; background:#f8fafc; padding:.5rem .85rem; }
+
+/* ── Utilitaires ── */
+.ctrl-avatar {
+    border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; color:#fff;
+}
+.metric-pill {
+    display:inline-flex; align-items:center; gap:.25rem;
+    padding:.15em .5em; border-radius:50px; font-size:.68rem; font-weight:700;
+}
+.medal-1 { color:#fbbf24; }
+.medal-2 { color:#9ca3af; }
+.medal-3 { color:#cd7c2f; }
+.perf-bar-track { height:5px; background:#f1f5f9; border-radius:3px; overflow:hidden; min-width:70px; }
+.perf-bar-fill  { height:100%; border-radius:3px; transition:width 1.2s cubic-bezier(.4,0,.2,1); }
+.count-up { display:inline-block; }
+.empty-cell  { padding:2rem .75rem !important; color:#94a3b8; text-align:center; }
+.empty-chart { padding:2rem .75rem; text-align:center; color:#94a3b8; }
+
+/* ── Scroll chart container ── */
+.chart-scroll {
+    max-height:260px;
+    overflow-y:auto;
+    overflow-x:hidden;
+}
+.chart-scroll::-webkit-scrollbar { width:4px; }
+.chart-scroll::-webkit-scrollbar-track { background:#f8fafc; }
+.chart-scroll::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:2px; }
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+
+{# ── Pré-calcul ── #}
+{% set totalOps     = 0 %}
+{% set totalTonnage = 0 %}
+{% set totalCartons = 0 %}
+{% set maxOps       = 0 %}
+{% set activeCtrl   = 0 %}
+{% for s in stats %}
+    {% set totalOps     = totalOps     + s.total   %}
+    {% set totalTonnage = totalTonnage + s.tonnage  %}
+    {% set totalCartons = totalCartons + s.cartons  %}
+    {% if s.total   > maxOps %}{% set maxOps = s.total %}{% endif %}
+    {% if s.total   > 0 %}{% set activeCtrl = activeCtrl + 1 %}{% endif %}
+{% endfor %}
+{% set avgOps          = stats|length > 0 ? (totalOps / stats|length)|round(1) : 0 %}
+{% set monthNames      = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'] %}
+{% set currentMonthName = monthNames[month - 1] %}
+{% set ctrlColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#e11d48'] %}
+{% set ctrlCount       = stats|length %}
+
+<div class="container-fluid py-3 px-4">
+
+    {# ══ EN-TÊTE ══ #}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-            <h2 class="mb-1"><i class="bi bi-bar-chart-line me-2"></i>Performances des Contrôleurs</h2>
-            <small class="text-muted">Suivi mensuel de l'activité</small>
+            <h5 class="mb-0 fw-bold" style="color:#0f172a">
+                <i class="bi bi-bar-chart-line me-2" style="color:#6366f1"></i>Performances des Contrôleurs
+            </h5>
+            <p class="text-secondary mb-0" style="font-size:.78rem">
+                <i class="bi bi-calendar3 me-1"></i>Suivi mensuel ·
+                <span class="period-pill">
+                    <i class="bi bi-calendar-event" style="font-size:.75rem"></i>
+                    {{ currentMonthName }} {{ year }}
+                </span>
+            </p>
+        </div>
+        <form method="get" class="d-flex gap-2 align-items-center month-form">
+            <select name="month" class="form-select form-select-sm" style="width:130px">
+                {% for m in 1..12 %}
+                    <option value="{{ m }}" {{ month == m ? 'selected' }}>{{ monthNames[m-1] }}</option>
+                {% endfor %}
+            </select>
+            <select name="year" class="form-select form-select-sm" style="width:85px">
+                {% for y in (year-2)..(year+1) %}
+                    <option value="{{ y }}" {{ year == y ? 'selected' }}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm px-3">
+                <i class="bi bi-funnel me-1"></i>Afficher
+            </button>
+        </form>
+    </div>
+
+    {# ══ RANGÉE 1 : KPI ══ #}
+    <div class="row g-2 mb-3">
+        <div class="col-6 col-xl-3">
+            <div class="kpi-grad grad-indigo">
+                <i class="bi bi-people-fill kpi-ico"></i>
+                <span class="kpi-val count-up" data-target="{{ activeCtrl }}">0</span>
+                <span class="kpi-lbl">Contrôleurs actifs <span style="font-size:.65rem;opacity:.7">/ {{ ctrlCount }}</span></span>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="kpi-grad grad-emerald">
+                <i class="bi bi-lightning-charge-fill kpi-ico"></i>
+                <span class="kpi-val count-up" data-target="{{ totalOps }}">0</span>
+                <span class="kpi-lbl">Total opérations</span>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="kpi-grad grad-amber">
+                <i class="bi bi-weight kpi-ico"></i>
+                <span class="kpi-val" id="kpiTonnage">0</span>
+                <span class="kpi-lbl">Tonnage traité (T)</span>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="kpi-grad grad-rose">
+                <i class="bi bi-box-seam-fill kpi-ico"></i>
+                <span class="kpi-val count-up" data-target="{{ totalCartons }}">0</span>
+                <span class="kpi-lbl">Cartons traités</span>
+            </div>
         </div>
     </div>
 
-    {# Sélecteur mois/année #}
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label">Mois</label>
-                    <select name="month" class="form-select">
-                        {% for m in 1..12 %}
-                            <option value="{{ m }}" {{ month == m ? 'selected' }}>
-                                {{ ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][m-1] }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Année</label>
-                    <select name="year" class="form-select">
-                        {% for y in (year-2)..(year+1) %}
-                            <option value="{{ y }}" {{ year == y ? 'selected' }}>{{ y }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Afficher</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    {# ══ RANGÉE 2 : Entrées/Sorties + Tonnage ══ #}
+    <div class="row g-3 mb-3">
 
-    <div class="row">
-        {# Tableau des performances #}
-        <div class="col-lg-8 mb-4">
-            <div class="card">
-                <div class="card-header"><i class="bi bi-table me-2"></i>Récapitulatif des performances</div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Contrôleur</th>
-                                    <th class="text-center">Entrées</th>
-                                    <th class="text-center">Sorties</th>
-                                    <th class="text-center">Total Opérations</th>
-                                    <th class="text-center">Cartons</th>
-                                    <th class="text-center">Tonnage (T)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for s in stats %}
-                                <tr>
-                                    <td><i class="bi bi-person-circle me-1"></i> {{ s.user.fullName }}</td>
-                                    <td class="text-center"><span class="badge bg-success">{{ s.entries }}</span></td>
-                                    <td class="text-center"><span class="badge bg-danger">{{ s.exits }}</span></td>
-                                    <td class="text-center fw-bold">{{ s.total }}</td>
-                                    <td class="text-center">{{ s.cartons|number_format(0, ',', ' ') }}</td>
-                                    <td class="text-center fw-bold">{{ s.tonnage }} T</td>
-                                </tr>
-                                {% else %}
-                                <tr><td colspan="6" class="text-center text-muted py-4">Aucune donnée pour cette période</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+        <div class="col-lg-8">
+            <div class="glass chart-card h-100">
+                <div class="chart-header">
+                    <h6 class="fw-semibold mb-0">
+                        <i class="bi bi-bar-chart-steps me-2 text-primary"></i>Entrées & Sorties par contrôleur
+                    </h6>
+                    <div class="d-flex gap-2">
+                        <span class="metric-pill" style="background:rgba(16,185,129,.1);color:#059669"><i class="bi bi-arrow-down-circle-fill"></i>Entrées</span>
+                        <span class="metric-pill" style="background:rgba(239,68,68,.1);color:#dc2626"><i class="bi bi-arrow-up-circle-fill"></i>Sorties</span>
                     </div>
+                </div>
+                <div class="p-2">
+                    {% if totalOps > 0 %}
+                        <div class="chart-scroll">
+                            <canvas id="chartBar" style="min-height:{{ max(ctrlCount * 38, 100) }}px"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="empty-chart">
+                            <i class="bi bi-bar-chart display-4 d-block mb-2 opacity-25"></i>
+                            <small>Aucune opération pour {{ currentMonthName }} {{ year }}</small>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        {# Top 5 #}
-        <div class="col-lg-4 mb-4">
-            <div class="card">
-                <div class="card-header"><i class="bi bi-trophy me-2"></i>Top 5 du mois</div>
-                <div class="card-body">
-                    {% for i, s in top5 %}
-                    <div class="d-flex align-items-center mb-3 p-2 rounded" style="background:var(--glass-bg)">
-                        <span class="badge bg-{{ i == 0 ? 'warning' : (i == 1 ? 'secondary' : 'dark') }} me-3 fs-6">{{ i + 1 }}</span>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold">{{ s.user.fullName }}</div>
-                            <small class="text-muted">{{ s.total }} opérations · {{ s.tonnage }} T</small>
+        <div class="col-lg-4">
+            <div class="glass chart-card h-100">
+                <div class="chart-header">
+                    <h6 class="fw-semibold mb-0">
+                        <i class="bi bi-pie-chart-fill me-2 text-warning"></i>Répartition du tonnage
+                    </h6>
+                    <span class="chart-badge" style="background:rgba(245,158,11,.1);color:#b45309">{{ currentMonthName }}</span>
+                </div>
+                <div class="p-2 d-flex align-items-center justify-content-center" style="min-height:190px">
+                    {% if totalTonnage > 0 %}
+                        <div style="position:relative;width:100%;max-width:210px">
+                            <canvas id="chartDonut"></canvas>
+                            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none">
+                                <div class="fw-bold" style="font-size:1.1rem;color:#0f172a;line-height:1">{{ totalTonnage|number_format(1,'.','') }}</div>
+                                <div style="font-size:.65rem;color:#64748b;font-weight:600">T total</div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-chart">
+                            <i class="bi bi-pie-chart display-4 d-block mb-2 opacity-25"></i>
+                            <small>Aucun tonnage ce mois-ci</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# ══ RANGÉE 3 : Top Contrôleurs + Volume cartons ══ #}
+    <div class="row g-3 mb-3">
+
+        <div class="col-lg-7">
+            <div class="glass chart-card h-100">
+                <div class="chart-header">
+                    <h6 class="fw-semibold mb-0">
+                        <i class="bi bi-trophy-fill me-2" style="color:#f59e0b"></i>Top Contrôleurs
+                    </h6>
+                    <span class="chart-badge" style="background:rgba(245,158,11,.1);color:#b45309">Opérations</span>
+                </div>
+                <div class="p-2">
+                    {% if totalOps > 0 %}
+                        <div class="chart-scroll">
+                            <canvas id="chartTopCtrl" style="min-height:{{ max(ctrlCount * 32, 90) }}px"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="empty-chart">
+                            <i class="bi bi-trophy display-4 d-block mb-2 opacity-25"></i>
+                            <small>Aucune donnée</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="glass chart-card h-100">
+                <div class="chart-header">
+                    <h6 class="fw-semibold mb-0">
+                        <i class="bi bi-inboxes-fill me-2" style="color:#8b5cf6"></i>Volume cartons
+                    </h6>
+                    <span class="chart-badge" style="background:rgba(139,92,246,.1);color:#7c3aed">Répartition</span>
+                </div>
+                <div class="p-2">
+                    {% if totalCartons > 0 %}
+                        <div style="position:relative;max-width:170px;margin:0 auto">
+                            <canvas id="chartCartons" height="170"></canvas>
+                            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+                                <span style="font-size:1rem;font-weight:800;color:#0f172a;line-height:1">{{ totalCartons|number_format(0,',',' ') }}</span>
+                                <span style="font-size:.58rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em">cartons</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 d-flex flex-column gap-1">
+                            {% for s in stats|slice(0,6) %}
+                            {% set parts = s.user.fullName|split(' ') %}
+                            {% set pct = totalCartons > 0 ? (s.cartons / totalCartons * 100)|round(1) : 0 %}
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="width:8px;height:8px;border-radius:2px;background:{{ ctrlColors[loop.index0 % ctrlColors|length] }};flex-shrink:0"></span>
+                                <span style="font-size:.72rem;font-weight:600;color:#334155;flex:1">{{ parts[0] }}</span>
+                                <span style="font-size:.68rem;color:#64748b">{{ s.cartons|number_format(0,',',' ') }}</span>
+                                <span style="font-size:.65rem;color:#94a3b8;min-width:30px;text-align:right">{{ pct }}%</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-chart">
+                            <i class="bi bi-box-seam display-4 d-block mb-2 opacity-25"></i>
+                            <small>Aucun carton ce mois-ci</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# ══ RANGÉE 4 : Tableau + Palmarès ══ #}
+    <div class="row g-3">
+
+        <div class="col-xl-8">
+            <div class="glass overflow-hidden">
+                <div class="chart-header">
+                    <h6 class="fw-semibold mb-0">
+                        <i class="bi bi-table me-2 text-primary"></i>Récapitulatif détaillé
+                    </h6>
+                    <span class="chart-badge">{{ currentMonthName }} {{ year }}</span>
+                </div>
+                <div class="table-responsive" style="max-height:340px;overflow-y:auto">
+                    <table class="table mb-0">
+                        <thead class="table-light" style="position:sticky;top:0;z-index:1">
+                            <tr>
+                                <th style="width:28px">#</th>
+                                <th>Contrôleur</th>
+                                <th class="text-center">Entrées</th>
+                                <th class="text-center">Sorties</th>
+                                <th>Perf.</th>
+                                <th class="text-center">Cartons</th>
+                                <th class="text-center">Tonnage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in stats %}
+                            {% set barPct   = maxOps > 0 ? (s.total / maxOps * 100)|round(0) : 0 %}
+                            {% set barColor = loop.index == 1 ? '#fbbf24' : (loop.index == 2 ? '#9ca3af' : (loop.index == 3 ? '#cd7c2f' : '#6366f1')) %}
+                            {% set aColor   = ctrlColors[loop.index0 % ctrlColors|length] %}
+                            {% set parts    = s.user.fullName|split(' ') %}
+                            {% set initials = parts[0]|slice(0,1) ~ (parts[1] is defined ? parts[1]|slice(0,1) : '') %}
+                            <tr>
+                                <td>
+                                    {% if loop.index == 1 %}<i class="bi bi-trophy-fill medal-1"></i>
+                                    {% elseif loop.index == 2 %}<i class="bi bi-award-fill medal-2"></i>
+                                    {% elseif loop.index == 3 %}<i class="bi bi-award-fill medal-3"></i>
+                                    {% else %}<span class="text-secondary fw-semibold" style="font-size:.78rem">{{ loop.index }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="ctrl-avatar" style="background:{{ aColor }};width:30px;height:30px;font-size:.72rem">{{ initials|upper }}</div>
+                                        <div>
+                                            <div class="fw-semibold" style="font-size:.82rem">{{ s.user.fullName }}</div>
+                                            <small class="text-secondary" style="font-size:.7rem">{{ s.total }} op{{ s.total > 1 ? 's' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="metric-pill" style="background:rgba(16,185,129,.1);color:#065f46"><i class="bi bi-arrow-down-circle"></i>{{ s.entries }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="metric-pill" style="background:rgba(239,68,68,.1);color:#991b1b"><i class="bi bi-arrow-up-circle"></i>{{ s.exits }}</span>
+                                </td>
+                                <td style="min-width:90px">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="perf-bar-track flex-fill">
+                                            <div class="perf-bar-fill" style="width:{{ barPct }}%;background:{{ barColor }}"></div>
+                                        </div>
+                                        <span class="text-secondary" style="font-size:.68rem;width:28px;text-align:right">{{ barPct }}%</span>
+                                    </div>
+                                </td>
+                                <td class="text-center fw-semibold" style="font-size:.8rem">{{ s.cartons|number_format(0,',',' ') }}</td>
+                                <td class="text-center">
+                                    <span class="fw-bold" style="font-size:.82rem">{{ s.tonnage }}</span>
+                                    <span class="text-secondary" style="font-size:.7rem"> T</span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="empty-cell">
+                                    <i class="bi bi-inbox display-5 d-block mb-2 opacity-25"></i>
+                                    Aucune donnée pour {{ currentMonthName }} {{ year }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        {% if stats|length > 0 and totalOps > 0 %}
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" class="text-secondary"><i class="bi bi-calculator me-1"></i>Totaux</td>
+                                <td class="text-center" style="color:#065f46;font-weight:700">{{ stats|reduce((acc,s)=>acc+s.entries,0) }}</td>
+                                <td class="text-center" style="color:#991b1b;font-weight:700">{{ stats|reduce((acc,s)=>acc+s.exits,0) }}</td>
+                                <td style="color:#4f46e5;font-weight:700">{{ totalOps }} ops</td>
+                                <td class="text-center">{{ totalCartons|number_format(0,',',' ') }}</td>
+                                <td class="text-center"><strong>{{ totalTonnage|number_format(1,',',' ') }} T</strong></td>
+                            </tr>
+                        </tfoot>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {# Palmarès #}
+        <div class="col-xl-4">
+            <div class="glass p-3 h-100">
+                <h6 class="fw-semibold mb-3" style="font-size:.85rem">
+                    <i class="bi bi-stars me-2" style="color:#f59e0b"></i>Palmarès du mois
+                </h6>
+
+                {% if totalOps == 0 %}
+                <div class="empty-chart">
+                    <i class="bi bi-stars display-4 d-block mb-2 opacity-25"></i>
+                    <small>Aucune donnée disponible</small>
+                </div>
+                {% else %}
+
+                {% set palmOps     = {short:'—', val:0, full:'—'} %}
+                {% set palmEff     = {short:'—', val:0, full:'—'} %}
+                {% set palmCartons = {short:'—', val:0, full:'—'} %}
+                {% set palmTonnage = {short:'—', val:0, full:'—'} %}
+                {% for s in stats %}
+                    {% set fn = s.user.fullName|split(' ')|first %}
+                    {% if s.total   > palmOps.val %}{% set palmOps     = {short:fn, val:s.total,       full:s.user.fullName} %}{% endif %}
+                    {% set eff = s.total > 0 ? (s.tonnage / s.total) : 0 %}
+                    {% if eff       > palmEff.val %}{% set palmEff     = {short:fn, val:eff|round(2),   full:s.user.fullName} %}{% endif %}
+                    {% if s.cartons > palmCartons.val %}{% set palmCartons = {short:fn, val:s.cartons,  full:s.user.fullName} %}{% endif %}
+                    {% if s.tonnage > palmTonnage.val %}{% set palmTonnage = {short:fn, val:s.tonnage,  full:s.user.fullName} %}{% endif %}
+                {% endfor %}
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <div style="background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(79,70,229,.03));border:1.5px solid rgba(99,102,241,.2);border-radius:.8rem;padding:.75rem">
+                            <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6366f1;margin-bottom:.4rem"><i class="bi bi-lightning-charge-fill me-1"></i>Top Opérations</div>
+                            <div style="font-size:.92rem;font-weight:800;color:#0f172a" title="{{ palmOps.full }}">{{ palmOps.short }}</div>
+                            <div style="font-size:.67rem;color:#64748b;margin-top:.2rem;font-weight:600">{{ palmOps.val }} op{{ palmOps.val > 1 ? 's' }}</div>
                         </div>
                     </div>
-                    {% else %}
-                    <p class="text-muted text-center">Aucune donnée</p>
-                    {% endfor %}
+                    <div class="col-6">
+                        <div style="background:linear-gradient(135deg,rgba(13,148,136,.08),rgba(5,150,105,.03));border:1.5px solid rgba(13,148,136,.22);border-radius:.8rem;padding:.75rem">
+                            <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#0d9488;margin-bottom:.4rem"><i class="bi bi-speedometer2 me-1"></i>Meilleure Efficacité</div>
+                            <div style="font-size:.92rem;font-weight:800;color:#0f172a" title="{{ palmEff.full }}">{{ palmEff.short }}</div>
+                            <div style="font-size:.67rem;color:#64748b;margin-top:.2rem;font-weight:600">{{ palmEff.val }} T/op</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(217,119,6,.03));border:1.5px solid rgba(245,158,11,.25);border-radius:.8rem;padding:.75rem">
+                            <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#d97706;margin-bottom:.4rem"><i class="bi bi-box-seam-fill me-1"></i>Plus de Cartons</div>
+                            <div style="font-size:.92rem;font-weight:800;color:#0f172a" title="{{ palmCartons.full }}">{{ palmCartons.short }}</div>
+                            <div style="font-size:.67rem;color:#64748b;margin-top:.2rem;font-weight:600">{{ palmCartons.val|number_format(0,',',' ') }} ctn</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(124,58,237,.03));border:1.5px solid rgba(139,92,246,.2);border-radius:.8rem;padding:.75rem">
+                            <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7c3aed;margin-bottom:.4rem"><i class="bi bi-weight me-1"></i>Plus de Tonnage</div>
+                            <div style="font-size:.92rem;font-weight:800;color:#0f172a" title="{{ palmTonnage.full }}">{{ palmTonnage.short }}</div>
+                            <div style="font-size:.67rem;color:#64748b;margin-top:.2rem;font-weight:600">{{ palmTonnage.val }} T</div>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="pt-2 border-top">
+                    <div class="d-flex justify-content-around text-center mb-2">
+                        <div>
+                            <div class="fw-bold text-success" style="font-size:1.05rem">{{ stats|reduce((acc,s)=>acc+s.entries,0) }}</div>
+                            <small class="text-secondary" style="font-size:.68rem">Entrées</small>
+                        </div>
+                        <div style="width:1px;background:#e2e8f0"></div>
+                        <div>
+                            <div class="fw-bold text-danger" style="font-size:1.05rem">{{ stats|reduce((acc,s)=>acc+s.exits,0) }}</div>
+                            <small class="text-secondary" style="font-size:.68rem">Sorties</small>
+                        </div>
+                        <div style="width:1px;background:#e2e8f0"></div>
+                        <div>
+                            <div class="fw-bold text-primary" style="font-size:1.05rem">{{ totalOps }}</div>
+                            <small class="text-secondary" style="font-size:.68rem">Total</small>
+                        </div>
+                        <div style="width:1px;background:#e2e8f0"></div>
+                        <div>
+                            <div class="fw-bold" style="font-size:1.05rem;color:#7c3aed">{{ totalTonnage }}</div>
+                            <small class="text-secondary" style="font-size:.68rem">Tonnes</small>
+                        </div>
+                    </div>
+                    <div style="background:rgba(99,102,241,.05);border-radius:.7rem;padding:.5rem .8rem;font-size:.73rem;color:#64748b;text-align:center">
+                        <i class="bi bi-people-fill me-1"></i>
+                        <strong style="color:#4f46e5">{{ ctrlCount }}</strong> contrôleurs ·
+                        moy. <strong style="color:#4f46e5">{{ avgOps }}</strong> op/ctrl
+                    </div>
+                </div>
+
+                {% endif %}
             </div>
         </div>
+
     </div>
 
-    {# Graphique #}
-    <div class="card">
-        <div class="card-header"><i class="bi bi-graph-up me-2"></i>Répartition des opérations</div>
-        <div class="card-body">
-            <canvas id="chartControleurs" height="100"></canvas>
-        </div>
-    </div>
 </div>
 {% endblock %}
 
 {% block javascripts %}
+{{ parent() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
-const ctx = document.getElementById('chartControleurs');
-if (ctx) {
-    new Chart(ctx, {
+const labels   = [{% for s in stats %}'{{ s.user.fullName|e('js') }}'{{ not loop.last ? ',' }}{% endfor %}];
+const entries  = [{% for s in stats %}{{ s.entries }}{{ not loop.last ? ',' }}{% endfor %}];
+const exits    = [{% for s in stats %}{{ s.exits }}{{ not loop.last ? ',' }}{% endfor %}];
+const tonnages = [{% for s in stats %}{{ s.tonnage }}{{ not loop.last ? ',' }}{% endfor %}];
+const cartons  = [{% for s in stats %}{{ s.cartons }}{{ not loop.last ? ',' }}{% endfor %}];
+const totals   = [{% for s in stats %}{{ s.total }}{{ not loop.last ? ',' }}{% endfor %}];
+
+// Palette unifiée — même couleur par contrôleur dans tous les graphes
+const CTRL = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#e11d48'];
+
+Chart.defaults.font.family = 'inherit';
+Chart.defaults.color = '#64748b';
+Chart.defaults.font.size = 11;
+
+const tip = {
+    backgroundColor:'#1e293b', padding:8, cornerRadius:7,
+    titleFont:{weight:'700',size:11}, bodyFont:{size:11},
+};
+
+/* Compteurs animés */
+function animCount(el, target, dur = 1000, dec = 0) {
+    let v = 0, step = target / (dur / 16);
+    const run = () => {
+        v = Math.min(v + step, target);
+        el.textContent = dec ? v.toFixed(dec) : Math.floor(v).toLocaleString('fr-FR');
+        if (v < target) requestAnimationFrame(run);
+    };
+    requestAnimationFrame(run);
+}
+document.querySelectorAll('.count-up[data-target]').forEach(el => animCount(el, +el.dataset.target));
+const kpiTon = document.getElementById('kpiTonnage');
+if (kpiTon) animCount(kpiTon, {{ totalTonnage|replace({',':'.'}) }}, 1000, 1);
+
+/* ── 1. Entrées & Sorties – barres verticales groupées ── */
+const barCtx = document.getElementById('chartBar');
+if (barCtx) {
+    barCtx.style.width = '100%';
+    new Chart(barCtx, {
         type: 'bar',
         data: {
-            labels: [{% for s in stats %}'{{ s.user.fullName }}'{{ not loop.last ? ',' }}{% endfor %}],
+            labels,
             datasets: [
-                {
-                    label: 'Entrées',
-                    data: [{% for s in stats %}{{ s.entries }}{{ not loop.last ? ',' }}{% endfor %}],
-                    backgroundColor: 'rgba(16, 185, 129, 0.7)'
-                },
-                {
-                    label: 'Sorties',
-                    data: [{% for s in stats %}{{ s.exits }}{{ not loop.last ? ',' }}{% endfor %}],
-                    backgroundColor: 'rgba(239, 68, 68, 0.7)'
-                }
+                { label:'Entrées', data:entries, backgroundColor:'rgba(16,185,129,.8)', hoverBackgroundColor:'#10b981', borderRadius:5, borderSkipped:false, maxBarThickness:28 },
+                { label:'Sorties', data:exits,   backgroundColor:'rgba(239,68,68,.8)',  hoverBackgroundColor:'#ef4444', borderRadius:5, borderSkipped:false, maxBarThickness:28 }
             ]
         },
         options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true } }
+            responsive:true, maintainAspectRatio:false,
+            animation:{ duration:900 },
+            interaction:{ mode:'index' },
+            plugins:{
+                legend:{ display:false },
+                tooltip:{ ...tip, callbacks:{ label: ctx => ` ${ctx.dataset.label} : ${ctx.parsed.y}` } }
+            },
+            scales:{
+                x:{ grid:{display:false}, border:{display:false}, ticks:{font:{size:10}, maxRotation:30, minRotation:0} },
+                y:{ beginAtZero:true, grid:{color:'#f1f5f9'}, border:{display:false}, ticks:{stepSize:1} }
+            }
+        }
+    });
+}
+
+/* ── 2. Donut tonnage (palette chaude) ── */
+const donutCtx = document.getElementById('chartDonut');
+if (donutCtx && tonnages.some(t => t > 0)) {
+    new Chart(donutCtx, {
+        type:'doughnut',
+        data:{ labels, datasets:[{ data:tonnages, backgroundColor:labels.map((_,i)=>CTRL[i%CTRL.length]), borderWidth:2, borderColor:'#fff', hoverOffset:8 }] },
+        options:{
+            responsive:true, cutout:'62%',
+            animation:{ duration:1100 },
+            plugins:{
+                legend:{ position:'bottom', labels:{ boxWidth:9, padding:8, font:{size:10} } },
+                tooltip:{ ...tip, callbacks:{ label: ctx => ` ${ctx.label} : ${ctx.parsed.toFixed(1)} T` } }
+            }
+        }
+    });
+}
+
+/* ── 3. Top Contrôleurs – barres horizontales (couleur par ctrl) ── */
+const topCtx = document.getElementById('chartTopCtrl');
+if (topCtx) {
+    topCtx.style.width = '100%';
+    new Chart(topCtx, {
+        type:'bar',
+        data:{
+            labels,
+            datasets:[{
+                label:'Total opérations',
+                data: totals,
+                backgroundColor: labels.map((_,i) => CTRL[i%CTRL.length]+'bb'),
+                hoverBackgroundColor: labels.map((_,i) => CTRL[i%CTRL.length]),
+                borderRadius:5, borderSkipped:false, borderWidth:0,
+                maxBarThickness:22
+            }]
+        },
+        options:{
+            indexAxis:'y', responsive:true, maintainAspectRatio:false,
+            animation:{ duration:900 },
+            plugins:{
+                legend:{ display:false },
+                tooltip:{ ...tip, callbacks:{ label: ctx => ` ${ctx.parsed.x} opérations` } }
+            },
+            scales:{
+                x:{ beginAtZero:true, grid:{color:'#f1f5f9'}, border:{display:false}, ticks:{stepSize:1} },
+                y:{ grid:{display:false}, border:{display:false}, ticks:{font:{size:10}} }
+            }
+        }
+    });
+}
+
+/* ── 4. Donut cartons (palette froide) ── */
+const cartCtx = document.getElementById('chartCartons');
+if (cartCtx && cartons.some(c => c > 0)) {
+    new Chart(cartCtx, {
+        type:'doughnut',
+        data:{ labels, datasets:[{ data:cartons, backgroundColor:labels.map((_,i)=>CTRL[i%CTRL.length]+'bb'), borderColor:'#fff', borderWidth:2, hoverOffset:5 }] },
+        options:{
+            cutout:'68%', responsive:true,
+            animation:{ duration:1100 },
+            plugins:{
+                legend:{ display:false },
+                tooltip:{ ...tip, callbacks:{ label: ctx => ` ${ctx.label} : ${ctx.parsed.toLocaleString('fr-FR')} ctn` } }
+            }
         }
     });
 }

@@ -29,6 +29,14 @@ class InvoiceLine
     #[ORM\Column(type: 'decimal', precision: 12, scale: 2)]
     private string $lineTotal = '0.00';
 
+    /** Nombre de jours (colonne séjour) */
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $quantityJours = null;
+
+    /** Libellé PU personnalisé (ex: "FORFAIT") */
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $unitPriceDisplay = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getInvoice(): ?Invoice { return $this->invoice; }
@@ -45,4 +53,10 @@ class InvoiceLine
 
     public function getLineTotal(): string { return $this->lineTotal; }
     public function setLineTotal(float $lineTotal): static { $this->lineTotal = number_format($lineTotal, 2, '.', ''); return $this; }
+
+    public function getQuantityJours(): ?int { return $this->quantityJours; }
+    public function setQuantityJours(?int $v): static { $this->quantityJours = $v; return $this; }
+
+    public function getUnitPriceDisplay(): ?string { return $this->unitPriceDisplay; }
+    public function setUnitPriceDisplay(?string $v): static { $this->unitPriceDisplay = $v; return $this; }
 }

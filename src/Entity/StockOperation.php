@@ -4,8 +4,6 @@ namespace App\Entity;
 
 use App\Enum\StockStatus;
 use App\Repository\StockOperationRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StockOperationRepository::class)]
@@ -38,12 +36,8 @@ class StockOperation
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
-    #[ORM\OneToMany(mappedBy: 'operation', targetEntity: StockEntry::class, cascade: ['persist', 'remove'])]
-    private Collection $stockEntries;
-
     public function __construct()
     {
-        $this->stockEntries = new ArrayCollection();
         $this->operationDate = new \DateTime();
     }
 
@@ -65,30 +59,6 @@ class StockOperation
     public function setCreatedBy(User $user): self { $this->createdBy = $user; return $this; }
 
     public function getCreatedAt(): \DateTimeInterface { return $this->createdAt; }
-
-    /** @return Collection<int, StockEntry> */
-    public function getStockEntries(): Collection { return $this->stockEntries; }
-
-    public function addStockEntry(StockEntry $entry): self
-    {
-        if (!$this->stockEntries->contains($entry)) {
-            $this->stockEntries->add($entry);
-            $entry->setOperation($this);
-        }
-        return $this;
-    }
-
-    public function getTotalPalettes(): int { return $this->stockEntries->count(); }
-
-    public function getTotalCartons(): int
-    {
-        return array_reduce($this->stockEntries->toArray(), fn($sum, $e) => $sum + $e->getNombreCartons(), 0);
-    }
-
-    public function getTotalWeight(): float
-    {
-        return array_reduce($this->stockEntries->toArray(), fn($sum, $e) => $sum + (float)$e->getQuantityTons(), 0.0);
-    }
 
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void { $this->createdAt = new \DateTime(); }

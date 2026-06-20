@@ -50,7 +50,7 @@ class CreateTestUsersCommand extends Command
             if (!$existing) {
                 $coldRoom = new ColdRoom();
                 $coldRoom->setName($name);
-                $coldRoom->setMaxCapacityTons('2000');
+                $coldRoom->setMaxCapacityTons('2400');
                 $coldRoom->setTargetTemperature('-25');
                 $coldRoom->setIsActive(true);
                 $this->em->persist($coldRoom);

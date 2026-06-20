@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Entity\Client;
+use App\Entity\ColdRoom;
 use App\Entity\StockEntry;
 use App\Entity\StockExit;
 use App\Entity\StockItem;
